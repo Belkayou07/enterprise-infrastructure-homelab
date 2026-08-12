@@ -43,10 +43,12 @@ The exact virtualization and network-emulation products will be selected after c
 
 ## Chapter 0 Tasks
 
-- [ ] Record desktop hardware and Windows edition
-- [ ] Record available network interfaces
-- [ ] Record current connectivity constraints
-- [ ] Confirm hardware virtualization support
+- [x] Record desktop hardware and reported Windows edition
+- [x] Record available network interfaces
+- [ ] Verify exact Windows build/version because the first PowerShell report may not identify Windows 11 correctly
+- [ ] Verify why the CPU currently reports only 12 logical processors although the installed model supports SMT
+- [ ] Identify the currently active Windows hypervisor / virtualization features
+- [x] Confirm hardware virtualization support is enabled in firmware
 - [x] Define the physical-host strategy: single desktop
 - [ ] Choose the virtualization platform
 - [ ] Choose network simulation/emulation tooling
@@ -59,7 +61,23 @@ The exact virtualization and network-emulation products will be selected after c
 
 ### Desktop
 
-To be measured.
+Initial PowerShell audit performed on 2026-08-12.
+
+| Component | Observed value |
+|---|---|
+| Manufacturer | Micro-Star International Co., Ltd. |
+| Motherboard/system model | MS-7E26 |
+| CPU | AMD Ryzen 9 7900 12-Core Processor |
+| Physical CPU cores reported | 12 |
+| Logical processors reported | 12 — requires verification |
+| RAM | 31.1 GB usable/reportable |
+| Storage | SPCC M.2 PCIe SSD, 953.87 GB |
+| Architecture | 64-bit |
+| Firmware virtualization | Enabled |
+| Windows hypervisor detected | Yes |
+| Windows product report | Windows 10 Pro, version value `2009` — exact build pending verification |
+
+The processor and memory capacity are sufficient for a multi-VM infrastructure lab, but resource allocation will be planned so the Windows host remains responsive.
 
 ### Additional Physical Hardware
 
@@ -67,7 +85,17 @@ Not required for the core project.
 
 ## Network Environment
 
-To be measured.
+Observed adapters during the initial audit:
+
+| Adapter | State | Observed link speed / purpose |
+|---|---|---|
+| RZ616 Wi-Fi 6E 160MHz | Up | 144.4 Mbps; current host connectivity |
+| Realtek Gaming 2.5GbE | Disconnected | Physical 2.5 GbE Ethernet adapter |
+| Tailscale Tunnel | Up | Overlay/VPN adapter |
+| VirtualBox Host-Only Ethernet Adapter | Up | 1 Gbps virtual host-only adapter |
+| Additional VirtualBox Host-Only adapter | Not present | Stale/unused virtual adapter |
+
+The existing VirtualBox adapters show that virtualization networking has already been installed on the host. This will be considered before selecting or installing another hypervisor.
 
 ## Design Decisions
 
@@ -79,18 +107,24 @@ To be measured.
 
 **Consequence:** Desktop RAM, CPU virtualization support, available storage, and Windows edition become important design constraints. Resource allocation will need to be managed carefully when several VMs are running simultaneously.
 
-No virtualization-platform decision is considered final until the desktop audit is complete.
+### DD-002 — Do not select the hypervisor from incomplete inventory data
+
+**Decision:** Do not install or commit to VMware Workstation, Hyper-V, or another desktop hypervisor until the currently active Windows hypervisor state and exact Windows build have been verified.
+
+**Reasoning:** The first audit reports `HypervisorPresent = True`, while VirtualBox host-only adapters also exist. Installing multiple virtualization stacks without understanding the current state can introduce compatibility/performance issues and would be poor infrastructure practice.
 
 ## Evidence
 
 Only relevant sanitized output/screenshots will be stored in this repository.
 
+Raw command output containing no useful portfolio evidence does not need to be committed simply for completeness.
+
 ## Completion Criteria
 
 Chapter 0 is complete when:
 
-1. The desktop hardware, Windows edition, and interfaces are documented.
-2. Virtualization capability is confirmed.
+1. The desktop hardware, Windows edition/build, and interfaces are documented.
+2. Virtualization capability and the currently active hypervisor state are confirmed.
 3. The virtualization platform and network-lab tooling have been selected with stated reasons.
 4. An initial lab architecture has been designed.
 5. The next implementation chapter can begin without guessing about the environment.
