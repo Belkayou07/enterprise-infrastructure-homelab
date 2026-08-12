@@ -47,6 +47,7 @@ Physical Windows 11 Pro Desktop
 - [ ] Verify why the CPU currently exposes only 12 logical processors although the installed model supports 24 threads
 - [x] Identify the currently active Windows virtualization state
 - [x] Confirm hardware virtualization support is enabled in firmware
+- [x] Record motherboard and BIOS inventory
 - [x] Define the physical-host strategy: single desktop
 - [x] Choose the virtualization platform: Hyper-V
 - [x] Choose planned network simulation/emulation tooling: GNS3 with Hyper-V support
@@ -64,7 +65,10 @@ Initial PowerShell audit performed on 2026-08-12.
 | Component | Observed value |
 |---|---|
 | Manufacturer | Micro-Star International Co., Ltd. |
-| Motherboard/system model | MS-7E26 |
+| Motherboard | MSI B650 GAMING PLUS WIFI (MS-7E26), revision 1.0 |
+| BIOS vendor | American Megatrends International, LLC. |
+| BIOS version | 1.L0 |
+| BIOS release date | 2025-06-19 |
 | CPU | AMD Ryzen 9 7900 12-Core Processor |
 | Physical CPU cores reported | 12 |
 | Logical processors exposed to Windows | 12 — still under investigation |
@@ -76,7 +80,7 @@ Initial PowerShell audit performed on 2026-08-12.
 | Windows edition | Windows 11 Pro |
 | Windows release/build | 25H2, build 26200.8973 |
 
-The Ryzen 9 7900 supports 12 cores and 24 threads. Windows currently exposes only 12 logical processors, while WMI reports `ThreadCount = 24`. No `numproc` boot limit was found. The remaining cause will be checked before changing firmware settings.
+The Ryzen 9 7900 supports 12 cores and 24 threads. Windows currently exposes only 12 logical processors, while WMI reports `ThreadCount = 24`. No `numproc` boot limit was found. The remaining check is the firmware SMT setting; no firmware setting will be changed until its current value is observed.
 
 The machine is already sufficient for the planned multi-VM lab even at the currently exposed 12 logical processors, provided VM resources are allocated conservatively.
 
