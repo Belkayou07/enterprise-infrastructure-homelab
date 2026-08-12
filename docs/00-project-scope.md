@@ -45,9 +45,10 @@ The exact virtualization and network-emulation products will be selected after c
 
 - [x] Record desktop hardware and reported Windows edition
 - [x] Record available network interfaces
-- [ ] Verify exact Windows build/version because the first PowerShell report may not identify Windows 11 correctly
-- [ ] Verify why the CPU currently reports only 12 logical processors although the installed model supports SMT
-- [ ] Identify the currently active Windows hypervisor / virtualization features
+- [x] Verify exact Windows build/version
+- [ ] Verify why the CPU currently exposes only 12 logical processors although the installed model supports 24 threads
+- [ ] Identify which Windows virtualization optional features are enabled
+- [x] Confirm that a Windows hypervisor is currently active
 - [x] Confirm hardware virtualization support is enabled in firmware
 - [x] Define the physical-host strategy: single desktop
 - [ ] Choose the virtualization platform
@@ -69,13 +70,19 @@ Initial PowerShell audit performed on 2026-08-12.
 | Motherboard/system model | MS-7E26 |
 | CPU | AMD Ryzen 9 7900 12-Core Processor |
 | Physical CPU cores reported | 12 |
-| Logical processors reported | 12 — requires verification |
+| Hardware thread count reported | 24 |
+| Logical processors exposed to Windows | 12 — still under investigation |
 | RAM | 31.1 GB usable/reportable |
 | Storage | SPCC M.2 PCIe SSD, 953.87 GB |
 | Architecture | 64-bit |
 | Firmware virtualization | Enabled |
 | Windows hypervisor detected | Yes |
-| Windows product report | Windows 10 Pro, version value `2009` — exact build pending verification |
+| Operating system | Windows 11 Pro, version 25H2 |
+| OS build | 26200.8973 |
+
+Microsoft's official build information identifies build 26200.8973 as Windows 11 version 25H2. The registry's `ProductName` field still returned `Windows 10 Pro`; this is treated as legacy/compatibility metadata rather than the authoritative version indicator.
+
+AMD specifies the Ryzen 9 7900 as a 12-core / 24-thread processor with SMT support. Windows currently reports only 12 logical processors while WMI reports `ThreadCount = 24`; this discrepancy will be investigated before VM CPU allocations are finalized.
 
 The processor and memory capacity are sufficient for a multi-VM infrastructure lab, but resource allocation will be planned so the Windows host remains responsive.
 
@@ -97,6 +104,18 @@ Observed adapters during the initial audit:
 
 The existing VirtualBox adapters show that virtualization networking has already been installed on the host. This will be considered before selecting or installing another hypervisor.
 
+## Virtualization State
+
+`systeminfo` reports:
+
+```text
+Hyper-V Requirements: A hypervisor has been detected. Features required for Hyper-V will not be displayed.
+```
+
+The same system report includes Hypervisor-Enforced Code Integrity (HVCI). Windows virtualization-based security and Memory Integrity use the Windows hypervisor, so the presence of an active hypervisor does **not by itself prove** that the full Hyper-V VM-management feature is installed.
+
+The optional Windows features still need to be queried from an elevated PowerShell session before the lab hypervisor is selected.
+
 ## Design Decisions
 
 ### DD-001 — Single-desktop lab
@@ -109,9 +128,9 @@ The existing VirtualBox adapters show that virtualization networking has already
 
 ### DD-002 — Do not select the hypervisor from incomplete inventory data
 
-**Decision:** Do not install or commit to VMware Workstation, Hyper-V, or another desktop hypervisor until the currently active Windows hypervisor state and exact Windows build have been verified.
+**Decision:** Do not install or commit to VMware Workstation, Hyper-V, or another desktop hypervisor until the currently active Windows virtualization features have been verified.
 
-**Reasoning:** The first audit reports `HypervisorPresent = True`, while VirtualBox host-only adapters also exist. Installing multiple virtualization stacks without understanding the current state can introduce compatibility/performance issues and would be poor infrastructure practice.
+**Reasoning:** The host already runs the Windows hypervisor for at least virtualization-based security, while VirtualBox host-only adapters also exist. Installing or enabling additional virtualization components without understanding the current state can create unnecessary compatibility/performance problems.
 
 ## Evidence
 
@@ -124,7 +143,8 @@ Raw command output containing no useful portfolio evidence does not need to be c
 Chapter 0 is complete when:
 
 1. The desktop hardware, Windows edition/build, and interfaces are documented.
-2. Virtualization capability and the currently active hypervisor state are confirmed.
-3. The virtualization platform and network-lab tooling have been selected with stated reasons.
-4. An initial lab architecture has been designed.
-5. The next implementation chapter can begin without guessing about the environment.
+2. Virtualization capability and the currently active Windows virtualization features are confirmed.
+3. The CPU logical-processor discrepancy is understood or explicitly accepted as a host constraint.
+4. The virtualization platform and network-lab tooling have been selected with stated reasons.
+5. An initial lab architecture has been designed.
+6. The next implementation chapter can begin without guessing about the environment.
