@@ -4,13 +4,15 @@ A hands-on infrastructure engineering portfolio project built to simulate a smal
 
 ## Project Goal
 
-Design, deploy, secure, operate, troubleshoot, document, and progressively automate a realistic enterprise-style lab using physical hardware and virtual machines.
+Design, deploy, secure, operate, troubleshoot, document, and progressively automate a realistic enterprise-style lab entirely from a **single Windows desktop**.
+
+The physical desktop remains the normal administrator workstation while virtual machines and network simulation/emulation provide the servers, clients, firewalls, routers, switches, and isolated networks used throughout the project.
 
 The project is intentionally built in chapters. Each chapter must be working and understood before the next one is treated as complete.
 
 ## Learning Path
 
-1. **Chapter 0 — Scope, hardware audit, and repository setup**
+1. **Chapter 0 — Scope, desktop audit, and repository setup**
 2. **Chapter 1 — Virtualization platform**
 3. **Chapter 2 — Network architecture and IP design**
 4. **Chapter 3 — Firewall and routing**
@@ -25,15 +27,16 @@ The project is intentionally built in chapters. Each chapter must be working and
 
 ## Planned Technology Areas
 
-The exact implementation will be selected during the relevant chapters rather than assumed in advance.
+The exact implementation is selected during the relevant chapters rather than assumed in advance.
 
-- Virtualization
+- Desktop virtualization
 - Windows Server
 - Linux
 - Active Directory
 - DNS and DHCP
 - Routing and VLANs
 - Firewalling
+- Network simulation/emulation
 - Monitoring
 - Backup and recovery
 - Git and GitHub
@@ -42,6 +45,27 @@ The exact implementation will be selected during the relevant chapters rather th
 - Terraform
 - Azure
 - Containers and CI/CD
+
+## Planned Logical Architecture
+
+```text
+Windows Desktop
+│
+├── Normal workstation
+│   ├── Browser / administration tools
+│   ├── PowerShell / terminal
+│   └── Git / GitHub
+│
+├── Desktop virtualization platform
+│   ├── Firewall/router VM
+│   ├── Windows Server VM(s)
+│   ├── Windows client VM(s)
+│   ├── Linux server VM(s)
+│   └── Monitoring/utility VM(s)
+│
+└── Network lab tooling
+    └── Simulated/emulated routers, switches and advanced topologies
+```
 
 ## Repository Structure
 
@@ -62,8 +86,8 @@ Directories are added only when they contain real project material; empty folder
 
 **Chapter 0 — In progress**
 
-Next: inventory the available laptop and desktop hardware, document the current network situation, and decide the virtualization architecture.
+The single-desktop strategy is confirmed. Next: audit the Windows desktop's CPU, RAM, storage, Windows edition, network interfaces, and hardware virtualization support before finalizing the virtualization platform and VM sizing.
 
 ## Portfolio Principle
 
-This repository is evidence of work performed, not a collection of generated examples. Credentials, secrets, private IP information that should not be public, license keys, and sensitive configuration will never be committed.
+This repository is evidence of work performed, not a collection of generated examples. Credentials, secrets, license keys, and sensitive configuration will never be committed.
