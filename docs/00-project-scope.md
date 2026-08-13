@@ -44,8 +44,8 @@ Physical Windows 11 Pro Desktop
 - [x] Record desktop hardware and reported Windows edition
 - [x] Record available network interfaces
 - [x] Verify exact Windows build/version
-- [x] Identify why the CPU currently exposes only 12 logical processors although the installed model supports 24 threads
-- [ ] Re-enable SMT in Ryzen Master and verify that Windows exposes 24 logical processors
+- [x] Identify why the CPU exposed only 12 logical processors although the installed model supports 24 threads
+- [x] Re-enable SMT in Ryzen Master and verify that Windows exposes 24 logical processors
 - [x] Identify the currently active Windows virtualization state
 - [x] Confirm hardware virtualization support is enabled in firmware
 - [x] Define the physical-host strategy: single desktop
@@ -60,7 +60,7 @@ Physical Windows 11 Pro Desktop
 
 ### Desktop
 
-Initial PowerShell audit performed on 2026-08-12.
+Initial PowerShell audit performed on 2026-08-12 and completed on 2026-08-13.
 
 | Component | Observed value |
 |---|---|
@@ -68,21 +68,23 @@ Initial PowerShell audit performed on 2026-08-12.
 | Motherboard | MSI B650 GAMING PLUS WIFI (MS-7E26), revision 1.0 |
 | BIOS | American Megatrends / MSI BIOS 1.L0, dated 2025-06-19 |
 | CPU | AMD Ryzen 9 7900 12-Core Processor |
-| Physical CPU cores reported | 12 |
-| Logical processors exposed to Windows | 12 |
+| Physical CPU cores | 12 |
+| Logical processors exposed to Windows | 24 — verified after SMT restoration |
 | CPU hardware thread count | 24 |
 | RAM | 31.1 GB usable/reportable |
 | Storage | SPCC M.2 PCIe SSD, 953.87 GB |
 | Architecture | 64-bit |
 | Firmware virtualization | Enabled |
 | BIOS SMT Control | Auto |
-| Ryzen Master SMT state | OFF — root cause identified |
+| Ryzen Master SMT state | ON after remediation |
 | Windows edition | Windows 11 Pro |
 | Windows release/build | 25H2, build 26200.8973 |
 
-The Ryzen 9 7900 supports 12 cores and 24 threads. Windows currently exposes only 12 logical processors while WMI reports `ThreadCount = 24`. No `numproc` boot limit was found and BIOS `SMT Control` is set to `Auto`. Ryzen Master was then inspected directly and showed `Simultaneous Multithreading = OFF`, identifying the most likely cause of the 12-logical-processor state.
+The Ryzen 9 7900 originally appeared in Windows as 12 cores and 12 logical processors while WMI still reported `ThreadCount = 24`. No Windows `numproc` boot limit was present and BIOS `SMT Control` was set to `Auto`.
 
-The machine is already sufficient for the planned multi-VM lab even at the currently exposed 12 logical processors, but SMT should be restored before the virtualization chapter so the host can use its full logical processor capacity.
+AMD Ryzen Master was then inspected and showed `Simultaneous Multithreading = OFF`. SMT was changed to `ON` in Ryzen Master and applied. After restart, Windows correctly reported 12 cores, 24 logical processors, and 24 threads.
+
+This resolved the host CPU-capacity anomaly before the virtualization chapter began.
 
 ### Installed CPU / Platform Utilities Relevant to Investigation
 
@@ -92,7 +94,7 @@ The Windows software inventory identified:
 - AMD Ryzen Master SDK 3.0.0.3620
 - MSI Center SDK 3.2026.0410.01
 
-Ryzen Master is the relevant control point: the application currently reports `Simultaneous Multithreading = OFF` while `Legacy Compatibility Mode = OFF`.
+Ryzen Master was the relevant control point for the logical-processor issue.
 
 ### Additional Physical Hardware
 
@@ -155,6 +157,12 @@ The Windows hypervisor is therefore already active for host security features ev
 
 **Reasoning:** Hyper-V will host the main server/client infrastructure; GNS3 adds dedicated network-engineering capabilities without requiring a second physical machine.
 
+### DD-005 — Restore full CPU thread capacity before virtualization
+
+**Decision:** Resolve the 12-logical-processor anomaly before deploying the lab.
+
+**Reasoning:** The host is the only physical compute platform for the project. Confirming and restoring the expected 24 logical processors prevents unnecessary CPU contention and demonstrates proper pre-deployment troubleshooting rather than designing around an unexplained constraint.
+
 ## Evidence
 
 Only relevant sanitized output/screenshots will be stored in this repository.
@@ -168,6 +176,6 @@ Chapter 0 is complete when:
 1. The desktop hardware, Windows edition/build, and interfaces are documented.
 2. Virtualization capability and the current Windows virtualization state are confirmed.
 3. The virtualization platform and network-lab tooling have been selected with stated reasons.
-4. SMT has been re-enabled and the expected logical-processor count has been verified, or the host constraint has been deliberately accepted.
+4. SMT is enabled and the expected 24 logical processors are verified.
 5. An initial lab architecture, naming convention, and IP plan have been designed.
 6. The next implementation chapter can begin without guessing about the environment.
