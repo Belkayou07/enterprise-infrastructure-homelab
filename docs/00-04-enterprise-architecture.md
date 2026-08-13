@@ -44,13 +44,13 @@ Additional servers will only be added when a chapter creates a real need for the
               +---------------+---------------+
               |               |               |
           USERS NET       SERVERS NET      MGMT NET
+       10.10.10.0/24    10.10.20.0/24    10.10.30.0/24
               |               |               |
           [CLIENT01]      +----+----+       Admin
-                          |    |    |       access
+          DHCP later      |    |    |       access
                         [DC01][LNX01][MON01]
+                         .10   .20   .30
 ```
-
-This is the logical target. Hyper-V virtual switches and detailed subnetting will be designed before deployment.
 
 ## Naming Convention
 
@@ -70,18 +70,45 @@ Examples:
 
 The convention is intentionally simple and expandable.
 
-## Network Zones — Draft
+## Network Zones and IPv4 Plan
 
-The lab will use separate logical zones rather than placing every machine in one flat network.
+BelkaCorp reserves `10.10.0.0/16` as the private lab address space. The first three `/24` networks are assigned by function so the addressing remains easy to recognize and expand.
 
-| Zone | Purpose |
-|---|---|
-| WAN | External/upstream connectivity |
-| USERS | Employee workstations |
-| SERVERS | Internal infrastructure and application servers |
-| MGMT | Administrative/management access |
+| Zone | Subnet | Default gateway | Purpose |
+|---|---|---|---|
+| USERS | `10.10.10.0/24` | `10.10.10.1` | Employee workstations |
+| SERVERS | `10.10.20.0/24` | `10.10.20.1` | Internal servers and infrastructure services |
+| MGMT | `10.10.30.0/24` | `10.10.30.1` | Administrative and management access |
 
-Exact subnets are not considered final until the IP addressing exercise is completed.
+### Initial Static Server Addresses
+
+| Host | Address | Network |
+|---|---|---|
+| DC01 | `10.10.20.10/24` | SERVERS |
+| LNX01 | `10.10.20.20/24` | SERVERS |
+| MON01 | `10.10.20.30/24` | SERVERS |
+
+`FW01` will own the `.1` gateway address in each internal network when the firewall/router chapter is implemented.
+
+### Planned User DHCP Range
+
+The USERS network will later use DHCP for employee endpoints. The initial reserved pool is:
+
+```text
+10.10.10.100 - 10.10.10.199
+```
+
+`CLIENT01` will eventually obtain an address from this pool rather than receiving a manually assigned user IP.
+
+## Addressing Quick Note
+
+For a host such as:
+
+```text
+DC01 = 10.10.20.10/24
+```
+
+its network is `10.10.20.0/24`, its planned default gateway is `10.10.20.1`, and it belongs to the SERVERS zone.
 
 ## Host Resource Budget
 
@@ -117,9 +144,9 @@ Not all machines need to run simultaneously. VM sizing will be adjusted based on
 - [x] Define company and departments
 - [x] Define initial infrastructure roles
 - [x] Define naming convention
-- [x] Define draft network zones
+- [x] Define network zones
 - [x] Define initial VM resource budget
-- [ ] Choose exact IPv4 subnets and gateway addresses
+- [x] Choose exact IPv4 subnets and gateway addresses
 - [ ] Define Hyper-V virtual-switch layout
 - [ ] Produce the finalized logical architecture schema
 - [ ] Record the final design decision in Chapter 0 documentation
