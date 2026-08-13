@@ -32,25 +32,33 @@ The company is large enough to justify centralized identity, segmented networkin
 
 Additional servers will only be added when a chapter creates a real need for them.
 
-## Quick Architecture Schema
+## Final Logical Architecture
 
 ```text
-                          INTERNET
-                              |
-                              |
-                           [ FW01 ]
-                       OPNsense Firewall
-                              |
-              +---------------+---------------+
-              |               |               |
-          USERS NET       SERVERS NET      MGMT NET
-       10.10.10.0/24    10.10.20.0/24    10.10.30.0/24
-              |               |               |
-          [CLIENT01]      +----+----+       Admin
-          DHCP later      |    |    |       access
-                        [DC01][LNX01][MON01]
-                         .10   .20   .30
+                        INTERNET
+                           |
+                 Windows host connectivity
+                           |
+                 Hyper-V Default Switch
+                           |
+                      WAN NIC
+                        [FW01]
+                     OPNsense
+        +------------------+------------------+
+        |                  |                  |
+    USERS NIC          SERVERS NIC         MGMT NIC
+  10.10.10.1         10.10.20.1         10.10.30.1
+        |                  |                  |
+   vSW-USERS          vSW-SERVERS          vSW-MGMT
+    Private              Private             Internal
+        |                  |                  |
+   [CLIENT01]        +-----+-----+       Windows host
+    DHCP later       |     |     |       admin access
+                   [DC01][LNX01][MON01]
+                    .10    .20    .30
 ```
+
+The Hyper-V Default Switch is used only as the simulated upstream/WAN side for `FW01`. The enterprise networks themselves remain separate from the host's normal home network.
 
 ## Naming Convention
 
@@ -72,7 +80,7 @@ The convention is intentionally simple and expandable.
 
 ## Network Zones and IPv4 Plan
 
-BelkaCorp reserves `10.10.0.0/16` as the private lab address space. The first three `/24` networks are assigned by function so the addressing remains easy to recognize and expand.
+BelkaCorp reserves `10.10.0.0/16` as the private lab address space. This `/16` is an address allocation/supernet for the lab; it is not itself a router or host. Individual functional networks are carved from it as `/24` subnets.
 
 | Zone | Subnet | Default gateway | Purpose |
 |---|---|---|---|
@@ -88,11 +96,11 @@ BelkaCorp reserves `10.10.0.0/16` as the private lab address space. The first th
 | LNX01 | `10.10.20.20/24` | SERVERS |
 | MON01 | `10.10.20.30/24` | SERVERS |
 
-`FW01` will own the `.1` gateway address in each internal network when the firewall/router chapter is implemented.
+`FW01` owns the `.1` gateway address in each internal network.
 
 ### Planned User DHCP Range
 
-The USERS network will later use DHCP for employee endpoints. The initial reserved pool is:
+The USERS network will later use DHCP for employee endpoints:
 
 ```text
 10.10.10.100 - 10.10.10.199
@@ -100,15 +108,33 @@ The USERS network will later use DHCP for employee endpoints. The initial reserv
 
 `CLIENT01` will eventually obtain an address from this pool rather than receiving a manually assigned user IP.
 
-## Addressing Quick Note
+## Hyper-V Virtual-Switch Layout
 
-For a host such as:
+| Switch | Hyper-V type | Connected systems | Purpose |
+|---|---|---|---|
+| Default Switch | Hyper-V managed/NAT | `FW01` WAN NIC | Simulated upstream/Internet access |
+| `vSW-USERS` | Private | `FW01`, `CLIENT01` | Employee endpoint network |
+| `vSW-SERVERS` | Private | `FW01`, `DC01`, `LNX01`, `MON01` | Server network |
+| `vSW-MGMT` | Internal | `FW01`, Windows host, later management systems | Lab administration path |
+
+### Why these switch types?
+
+- **Private** means only VMs attached to that switch communicate on it. This keeps USERS and SERVERS isolated from the physical Windows host unless `FW01` explicitly routes permitted traffic.
+- **Internal** means VMs and the Windows host can communicate on that virtual switch. This is appropriate for the MGMT network because the physical desktop is also the administrator workstation.
+- The host-side `vEthernet (vSW-MGMT)` adapter will later receive a static management address without a default gateway, so it does not replace or interfere with the desktop's normal Internet route.
+
+## Inter-Subnet Routing Quick Note
+
+Example:
 
 ```text
-DC01 = 10.10.20.10/24
+CLIENT01 = 10.10.10.125/24
+DC01     = 10.10.20.10/24
 ```
 
-its network is `10.10.20.0/24`, its planned default gateway is `10.10.20.1`, and it belongs to the SERVERS zone.
+`CLIENT01` compares the destination to its own `/24` network and determines that `10.10.20.10` is remote. It sends the packet toward its default gateway `10.10.10.1` (`FW01`). `FW01` checks its routing table, sees that `10.10.20.0/24` is directly connected through its SERVERS interface, and forwards the packet onto that network if firewall policy permits it.
+
+The reserved `10.10.0.0/16` does not receive or forward the packet; it is simply the larger address block from which the lab subnets were allocated.
 
 ## Host Resource Budget
 
@@ -139,7 +165,7 @@ Not all machines need to run simultaneously. VM sizing will be adjusted based on
 5. Introduce automation only after the manual infrastructure is understood.
 6. Preserve evidence of design decisions and troubleshooting.
 
-## Remaining Chapter 0.4 Tasks
+## Chapter 0.4 Status
 
 - [x] Define company and departments
 - [x] Define initial infrastructure roles
@@ -147,6 +173,8 @@ Not all machines need to run simultaneously. VM sizing will be adjusted based on
 - [x] Define network zones
 - [x] Define initial VM resource budget
 - [x] Choose exact IPv4 subnets and gateway addresses
-- [ ] Define Hyper-V virtual-switch layout
-- [ ] Produce the finalized logical architecture schema
-- [ ] Record the final design decision in Chapter 0 documentation
+- [x] Define Hyper-V virtual-switch layout
+- [x] Produce the finalized logical architecture schema
+- [x] Record the design rationale
+
+**Chapter 0.4 design is complete.** The next stage is Chapter 1: enable and validate Hyper-V, then reproduce this design as actual virtual infrastructure.
