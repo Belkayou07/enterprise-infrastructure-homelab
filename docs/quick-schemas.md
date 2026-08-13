@@ -5,11 +5,11 @@ Compact visual notes for the homelab. These are intentionally simplified and sho
 ## Project Progress
 
 ```text
-CHAPTER 0  Design / host audit          [IN PROGRESS]
+CHAPTER 0  Design / host audit          [DONE]
    0.1     Hardware audit               [DONE]
    0.2     Virtualization investigation [DONE]
    0.3     CPU / SMT troubleshooting     [DONE]
-   0.4     Enterprise architecture       [NOW]
+   0.4     Enterprise architecture       [DONE]
 
 CHAPTER 1  Hyper-V platform             [NEXT]
 CHAPTER 2  Network architecture
@@ -38,23 +38,48 @@ CHAPTER 11 Cloud / DevOps extension
 +----------------------------------------------------------+
 ```
 
-## Enterprise Model
+## Final Enterprise / Hyper-V Model
 
 ```text
-                              INTERNET
-                                 |
-                              [FW01]
-                                 |
-             +-------------------+-------------------+
-             |                   |                   |
-           USERS               SERVERS              MGMT
-       10.10.10.0/24       10.10.20.0/24       10.10.30.0/24
-       GW 10.10.10.1       GW 10.10.20.1       GW 10.10.30.1
-             |                   |                   |
-        [CLIENT01]         +-----+-----+        Admin access
-        DHCP later         |     |     |
-                         [DC01][LNX01][MON01]
-                          .10    .20    .30
+                         INTERNET
+                            |
+                    Hyper-V Default Switch
+                            |
+                          WAN NIC
+                           [FW01]
+                          OPNsense
+        +-------------------+-------------------+
+        |                   |                   |
+   10.10.10.1          10.10.20.1          10.10.30.1
+     USERS               SERVERS                MGMT
+        |                   |                   |
+   vSW-USERS          vSW-SERVERS           vSW-MGMT
+    Private              Private              Internal
+        |                   |                   |
+   [CLIENT01]       +-------+-------+       Windows host
+   DHCP later       |       |       |       admin access
+                  [DC01]  [LNX01] [MON01]
+                   .10     .20      .30
+```
+
+## FW01 Interfaces
+
+```text
+FW01 / OPNsense
+|
++-- NIC 1  WAN      -> Hyper-V Default Switch -> Internet
++-- NIC 2  USERS    -> vSW-USERS    -> 10.10.10.1/24
++-- NIC 3  SERVERS  -> vSW-SERVERS  -> 10.10.20.1/24
++-- NIC 4  MGMT     -> vSW-MGMT     -> 10.10.30.1/24
+```
+
+## Hyper-V Switch Types Used
+
+```text
+Default Switch  -> FW01 WAN / upstream Internet
+vSW-USERS       -> Private  -> VMs only
+vSW-SERVERS     -> Private  -> VMs only
+vSW-MGMT        -> Internal -> VMs + Windows host
 ```
 
 ## IP Addressing
@@ -72,6 +97,34 @@ BELKACORP PRIVATE SPACE
     |      MON01 10.10.20.30
     |
     +-- MGMT     10.10.30.0/24   gateway .1
+```
+
+## Routing Between Two Subnets
+
+```text
+CLIENT01 10.10.10.125/24
+       |
+       | destination 10.10.20.10 is NOT local
+       v
+Default gateway 10.10.10.1
+       |
+       v
+      FW01
+       |
+       | route: 10.10.20.0/24 is directly connected
+       | firewall policy must allow it
+       v
+SERVERS interface 10.10.20.1
+       |
+       v
+DC01 10.10.20.10/24
+```
+
+Quick note:
+
+```text
+10.10.0.0/16 = reserved BelkaCorp address block / supernet
+It is NOT a router or a host.
 ```
 
 ## /24 Quick Note
