@@ -38,20 +38,51 @@ CHAPTER 11 Cloud / DevOps extension
 +----------------------------------------------------------+
 ```
 
-## Enterprise Model — Draft
+## Enterprise Model
 
 ```text
-                         INTERNET
-                            |
-                         [FW01]
-                            |
-          +-----------------+-----------------+
-          |                 |                 |
-       USERS              SERVERS            MGMT
-          |                 |                 |
-     [CLIENT01]      +------+------+      Admin access
-                     |      |      |
-                   [DC01] [LNX01] [MON01]
+                              INTERNET
+                                 |
+                              [FW01]
+                                 |
+             +-------------------+-------------------+
+             |                   |                   |
+           USERS               SERVERS              MGMT
+       10.10.10.0/24       10.10.20.0/24       10.10.30.0/24
+       GW 10.10.10.1       GW 10.10.20.1       GW 10.10.30.1
+             |                   |                   |
+        [CLIENT01]         +-----+-----+        Admin access
+        DHCP later         |     |     |
+                         [DC01][LNX01][MON01]
+                          .10    .20    .30
+```
+
+## IP Addressing
+
+```text
+BELKACORP PRIVATE SPACE
+10.10.0.0/16
+    |
+    +-- USERS    10.10.10.0/24   gateway .1
+    |      DHCP: 10.10.10.100 - 10.10.10.199
+    |
+    +-- SERVERS  10.10.20.0/24   gateway .1
+    |      DC01  10.10.20.10
+    |      LNX01 10.10.20.20
+    |      MON01 10.10.20.30
+    |
+    +-- MGMT     10.10.30.0/24   gateway .1
+```
+
+## /24 Quick Note
+
+```text
+Example: 10.10.20.10/24
+
+Network     10.10.20.0
+Gateway     10.10.20.1   (our design)
+Host        10.10.20.10
+Broadcast   10.10.20.255
 ```
 
 ## Server Roles
