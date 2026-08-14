@@ -40,38 +40,69 @@ PHYSICAL WINDOWS HOST
 
 ## Chapter Plan
 
-1. Enable the full Hyper-V Windows feature.
-2. Restart Windows.
-3. Verify the Hyper-V feature, management tools, and hypervisor state.
-4. Inspect the Hyper-V host configuration.
-5. Define VM and VHDX storage conventions.
-6. Create the planned virtual switches.
-7. Configure the Windows host's MGMT virtual adapter.
-8. Deploy a small test VM.
-9. Verify CPU, memory, disk, and network operation.
-10. Document evidence and troubleshooting.
+1. [x] Enable the full Hyper-V Windows feature.
+2. [x] Restart Windows.
+3. [x] Verify the Hyper-V feature, management tools, and hypervisor state.
+4. [ ] Inspect the Hyper-V host configuration.
+5. [ ] Define VM and VHDX storage conventions.
+6. [ ] Create the planned virtual switches.
+7. [ ] Configure the Windows host's MGMT virtual adapter.
+8. [ ] Deploy a small test VM.
+9. [ ] Verify CPU, memory, disk, and network operation.
+10. [ ] Document evidence and troubleshooting.
 
-## Step 1 — Enable Hyper-V
+## Step 1 — Enable and Verify Hyper-V
 
-Run an elevated PowerShell session and execute:
+Hyper-V was enabled from an elevated PowerShell session with:
 
 ```powershell
 Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
 ```
 
-A restart is expected before the platform is considered installed and verified.
+Windows was restarted before validation.
 
-### Verification After Restart
+### Verified Post-Restart State
 
-Do not mark Step 1 complete until the host reports the actual post-restart state. Planned checks include:
+Observed on 2026-08-14:
+
+| Check | Observed state |
+|---|---|
+| `Microsoft-Hyper-V-All` | Enabled |
+| Hyper-V Virtual Machine Management service (`vmms`) | Running, Automatic |
+| Hyper-V PowerShell command `Get-VM` | Available from module `Hyper-V` |
+| Hyper-V Default Switch | Present, Internal |
+
+Verification commands used:
 
 ```powershell
-Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All
-Get-Command Get-VM
-Get-VMSwitch
+Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All |
+    Select-Object FeatureName, State
+
+Get-Service vmms |
+    Select-Object Name, Status, StartType
+
+Get-Command Get-VM |
+    Select-Object Name, Source
+
+Get-VMSwitch |
+    Select-Object Name, SwitchType
 ```
 
-The exact observed output will be documented after execution.
+This confirms that the feature, management service, PowerShell module, and Hyper-V virtual-switch subsystem are all operational.
+
+## Step 2 — Inspect Host and Define Storage Convention
+
+Before creating VMs, inspect the current Hyper-V default locations and the free space available on the Windows volumes. The lab will then use an explicit, predictable directory structure rather than relying on hidden/default paths without understanding them.
+
+Planned structure, subject to the storage check:
+
+```text
+C:\Hyper-V\BelkaCorp\
+├── Virtual Machines\
+└── Virtual Hard Disks\
+```
+
+The actual path will not be finalized until available capacity and the current Hyper-V host defaults are verified.
 
 ## Planned Virtual Networking
 
@@ -82,7 +113,7 @@ vSW-SERVERS    -> Private
 vSW-MGMT       -> Internal
 ```
 
-These switches will not be created until the Hyper-V platform itself has been verified.
+The enterprise switches will be created after the host storage convention is finalized.
 
 ## GitHub Evidence Rule
 
@@ -111,4 +142,4 @@ At the end of the chapter, be able to explain:
 
 **IN PROGRESS**
 
-Current step: enable Hyper-V, restart, and verify the resulting platform state.
+Current step: inspect Hyper-V host defaults and storage capacity, then define the VM/VHDX storage convention.
