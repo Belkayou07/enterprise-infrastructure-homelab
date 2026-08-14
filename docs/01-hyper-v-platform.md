@@ -90,15 +90,13 @@ Get-VMSwitch |
 
 This confirms that the feature, management service, PowerShell module, and Hyper-V virtual-switch subsystem are all operational.
 
-### Evidence Captured
+### Evidence
 
-The following real-session evidence has been captured and is tracked in `screenshots/evidence-index.md`:
+![Hyper-V verification PowerShell evidence](../screenshots/chapter-01/01-01-hyperv-verification.png)
 
-- `00-01-host-cpu.png` — Task Manager CPU view showing the Ryzen 9 7900, 12 cores, 24 logical processors, and virtualization enabled.
-- `00-03-smt-24-logical-processors.png` — PowerShell verification after the SMT remediation.
-- `01-01-hyperv-verification.png` — consolidated Hyper-V post-restart verification.
+The screenshot above is the real post-restart verification from this host. It shows Hyper-V enabled, `vmms` running automatically, the Hyper-V PowerShell module available, and the Default Switch present as an Internal switch.
 
-The project deliberately preserves genuine troubleshooting and verification evidence rather than recreating states later for presentation purposes.
+Related Chapter 0 host evidence is stored under `screenshots/chapter-00/`, and the complete inventory is tracked in [`screenshots/evidence-index.md`](../screenshots/evidence-index.md).
 
 ## Step 2 — Inspect Host and Define Storage Convention
 
