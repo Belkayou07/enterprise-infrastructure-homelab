@@ -1,40 +1,45 @@
 # Evidence Index
 
-This index tracks evidence captured during the real build. Screenshots are only considered repository evidence once the binary file is committed under `screenshots/`.
+This index tracks evidence captured from the real BelkaCorp homelab build. Evidence is only marked complete when the actual file exists in the repository.
 
-## Chapter 0 — Host Audit and Troubleshooting
+## Status Legend
 
-| Evidence | Planned repository path | What it proves | Capture status | Repository status |
-|---|---|---|---|---|
-| Host CPU overview | `screenshots/chapter-00/00-01-host-cpu.png` | AMD Ryzen 9 7900, 12 cores, 24 logical processors, virtualization enabled | Captured | Binary upload pending |
-| SMT remediation verification | `screenshots/chapter-00/00-03-smt-24-logical-processors.png` | Windows reports 12 cores, 24 logical processors, and 24 threads after remediation | Captured | Binary upload pending |
+- `CAPTURED` — screenshot was taken but is not yet stored in the repository.
+- `COMMITTED` — the actual evidence file is present in GitHub.
 
-The earlier Ryzen Master screenshot showing `Simultaneous Multithreading = OFF` is also valid troubleshooting evidence. It should be retained if available because it documents the actual root-cause state rather than a recreated condition.
+## Chapter 0 — Host Audit and Design
+
+| Evidence | Status | What it proves |
+|---|---|---|
+| [`chapter-00/00-01-host-cpu.png`](chapter-00/00-01-host-cpu.png) | COMMITTED | Windows Task Manager reports AMD Ryzen 9 7900, 12 cores, 24 logical processors, and hardware virtualization enabled. |
+| [`chapter-00/00-03-smt-24-logical-processors.png`](chapter-00/00-03-smt-24-logical-processors.png) | COMMITTED | PowerShell verification after remediation reports 12 cores, 24 logical processors, and 24 threads. |
+
+The SMT troubleshooting record is documented separately in `../troubleshooting/001-ryzen-smt-logical-processors.md`.
 
 ## Chapter 1 — Hyper-V Platform
 
-| Evidence | Planned repository path | What it proves | Capture status | Repository status |
-|---|---|---|---|---|
-| Hyper-V platform verification | `screenshots/chapter-01/01-01-hyperv-verification.png` | Hyper-V feature enabled, VMMS running/automatic, Hyper-V PowerShell module available, Default Switch present | Captured | Binary upload pending |
+| Evidence | Status | What it proves |
+|---|---|---|
+| [`chapter-01/01-01-hyperv-verification.png`](chapter-01/01-01-hyperv-verification.png) | COMMITTED | Hyper-V is enabled; VMMS is running automatically; the Hyper-V PowerShell module is available; and the Default Switch is present as an Internal switch. |
 
 ## Evidence Rule
 
-Evidence should document the real engineering journey:
+Useful evidence should show a meaningful state or verification result, not every command typed during the project.
+
+The standard workflow is:
 
 ```text
-OBSERVE / BUILD
-      |
-      v
+UNDERSTAND
+   |
+IMPLEMENT
+   |
 VERIFY
-      |
-      v
-CAPTURE USEFUL EVIDENCE
-      |
-      v
-DOCUMENT WHAT IT PROVES
-      |
-      v
+   |
+CAPTURE EVIDENCE
+   |
+DOCUMENT
+   |
 COMMIT
 ```
 
-Do not recreate failures merely to obtain screenshots. Real troubleshooting evidence is preferred over staged evidence.
+Sensitive data, credentials, license keys, unrelated personal information, and unnecessary raw dumps must not be committed.
