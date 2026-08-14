@@ -8,14 +8,14 @@ Compact visual notes for the homelab. These are intentionally simplified and sho
 CHAPTER 0  Design / host audit          [DONE]
    0.1     Hardware audit               [DONE]
    0.2     Virtualization investigation [DONE]
-   0.3     CPU / SMT troubleshooting     [DONE]
-   0.4     Enterprise architecture       [DONE]
+   0.3     CPU / SMT troubleshooting    [DONE]
+   0.4     Enterprise architecture      [DONE]
 
 CHAPTER 1  Hyper-V platform             [NOW]
-   1.1     Enable + verify Hyper-V       [DONE]
-   1.2     Host storage convention       [NOW]
-   1.3     Virtual switches              [NEXT]
-   1.4     Test VM                       [LATER]
+   1.1     Enable + verify Hyper-V      [DONE]
+   1.2     Host storage convention      [DONE]
+   1.3     Virtual switches             [NOW]
+   1.4     Test VM                      [LATER]
 
 CHAPTER 2  Network architecture
 CHAPTER 3  Firewall / routing
@@ -41,10 +41,10 @@ RESTART WINDOWS         [DONE]
 VERIFY FEATURE + TOOLS  [DONE]
       |
       v
-SET VM STORAGE          [NOW]
+SET VM STORAGE          [DONE]
       |
       v
-CREATE VIRTUAL SWITCHES
+CREATE VIRTUAL SWITCHES [NOW]
       |
       v
 DEPLOY TEST VM
@@ -62,7 +62,7 @@ Get-VM                 -> Hyper-V module available
 Default Switch         -> Present / Internal
 ```
 
-## Planned Hyper-V Storage
+## Final Hyper-V Storage
 
 ```text
 C:\Hyper-V\BelkaCorp\
@@ -72,7 +72,10 @@ C:\Hyper-V\BelkaCorp\
 +-- Virtual Hard Disks\
 ```
 
-Final path is chosen only after checking host defaults and free disk space.
+```text
+VirtualMachinePath  -> C:\Hyper-V\BelkaCorp
+VirtualHardDiskPath -> C:\Hyper-V\BelkaCorp\Virtual Hard Disks
+```
 
 ## Physical Model
 
