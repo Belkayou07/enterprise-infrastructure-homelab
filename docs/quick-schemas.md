@@ -11,7 +11,7 @@ CHAPTER 0  Design / host audit          [DONE]
    0.3     CPU / SMT troubleshooting     [DONE]
    0.4     Enterprise architecture       [DONE]
 
-CHAPTER 1  Hyper-V platform             [NEXT]
+CHAPTER 1  Hyper-V platform             [NOW]
 CHAPTER 2  Network architecture
 CHAPTER 3  Firewall / routing
 CHAPTER 4  Windows Server / AD
@@ -22,6 +22,30 @@ CHAPTER 8  Monitoring
 CHAPTER 9  Backup / disaster recovery
 CHAPTER 10 Automation
 CHAPTER 11 Cloud / DevOps extension
+```
+
+## Chapter 1 Flow
+
+```text
+ENABLE HYPER-V
+      |
+      v
+RESTART WINDOWS
+      |
+      v
+VERIFY FEATURE + TOOLS
+      |
+      v
+SET VM STORAGE CONVENTION
+      |
+      v
+CREATE VIRTUAL SWITCHES
+      |
+      v
+DEPLOY TEST VM
+      |
+      v
+VERIFY VIRTUALIZATION PLATFORM
 ```
 
 ## Physical Model
@@ -80,6 +104,21 @@ Default Switch  -> FW01 WAN / upstream Internet
 vSW-USERS       -> Private  -> VMs only
 vSW-SERVERS     -> Private  -> VMs only
 vSW-MGMT        -> Internal -> VMs + Windows host
+```
+
+## Hyper-V Switch Type Quick Note
+
+```text
+EXTERNAL
+VMs + host <-> physical network adapter / external network
+
+INTERNAL
+VMs <-> Windows host
+No direct physical-network connection
+
+PRIVATE
+VMs <-> VMs only
+Windows host cannot directly join that switch
 ```
 
 ## IP Addressing
