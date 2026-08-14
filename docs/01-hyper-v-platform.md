@@ -88,15 +88,11 @@ Get-VMSwitch |
     Select-Object Name, SwitchType
 ```
 
-This confirms that the feature, management service, PowerShell module, and Hyper-V virtual-switch subsystem are all operational.
-
 ### Evidence
 
 ![Hyper-V verification PowerShell evidence](../screenshots/chapter-01/01-01-hyperv-verification.png)
 
-The screenshot above is the real post-restart verification from this host. It shows Hyper-V enabled, `vmms` running automatically, the Hyper-V PowerShell module available, and the Default Switch present as an Internal switch.
-
-Related Chapter 0 host evidence is stored under `screenshots/chapter-00/`, and the complete inventory is tracked in [`screenshots/evidence-index.md`](../screenshots/evidence-index.md).
+The real post-restart evidence confirms the feature, management service, PowerShell module, and Default Switch are operational.
 
 ## Step 2 — Inspect Host and Define Storage Convention
 
@@ -113,7 +109,7 @@ VirtualMachinePath  C:\ProgramData\Microsoft\Windows\Hyper-V
 VirtualHardDiskPath C:\ProgramData\Microsoft\Windows\Virtual Hard Disks
 ```
 
-These defaults were functional but less convenient for a deliberate portfolio lab. A dedicated BelkaCorp location was therefore created and configured.
+A dedicated BelkaCorp location was created instead.
 
 ### Final Storage Convention
 
@@ -129,8 +125,6 @@ Hyper-V host defaults were configured as:
 VirtualMachinePath  C:\Hyper-V\BelkaCorp
 VirtualHardDiskPath C:\Hyper-V\BelkaCorp\Virtual Hard Disks
 ```
-
-The `Virtual Machines` and `Virtual Hard Disks` directories were verified to exist after configuration.
 
 Commands used:
 
@@ -154,13 +148,17 @@ Get-ChildItem "C:\Hyper-V\BelkaCorp" |
 
 ### Why This Layout?
 
-The goal is not to imply that Hyper-V requires this exact structure. The purpose is to make the lab's VM assets predictable, easy to find, easier to back up later, and clearly separated from Microsoft's generic default locations.
+The goal is not to imply that Hyper-V requires this exact structure. The lab uses it so VM assets are predictable, easy to locate, easier to back up later, and separate from generic Windows defaults.
 
-### Evidence Status
+### Evidence
 
-Configuration is verified. Screenshot evidence `01-02-hyperv-storage-configuration.png` is the remaining evidence checkpoint for this step.
+![Hyper-V storage configuration evidence](../screenshots/chapter-01/01-02-hyperv-storage-configuration.png)
 
-## Planned Virtual Networking
+This real-session screenshot verifies both configured Hyper-V host paths and the final `Virtual Machines` / `Virtual Hard Disks` directory structure.
+
+**Step 2 is complete.**
+
+## Step 3 — Planned Virtual Networking
 
 ```text
 Default Switch -> FW01 WAN
@@ -169,7 +167,7 @@ vSW-SERVERS    -> Private
 vSW-MGMT       -> Internal
 ```
 
-The enterprise switches will be created after the storage evidence checkpoint is committed.
+The next task is to reproduce the network design as real Hyper-V virtual switches and then configure the Windows host's MGMT-side virtual adapter.
 
 ## Evidence Workflow
 
@@ -200,13 +198,7 @@ Screenshots should prove a real result, configuration, or troubleshooting event.
 
 Do not commit passwords, license keys, Windows product keys, private addresses unrelated to the isolated lab, or unnecessary raw system dumps.
 
-Useful evidence includes:
-
-- validated feature state;
-- sanitized Hyper-V host/switch inventory;
-- final VM/switch conventions;
-- troubleshooting records for real issues encountered;
-- selected screenshots only when they add value beyond text/configuration.
+Useful evidence includes validated states, sanitized configuration, real troubleshooting, and selected screenshots that add evidence beyond text alone.
 
 ## Interview Explanation Target
 
@@ -223,4 +215,4 @@ At the end of the chapter, be able to explain:
 
 **IN PROGRESS**
 
-Current step: commit the verified storage evidence, then create the BelkaCorp Hyper-V virtual switches.
+Current step: create and verify the BelkaCorp Hyper-V virtual switches.
