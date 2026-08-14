@@ -90,6 +90,16 @@ Get-VMSwitch |
 
 This confirms that the feature, management service, PowerShell module, and Hyper-V virtual-switch subsystem are all operational.
 
+### Evidence Captured
+
+The following real-session evidence has been captured and is tracked in `screenshots/evidence-index.md`:
+
+- `00-01-host-cpu.png` — Task Manager CPU view showing the Ryzen 9 7900, 12 cores, 24 logical processors, and virtualization enabled.
+- `00-03-smt-24-logical-processors.png` — PowerShell verification after the SMT remediation.
+- `01-01-hyperv-verification.png` — consolidated Hyper-V post-restart verification.
+
+The project deliberately preserves genuine troubleshooting and verification evidence rather than recreating states later for presentation purposes.
+
 ## Step 2 — Inspect Host and Define Storage Convention
 
 Before creating VMs, inspect the current Hyper-V default locations and the free space available on the Windows volumes. The lab will then use an explicit, predictable directory structure rather than relying on hidden/default paths without understanding them.
@@ -114,6 +124,31 @@ vSW-MGMT       -> Internal
 ```
 
 The enterprise switches will be created after the host storage convention is finalized.
+
+## Evidence Workflow
+
+Every meaningful implementation stage follows this sequence:
+
+```text
+UNDERSTAND
+    |
+    v
+IMPLEMENT
+    |
+    v
+VERIFY
+    |
+    v
+CAPTURE USEFUL EVIDENCE
+    |
+    v
+DOCUMENT
+    |
+    v
+COMMIT
+```
+
+Screenshots should prove a real result, configuration, or troubleshooting event. Routine commands with no portfolio value do not need screenshots.
 
 ## GitHub Evidence Rule
 
