@@ -12,6 +12,11 @@ CHAPTER 0  Design / host audit          [DONE]
    0.4     Enterprise architecture       [DONE]
 
 CHAPTER 1  Hyper-V platform             [NOW]
+   1.1     Enable + verify Hyper-V       [DONE]
+   1.2     Host storage convention       [NOW]
+   1.3     Virtual switches              [NEXT]
+   1.4     Test VM                       [LATER]
+
 CHAPTER 2  Network architecture
 CHAPTER 3  Firewall / routing
 CHAPTER 4  Windows Server / AD
@@ -27,16 +32,16 @@ CHAPTER 11 Cloud / DevOps extension
 ## Chapter 1 Flow
 
 ```text
-ENABLE HYPER-V
+ENABLE HYPER-V          [DONE]
       |
       v
-RESTART WINDOWS
+RESTART WINDOWS         [DONE]
       |
       v
-VERIFY FEATURE + TOOLS
+VERIFY FEATURE + TOOLS  [DONE]
       |
       v
-SET VM STORAGE CONVENTION
+SET VM STORAGE          [NOW]
       |
       v
 CREATE VIRTUAL SWITCHES
@@ -45,8 +50,29 @@ CREATE VIRTUAL SWITCHES
 DEPLOY TEST VM
       |
       v
-VERIFY VIRTUALIZATION PLATFORM
+VERIFY PLATFORM
 ```
+
+## Hyper-V Verified State
+
+```text
+Microsoft-Hyper-V-All  -> Enabled
+vmms service           -> Running / Automatic
+Get-VM                 -> Hyper-V module available
+Default Switch         -> Present / Internal
+```
+
+## Planned Hyper-V Storage
+
+```text
+C:\Hyper-V\BelkaCorp\
+|
++-- Virtual Machines\
+|
++-- Virtual Hard Disks\
+```
+
+Final path is chosen only after checking host defaults and free disk space.
 
 ## Physical Model
 
