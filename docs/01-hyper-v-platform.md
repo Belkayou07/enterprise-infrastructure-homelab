@@ -43,8 +43,8 @@ PHYSICAL WINDOWS HOST
 1. [x] Enable the full Hyper-V Windows feature.
 2. [x] Restart Windows.
 3. [x] Verify the Hyper-V feature, management tools, and hypervisor state.
-4. [ ] Inspect the Hyper-V host configuration.
-5. [ ] Define VM and VHDX storage conventions.
+4. [x] Inspect the Hyper-V host configuration.
+5. [x] Define VM and VHDX storage conventions.
 6. [ ] Create the planned virtual switches.
 7. [ ] Configure the Windows host's MGMT virtual adapter.
 8. [ ] Deploy a small test VM.
@@ -100,9 +100,22 @@ Related Chapter 0 host evidence is stored under `screenshots/chapter-00/`, and t
 
 ## Step 2 — Inspect Host and Define Storage Convention
 
-Before creating VMs, inspect the current Hyper-V default locations and the free space available on the Windows volumes. The lab will then use an explicit, predictable directory structure rather than relying on hidden/default paths without understanding them.
+The storage inspection showed one usable Windows volume:
 
-Planned structure, subject to the storage check:
+| Volume | File system | Size | Free space |
+|---|---|---:|---:|
+| `C:` | NTFS | 952.8 GB | 691.2 GB |
+
+The original Hyper-V defaults were:
+
+```text
+VirtualMachinePath  C:\ProgramData\Microsoft\Windows\Hyper-V
+VirtualHardDiskPath C:\ProgramData\Microsoft\Windows\Virtual Hard Disks
+```
+
+These defaults were functional but less convenient for a deliberate portfolio lab. A dedicated BelkaCorp location was therefore created and configured.
+
+### Final Storage Convention
 
 ```text
 C:\Hyper-V\BelkaCorp\
@@ -110,7 +123,42 @@ C:\Hyper-V\BelkaCorp\
 └── Virtual Hard Disks\
 ```
 
-The actual path will not be finalized until available capacity and the current Hyper-V host defaults are verified.
+Hyper-V host defaults were configured as:
+
+```text
+VirtualMachinePath  C:\Hyper-V\BelkaCorp
+VirtualHardDiskPath C:\Hyper-V\BelkaCorp\Virtual Hard Disks
+```
+
+The `Virtual Machines` and `Virtual Hard Disks` directories were verified to exist after configuration.
+
+Commands used:
+
+```powershell
+$base = "C:\Hyper-V\BelkaCorp"
+$vhd  = "C:\Hyper-V\BelkaCorp\Virtual Hard Disks"
+
+New-Item -ItemType Directory -Path "$base\Virtual Machines" -Force | Out-Null
+New-Item -ItemType Directory -Path $vhd -Force | Out-Null
+
+Set-VMHost `
+    -VirtualMachinePath $base `
+    -VirtualHardDiskPath $vhd
+
+Get-VMHost |
+    Select-Object VirtualMachinePath, VirtualHardDiskPath
+
+Get-ChildItem "C:\Hyper-V\BelkaCorp" |
+    Select-Object Name, FullName
+```
+
+### Why This Layout?
+
+The goal is not to imply that Hyper-V requires this exact structure. The purpose is to make the lab's VM assets predictable, easy to find, easier to back up later, and clearly separated from Microsoft's generic default locations.
+
+### Evidence Status
+
+Configuration is verified. Screenshot evidence `01-02-hyperv-storage-configuration.png` is the remaining evidence checkpoint for this step.
 
 ## Planned Virtual Networking
 
@@ -121,7 +169,7 @@ vSW-SERVERS    -> Private
 vSW-MGMT       -> Internal
 ```
 
-The enterprise switches will be created after the host storage convention is finalized.
+The enterprise switches will be created after the storage evidence checkpoint is committed.
 
 ## Evidence Workflow
 
@@ -175,4 +223,4 @@ At the end of the chapter, be able to explain:
 
 **IN PROGRESS**
 
-Current step: inspect Hyper-V host defaults and storage capacity, then define the VM/VHDX storage convention.
+Current step: commit the verified storage evidence, then create the BelkaCorp Hyper-V virtual switches.
