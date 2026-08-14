@@ -12,8 +12,8 @@ The project is intentionally built in chapters. Each chapter must be working and
 
 ## Learning Path
 
-1. **Chapter 0 — Scope, desktop audit, and repository setup**
-2. **Chapter 1 — Virtualization platform**
+1. **Chapter 0 — Scope, desktop audit, and repository setup** ✅
+2. **Chapter 1 — Virtualization platform** ← current
 3. **Chapter 2 — Network architecture and IP design**
 4. **Chapter 3 — Firewall and routing**
 5. **Chapter 4 — Windows Server and Active Directory**
@@ -29,14 +29,14 @@ The project is intentionally built in chapters. Each chapter must be working and
 
 The exact implementation is selected during the relevant chapters rather than assumed in advance.
 
-- Desktop virtualization
+- Hyper-V virtualization
 - Windows Server
 - Linux
 - Active Directory
 - DNS and DHCP
 - Routing and VLANs
-- Firewalling
-- Network simulation/emulation
+- OPNsense firewalling
+- GNS3 network simulation/emulation
 - Monitoring
 - Backup and recovery
 - Git and GitHub
@@ -46,26 +46,24 @@ The exact implementation is selected during the relevant chapters rather than as
 - Azure
 - Containers and CI/CD
 
-## Planned Logical Architecture
+## Logical Architecture
 
 ```text
-Windows Desktop
+Windows 11 Pro Desktop
 │
-├── Normal workstation
+├── Normal administrator workstation
 │   ├── Browser / administration tools
 │   ├── PowerShell / terminal
 │   └── Git / GitHub
 │
-├── Desktop virtualization platform
-│   ├── Firewall/router VM
-│   ├── Windows Server VM(s)
-│   ├── Windows client VM(s)
-│   ├── Linux server VM(s)
-│   └── Monitoring/utility VM(s)
-│
-└── Network lab tooling
-    └── Simulated/emulated routers, switches and advanced topologies
+└── Hyper-V
+    ├── Default Switch ── FW01 WAN
+    ├── vSW-USERS   ──── CLIENT01
+    ├── vSW-SERVERS ──── DC01 / LNX01 / MON01
+    └── vSW-MGMT    ──── Windows host management path
 ```
+
+`FW01` will route and enforce firewall policy between the isolated lab networks.
 
 ## Repository Structure
 
@@ -84,9 +82,13 @@ Directories are added only when they contain real project material; empty folder
 
 ## Current Status
 
-**Chapter 0 — In progress**
+**Chapter 0 — Complete**
 
-The single-desktop strategy is confirmed. Next: audit the Windows desktop's CPU, RAM, storage, Windows edition, network interfaces, and hardware virtualization support before finalizing the virtualization platform and VM sizing.
+The Windows host has been audited, SMT restored to expose the expected 24 logical processors, Hyper-V selected as the primary hypervisor, and the initial BelkaCorp architecture, naming convention, VM resource budget, subnet plan, and virtual-switch design have been documented.
+
+**Chapter 1 — In progress**
+
+Next: enable the full Hyper-V Windows feature, restart, verify the Hyper-V platform and management tools, then establish the VM storage and virtual-switch configuration.
 
 ## Portfolio Principle
 
