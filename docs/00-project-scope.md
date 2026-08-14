@@ -173,9 +173,19 @@ Detailed architecture and addressing are documented in `docs/00-04-enterprise-ar
 
 ## Evidence
 
-Only relevant sanitized output/screenshots will be stored in this repository.
+### Host CPU and virtualization state
 
-Raw command output containing no useful portfolio evidence does not need to be committed simply for completeness.
+![Windows Task Manager CPU evidence](../screenshots/chapter-00/00-01-host-cpu.png)
+
+This screenshot records the real host state after remediation: Ryzen 9 7900, 12 physical cores, 24 logical processors, and virtualization enabled.
+
+### SMT remediation verification
+
+![PowerShell SMT verification](../screenshots/chapter-00/00-03-smt-24-logical-processors.png)
+
+The PowerShell verification confirms 12 cores, 24 logical processors, and 24 threads after SMT was restored.
+
+The complete evidence inventory is tracked in [`screenshots/evidence-index.md`](../screenshots/evidence-index.md). Raw command output containing no useful portfolio evidence does not need to be committed simply for completeness.
 
 ## Completion Criteria
 
