@@ -51,10 +51,10 @@ Physical Windows 11 Pro Desktop
 - [x] Define the physical-host strategy: single desktop
 - [x] Choose the virtualization platform: Hyper-V
 - [x] Choose planned network simulation/emulation tooling: GNS3 with Hyper-V support
-- [ ] Define the first architecture diagram
-- [ ] Define naming conventions
-- [ ] Define an initial IP addressing plan
-- [ ] Record final Chapter 0 engineering decisions
+- [x] Define the first architecture diagram
+- [x] Define naming conventions
+- [x] Define an initial IP addressing plan
+- [x] Record final Chapter 0 engineering decisions
 
 ## Hardware Inventory
 
@@ -163,6 +163,14 @@ The Windows hypervisor is therefore already active for host security features ev
 
 **Reasoning:** The host is the only physical compute platform for the project. Confirming and restoring the expected 24 logical processors prevents unnecessary CPU contention and demonstrates proper pre-deployment troubleshooting rather than designing around an unexplained constraint.
 
+### DD-006 — Segmented lab architecture behind FW01
+
+**Decision:** Use separate USERS, SERVERS, and MGMT networks behind `FW01`, with `10.10.0.0/16` reserved for the lab and functional `/24` subnets allocated from it.
+
+**Reasoning:** The design creates meaningful routing and firewall boundaries while remaining simple enough to understand and reproduce on one desktop. `vSW-USERS` and `vSW-SERVERS` will be private Hyper-V switches; `vSW-MGMT` will be internal so the Windows administrator workstation can reach the lab through the management network. The Hyper-V Default Switch will provide the upstream/WAN side for `FW01`.
+
+Detailed architecture and addressing are documented in `docs/00-04-enterprise-architecture.md`.
+
 ## Evidence
 
 Only relevant sanitized output/screenshots will be stored in this repository.
@@ -179,3 +187,5 @@ Chapter 0 is complete when:
 4. SMT is enabled and the expected 24 logical processors are verified.
 5. An initial lab architecture, naming convention, and IP plan have been designed.
 6. The next implementation chapter can begin without guessing about the environment.
+
+**Status: COMPLETE.** Chapter 1 begins with enabling and validating Hyper-V on the Windows host.
