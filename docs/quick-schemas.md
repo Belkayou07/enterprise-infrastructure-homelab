@@ -1,6 +1,6 @@
 # Quick Schemas
 
-Compact visual notes for the homelab. These are intentionally simplified and should be readable in a few seconds. Detailed explanations belong in the chapter documentation.
+Compact visual notes for my homelab. These are intentionally simplified and should be readable in a few seconds. Detailed explanations belong in the chapter documentation.
 
 ## Project Progress
 
@@ -14,7 +14,7 @@ CHAPTER 0  Design / host audit          [DONE]
 CHAPTER 1  Hyper-V platform             [NOW]
    1.1     Enable + verify Hyper-V      [DONE]
    1.2     Host storage convention      [DONE]
-   1.3     Virtual switches             [CONFIG DONE / EVIDENCE PENDING]
+   1.3     Virtual switches             [DONE]
    1.3b    Host MGMT adapter            [NEXT]
    1.4     Test VM                      [LATER]
 
@@ -45,7 +45,7 @@ VERIFY FEATURE + TOOLS  [DONE]
 SET VM STORAGE          [DONE]
       |
       v
-CREATE VIRTUAL SWITCHES [CONFIG DONE]
+CREATE VIRTUAL SWITCHES [DONE]
       |
       v
 CONFIGURE HOST MGMT     [NEXT]
@@ -90,7 +90,7 @@ vSW-SERVERS     Private   count 1
 vSW-USERS       Private   count 1
 ```
 
-Duplicate custom switches were accidentally created when `New-VMSwitch` commands were run multiple times. They were detected through PowerShell/Virtual Switch Manager, removed manually in the GUI, and the final counts + unique switch IDs were re-verified with PowerShell.
+I accidentally created duplicate custom switches when I ran `New-VMSwitch` commands multiple times. I detected them through PowerShell and Virtual Switch Manager, removed the extras manually in the GUI, and then re-verified the final counts and unique switch IDs with PowerShell.
 
 ## Physical Model
 
@@ -288,4 +288,4 @@ DOCUMENT
 AUTOMATE
 ```
 
-This file will be updated as the architecture changes and as new chapters introduce important concepts.
+I will keep updating this file as the architecture changes and as new chapters introduce important concepts.
