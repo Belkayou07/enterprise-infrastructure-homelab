@@ -1,14 +1,14 @@
 # Enterprise Infrastructure Homelab
 
-A hands-on infrastructure engineering portfolio project built to simulate a small business environment and develop practical skills in systems administration, networking, security, automation, cloud, and DevOps.
+This is my hands-on infrastructure engineering portfolio project. I am using it to simulate a small business environment and build practical skills in systems administration, networking, security, automation, cloud, and DevOps.
 
 ## Project Goal
 
-Design, deploy, secure, operate, troubleshoot, document, and progressively automate a realistic enterprise-style lab entirely from a **single Windows desktop**.
+I am designing, deploying, securing, operating, troubleshooting, documenting, and progressively automating a realistic enterprise-style lab entirely from a **single Windows desktop**.
 
-The physical desktop remains the normal administrator workstation while virtual machines and network simulation/emulation provide the servers, clients, firewalls, routers, switches, and isolated networks used throughout the project.
+My physical desktop remains my normal administrator workstation while virtual machines and network simulation/emulation provide the servers, clients, firewalls, routers, switches, and isolated networks used throughout the project.
 
-The project is intentionally built in chapters. Each chapter must be working and understood before the next one is treated as complete.
+I am intentionally building the project in chapters. I do not treat a chapter as complete until I have implemented, verified, understood, and documented the relevant work.
 
 ## Learning Path
 
@@ -27,7 +27,7 @@ The project is intentionally built in chapters. Each chapter must be working and
 
 ## Planned Technology Areas
 
-The exact implementation is selected during the relevant chapters rather than assumed in advance.
+I select the exact implementation during the relevant chapters rather than assuming every tool in advance.
 
 - Hyper-V virtualization
 - Windows Server
@@ -78,18 +78,24 @@ enterprise-infrastructure-homelab/
 └── troubleshooting/   # Incident and troubleshooting records
 ```
 
-Directories are added only when they contain real project material; empty folders are not kept simply for appearance.
+I only keep directories when they contain real project material; I do not add empty folders simply for appearance.
 
 ## Current Status
 
 **Chapter 0 — Complete**
 
-The Windows host has been audited, SMT restored to expose the expected 24 logical processors, Hyper-V selected as the primary hypervisor, and the initial BelkaCorp architecture, naming convention, VM resource budget, subnet plan, and virtual-switch design have been documented.
+I audited the Windows host, restored SMT so the CPU exposes the expected 24 logical processors, selected Hyper-V as the primary hypervisor, and documented the initial BelkaCorp architecture, naming convention, VM resource budget, subnet plan, and virtual-switch design.
 
 **Chapter 1 — In progress**
 
-Next: enable the full Hyper-V Windows feature, restart, verify the Hyper-V platform and management tools, then establish the VM storage and virtual-switch configuration.
+So far I have enabled and verified Hyper-V, confirmed the management service and PowerShell tooling, configured the BelkaCorp VM/VHDX storage convention, created the planned Hyper-V virtual switches, resolved a real duplicate-switch mistake, and committed CLI + GUI evidence of the final clean switch state.
+
+Next I will configure the Windows host-side `vEthernet (vSW-MGMT)` adapter for the isolated management network and then deploy a small test VM to validate the platform end to end.
+
+## AI-Assisted Learning and Documentation
+
+I use AI as a learning, troubleshooting, and documentation assistant during this project. I still execute and verify the infrastructure changes myself. The repository only records configurations, observations, troubleshooting incidents, and evidence that I have actually produced or verified in the lab.
 
 ## Portfolio Principle
 
-This repository is evidence of work performed, not a collection of generated examples. Credentials, secrets, license keys, and sensitive configuration will never be committed.
+This repository is evidence of work I have performed, not a collection of generated examples. I do not commit credentials, secrets, license keys, or sensitive configuration.
