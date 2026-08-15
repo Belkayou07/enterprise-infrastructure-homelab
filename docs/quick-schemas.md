@@ -14,7 +14,8 @@ CHAPTER 0  Design / host audit          [DONE]
 CHAPTER 1  Hyper-V platform             [NOW]
    1.1     Enable + verify Hyper-V      [DONE]
    1.2     Host storage convention      [DONE]
-   1.3     Virtual switches             [NOW]
+   1.3     Virtual switches             [CONFIG DONE / EVIDENCE PENDING]
+   1.3b    Host MGMT adapter            [NEXT]
    1.4     Test VM                      [LATER]
 
 CHAPTER 2  Network architecture
@@ -44,7 +45,10 @@ VERIFY FEATURE + TOOLS  [DONE]
 SET VM STORAGE          [DONE]
       |
       v
-CREATE VIRTUAL SWITCHES [NOW]
+CREATE VIRTUAL SWITCHES [CONFIG DONE]
+      |
+      v
+CONFIGURE HOST MGMT     [NEXT]
       |
       v
 DEPLOY TEST VM
@@ -76,6 +80,17 @@ C:\Hyper-V\BelkaCorp\
 VirtualMachinePath  -> C:\Hyper-V\BelkaCorp
 VirtualHardDiskPath -> C:\Hyper-V\BelkaCorp\Virtual Hard Disks
 ```
+
+## Final Hyper-V Switch Inventory
+
+```text
+Default Switch  Internal  count 1
+vSW-MGMT        Internal  count 1
+vSW-SERVERS     Private   count 1
+vSW-USERS       Private   count 1
+```
+
+Duplicate custom switches were accidentally created when `New-VMSwitch` commands were run multiple times. They were detected through PowerShell/Virtual Switch Manager, removed manually in the GUI, and the final counts + unique switch IDs were re-verified with PowerShell.
 
 ## Physical Model
 
