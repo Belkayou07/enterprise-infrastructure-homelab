@@ -2,7 +2,7 @@
 
 ## Context
 
-During Chapter 1 of the BelkaCorp homelab, the custom Hyper-V switches were created from an elevated PowerShell session:
+During Chapter 1 of my BelkaCorp homelab, I created the custom Hyper-V switches from an elevated PowerShell session:
 
 ```powershell
 New-VMSwitch -Name "vSW-USERS" -SwitchType Private
@@ -10,32 +10,32 @@ New-VMSwitch -Name "vSW-SERVERS" -SwitchType Private
 New-VMSwitch -Name "vSW-MGMT" -SwitchType Internal
 ```
 
-While learning and verifying the configuration, the create commands were pasted more than once. This produced additional custom switch objects with the same friendly names.
+While learning and verifying the configuration, I pasted the creation commands more than once. This produced additional custom switch objects with the same friendly names.
 
 ## Observation
 
-The duplicate configuration became visible while checking the environment in Hyper-V Manager / Virtual Switch Manager and PowerShell.
+I noticed the duplicate configuration while checking the environment in both Hyper-V Manager / Virtual Switch Manager and PowerShell.
 
-The user intentionally uses both interfaces during the lab:
+I intentionally use both interfaces during this lab:
 
-- PowerShell provides exact, scriptable state and verification;
-- Hyper-V Manager provides a visual model of the configuration and helped expose the unexpected switch entries.
+- PowerShell gives me exact, scriptable state and precise verification;
+- Hyper-V Manager gives me a visual model of the configuration and helped expose the unexpected switch entries.
 
 ## Cause
 
-The `New-VMSwitch` creation commands were executed repeatedly instead of being run once and followed immediately by verification.
+I executed the `New-VMSwitch` creation commands repeatedly instead of running them once and immediately verifying the resulting objects.
 
 This was an operator workflow mistake during the manual-learning phase, not a reason to redesign the network.
 
 ## Resolution
 
-Because no production lab VMs were attached to the duplicate switches yet, the extra custom switch objects were removed manually in Hyper-V Virtual Switch Manager, leaving one intended switch of each type.
+Because I had not attached any production lab VMs to the duplicate switches yet, I removed the extra custom switch objects manually in Hyper-V Virtual Switch Manager, leaving one intended switch of each type.
 
-No bulk cleanup script was run after the manual GUI remediation.
+I did not run a bulk cleanup script after the manual GUI remediation.
 
 ## Final Verification
 
-The final PowerShell inventory confirmed one object per switch name:
+I confirmed the final PowerShell inventory contained one object per switch name:
 
 ```text
 Name            Count
@@ -55,11 +55,11 @@ vSW-SERVERS     Private
 vSW-USERS       Private
 ```
 
-The final inventory also displayed a different unique `Id` for each remaining switch object.
+I also verified that each remaining switch object had a different Hyper-V `Id`.
 
 ## Lesson Learned
 
-For creation commands that change infrastructure state, use the sequence:
+For infrastructure creation commands, I should use this sequence:
 
 ```text
 CREATE ONCE
@@ -71,16 +71,16 @@ VERIFY
 CONTINUE
 ```
 
-Do not repeatedly paste a creation command simply because the command itself produced little output. Verify the resulting object first.
+I should not repeatedly paste a creation command just because it produced little output. I need to verify the resulting object first.
 
-The incident also reinforced the value of using the GUI and PowerShell together: the GUI is useful for understanding the topology visually, while PowerShell is the authoritative way used in this project to count and inspect the resulting objects precisely.
+This incident also reinforced the value of using the GUI and PowerShell together: the GUI helps me understand the topology visually, while PowerShell gives me the precise state I need for validation and later automation.
 
 ## Evidence
 
-Planned evidence files for this incident:
+The actual evidence files are committed in the repository:
 
-- `screenshots/chapter-01/01-03a-duplicate-switches-detected.png`
-- `screenshots/chapter-01/01-03b-virtual-switches-final.png`
-- `screenshots/chapter-01/01-03c-virtual-switch-manager-gui.png`
+- `screenshots/chapter-01/01-03a-duplicate-switches-detected.png.png`
+- `screenshots/chapter-01/01-03b-virtual-switches-final.png.png`
+- `screenshots/chapter-01/01-03c-virtual-switch-manager-gui.png.png`
 
-Evidence is only considered complete after the actual image files are present in the repository.
+The first screenshot records the duplicate state; the second records the cleaned PowerShell inventory; and the third records the Hyper-V Virtual Switch Manager view used during the troubleshooting process.
