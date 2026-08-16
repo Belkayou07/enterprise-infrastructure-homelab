@@ -79,8 +79,8 @@ This incident also reinforced the value of using the GUI and PowerShell together
 
 The actual evidence files are committed in the repository:
 
-- `screenshots/chapter-01/01-03a-duplicate-switches-detected.png.png`
-- `screenshots/chapter-01/01-03b-virtual-switches-final.png.png`
-- `screenshots/chapter-01/01-03c-virtual-switch-manager-gui.png.png`
+- `screenshots/chapter-01/01-03a-duplicate-switches-detected.png`
+- `screenshots/chapter-01/01-03b-virtual-switches-final.png`
+- `screenshots/chapter-01/01-03c-virtual-switch-manager-gui.png`
 
 The first screenshot records the duplicate state; the second records the cleaned PowerShell inventory; and the third records the Hyper-V Virtual Switch Manager view used during the troubleshooting process.
