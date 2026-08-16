@@ -25,6 +25,8 @@ I documented the SMT troubleshooting record separately in `../troubleshooting/00
 | [`chapter-01/01-03a-duplicate-switches-detected.png`](chapter-01/01-03a-duplicate-switches-detected.png) | COMMITTED | Shows the accidental duplicate custom switch state I detected during verification. |
 | [`chapter-01/01-03b-virtual-switches-final.png`](chapter-01/01-03b-virtual-switches-final.png) | COMMITTED | Shows my final PowerShell switch counts, intended switch types, and unique switch IDs after cleanup. |
 | [`chapter-01/01-03c-virtual-switch-manager-gui.png`](chapter-01/01-03c-virtual-switch-manager-gui.png) | COMMITTED | Shows the BelkaCorp virtual-switch layout in Hyper-V Virtual Switch Manager. |
+| `chapter-01/01-04a-mgmt-static-ip-configuration.png` | CAPTURED | Shows DHCP being disabled, the APIPA address being removed, and `10.10.30.10/24` being assigned to my Windows host MGMT adapter. |
+| `chapter-01/01-04b-mgmt-static-ip-verification.png` | CAPTURED | Shows the final manual address, connected `10.10.30.0/24` route, and confirmation that the MGMT adapter has no default gateway. |
 
 I documented the duplicate-switch incident separately in `../troubleshooting/002-hyper-v-duplicate-virtual-switches.md`.
 
