@@ -15,8 +15,8 @@ CHAPTER 1  Hyper-V platform             [NOW]
    1.1     Enable + verify Hyper-V      [DONE]
    1.2     Host storage convention      [DONE]
    1.3     Virtual switches             [DONE]
-   1.3b    Host MGMT adapter            [NEXT]
-   1.4     Test VM                      [LATER]
+   1.3b    Host MGMT adapter            [CONFIG + VERIFY DONE]
+   1.4     Test VM                      [NEXT]
 
 CHAPTER 2  Network architecture
 CHAPTER 3  Firewall / routing
@@ -48,10 +48,10 @@ SET VM STORAGE          [DONE]
 CREATE VIRTUAL SWITCHES [DONE]
       |
       v
-CONFIGURE HOST MGMT     [NEXT]
+CONFIGURE HOST MGMT     [DONE]
       |
       v
-DEPLOY TEST VM
+DEPLOY TEST VM          [NEXT]
       |
       v
 VERIFY PLATFORM
@@ -92,6 +92,28 @@ vSW-USERS       Private   count 1
 
 I accidentally created duplicate custom switches when I ran `New-VMSwitch` commands multiple times. I detected them through PowerShell and Virtual Switch Manager, removed the extras manually in the GUI, and then re-verified the final counts and unique switch IDs with PowerShell.
 
+## Windows Host MGMT Adapter
+
+```text
+Windows host
+10.10.30.10/24
+     |
+     | vEthernet (vSW-MGMT)
+     v
+vSW-MGMT  Internal
+     |
+     +-- FW01 MGMT later: 10.10.30.1/24
+```
+
+```text
+DHCP             -> Disabled
+IPv4             -> 10.10.30.10/24
+Connected route  -> 10.10.30.0/24
+Default gateway  -> NONE
+```
+
+No default gateway is configured on the MGMT adapter, so the Windows host keeps using its normal network connection for its default Internet route.
+
 ## Physical Model
 
 ```text
@@ -125,7 +147,7 @@ I accidentally created duplicate custom switches when I ran `New-VMSwitch` comma
     Private              Private              Internal
         |                   |                   |
    [CLIENT01]       +-------+-------+       Windows host
-   DHCP later       |       |       |       admin access
+   DHCP later       |       |       |       10.10.30.10
                   [DC01]  [LNX01] [MON01]
                    .10     .20      .30
 ```
@@ -180,6 +202,7 @@ BELKACORP PRIVATE SPACE
     |      MON01 10.10.20.30
     |
     +-- MGMT     10.10.30.0/24   gateway .1
+           Windows host 10.10.30.10
 ```
 
 ## Routing Between Two Subnets
