@@ -174,11 +174,11 @@ The virtual switch itself does not own the subnet gateway IP. Later, the `FW01` 
 
 ### Evidence
 
-![Duplicate Hyper-V switches detected](../screenshots/chapter-01/01-03a-duplicate-switches-detected.png.png)
+![Duplicate Hyper-V switches detected](../screenshots/chapter-01/01-03a-duplicate-switches-detected.png)
 
-![Final Hyper-V switch inventory](../screenshots/chapter-01/01-03b-virtual-switches-final.png.png)
+![Final Hyper-V switch inventory](../screenshots/chapter-01/01-03b-virtual-switches-final.png)
 
-![Hyper-V Virtual Switch Manager](../screenshots/chapter-01/01-03c-virtual-switch-manager-gui.png.png)
+![Hyper-V Virtual Switch Manager](../screenshots/chapter-01/01-03c-virtual-switch-manager-gui.png)
 
 **Step 3 is complete and fully evidenced.**
 
