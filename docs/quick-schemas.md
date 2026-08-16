@@ -15,8 +15,9 @@ CHAPTER 1  Hyper-V platform             [NOW]
    1.1     Enable + verify Hyper-V      [DONE]
    1.2     Host storage convention      [DONE]
    1.3     Virtual switches             [DONE]
-   1.3b    Host MGMT adapter            [CONFIG + VERIFY DONE]
-   1.4     Test VM                      [NEXT]
+   1.3b    Host MGMT adapter            [DONE]
+   1.4     TEST01 pre-boot config       [DONE]
+   1.5     Ubuntu install / guest test  [NEXT]
 
 CHAPTER 2  Network architecture
 CHAPTER 3  Firewall / routing
@@ -51,10 +52,16 @@ CREATE VIRTUAL SWITCHES [DONE]
 CONFIGURE HOST MGMT     [DONE]
       |
       v
-DEPLOY TEST VM          [NEXT]
+CREATE TEST01           [DONE]
       |
       v
-VERIFY PLATFORM
+PRE-BOOT VERIFY TEST01  [DONE]
+      |
+      v
+BOOT + INSTALL UBUNTU   [NEXT]
+      |
+      v
+VERIFY GUEST + NETWORK
 ```
 
 ## Hyper-V Verified State
@@ -92,27 +99,43 @@ vSW-USERS       Private   count 1
 
 I accidentally created duplicate custom switches when I ran `New-VMSwitch` commands multiple times. I detected them through PowerShell and Virtual Switch Manager, removed the extras manually in the GUI, and then re-verified the final counts and unique switch IDs with PowerShell.
 
-## Windows Host MGMT Adapter
+## Host MGMT Adapter
 
 ```text
 Windows host
-10.10.30.10/24
-     |
-     | vEthernet (vSW-MGMT)
-     v
+    |
+    | 10.10.30.10/24
+    | DHCP disabled
+    | NO default gateway
+    v
+vEthernet (vSW-MGMT)
+    |
+    v
 vSW-MGMT  Internal
-     |
-     +-- FW01 MGMT later: 10.10.30.1/24
+    |
+    +---- FW01 MGMT 10.10.30.1/24 later
 ```
+
+Why no gateway on the Windows MGMT adapter:
 
 ```text
-DHCP             -> Disabled
-IPv4             -> 10.10.30.10/24
-Connected route  -> 10.10.30.0/24
-Default gateway  -> NONE
+Wi-Fi / normal NIC -> normal Windows Internet default route
+MGMT adapter       -> only BelkaCorp management subnet
 ```
 
-No default gateway is configured on the MGMT adapter, so the Windows host keeps using its normal network connection for its default Internet route.
+## TEST01 Pre-Boot Model
+
+```text
+TEST01
+|
++-- Generation 2
++-- 2 vCPU
++-- 2 GiB startup RAM
++-- TEST01.vhdx -> C:\Hyper-V\BelkaCorp\Virtual Hard Disks\
++-- vNIC        -> vSW-MGMT
++-- Ubuntu ISO  -> C:\Hyper-V\ISOs\ubuntu-26.04-live-server-amd64.iso
++-- Secure Boot -> Microsoft UEFI Certificate Authority
+```
 
 ## Physical Model
 
@@ -161,15 +184,6 @@ FW01 / OPNsense
 +-- NIC 2  USERS    -> vSW-USERS    -> 10.10.10.1/24
 +-- NIC 3  SERVERS  -> vSW-SERVERS  -> 10.10.20.1/24
 +-- NIC 4  MGMT     -> vSW-MGMT     -> 10.10.30.1/24
-```
-
-## Hyper-V Switch Types Used
-
-```text
-Default Switch  -> FW01 WAN / upstream Internet
-vSW-USERS       -> Private  -> VMs only
-vSW-SERVERS     -> Private  -> VMs only
-vSW-MGMT        -> Internal -> VMs + Windows host
 ```
 
 ## Hyper-V Switch Type Quick Note
@@ -252,6 +266,7 @@ DC01      Active Directory + DNS
 CLIENT01  Domain user workstation
 LNX01     Linux administration / services
 MON01     Monitoring / observability
+TEST01    Temporary Hyper-V platform validation VM
 ```
 
 ## Naming Rule
@@ -264,6 +279,7 @@ DC01
 LNX01
 MON01
 CLIENT01
+TEST01
 ```
 
 ## Troubleshooting Method
