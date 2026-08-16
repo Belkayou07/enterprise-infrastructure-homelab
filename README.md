@@ -88,9 +88,11 @@ I audited the Windows host, restored SMT so the CPU exposes the expected 24 logi
 
 **Chapter 1 — In progress**
 
-So far I have enabled and verified Hyper-V, confirmed the management service and PowerShell tooling, configured the BelkaCorp VM/VHDX storage convention, created the planned Hyper-V virtual switches, resolved a real duplicate-switch mistake, and committed CLI + GUI evidence of the final clean switch state.
+I have enabled and verified Hyper-V, configured dedicated VM/VHDX storage, built the planned virtual switches, resolved and documented a real duplicate-switch mistake, configured the Windows host management adapter as `10.10.30.10/24` without a default gateway, and created `TEST01` as a Generation 2 Ubuntu Server validation VM.
 
-Next I will configure the Windows host-side `vEthernet (vSW-MGMT)` adapter for the isolated management network and then deploy a small test VM to validate the platform end to end.
+I have also verified `TEST01` before boot: 2 vCPU, 2 GiB startup RAM, its VHDX in the BelkaCorp storage path, its vNIC attached to `vSW-MGMT`, and Linux-compatible Secure Boot enabled.
+
+Next I will boot `TEST01`, install Ubuntu Server, and validate the guest CPU, memory, storage, network adapter, static management addressing, and host-to-guest communication.
 
 ## AI-Assisted Learning and Documentation
 
