@@ -25,8 +25,10 @@ I documented the SMT troubleshooting record separately in `../troubleshooting/00
 | [`chapter-01/01-03a-duplicate-switches-detected.png`](chapter-01/01-03a-duplicate-switches-detected.png) | COMMITTED | Shows the accidental duplicate custom switch state I detected during verification. |
 | [`chapter-01/01-03b-virtual-switches-final.png`](chapter-01/01-03b-virtual-switches-final.png) | COMMITTED | Shows my final PowerShell switch counts, intended switch types, and unique switch IDs after cleanup. |
 | [`chapter-01/01-03c-virtual-switch-manager-gui.png`](chapter-01/01-03c-virtual-switch-manager-gui.png) | COMMITTED | Shows the BelkaCorp virtual-switch layout in Hyper-V Virtual Switch Manager. |
-| `chapter-01/01-04a-mgmt-static-ip-configuration.png` | CAPTURED | Shows DHCP being disabled, the APIPA address being removed, and `10.10.30.10/24` being assigned to my Windows host MGMT adapter. |
-| `chapter-01/01-04b-mgmt-static-ip-verification.png` | CAPTURED | Shows the final manual address, connected `10.10.30.0/24` route, and confirmation that the MGMT adapter has no default gateway. |
+| `chapter-01/01-04a-mgmt-static-ip-configuration.png` | CAPTURED | Shows me disabling DHCP, removing the temporary link-local address, and assigning `10.10.30.10/24` to the host MGMT adapter. |
+| `chapter-01/01-04b-mgmt-static-ip-verification.png` | CAPTURED | Shows the final MGMT interface state: DHCP disabled, static manual address, connected `/24` route, and no default gateway. |
+| `chapter-01/01-05a-test-vm-wizard-summary.png` | CAPTURED | Shows the Hyper-V wizard summary for `TEST01`: Generation 2, 2048 MB, `vSW-MGMT`, dedicated VHDX path, and Ubuntu Server ISO. |
+| `chapter-01/01-05b-test-vm-preboot-verification.png` | CAPTURED | Shows PowerShell verification of `TEST01` before boot: 2 vCPU, 2 GiB startup RAM, SCSI VHDX, `vSW-MGMT`, and Linux-compatible Secure Boot template. |
 
 I documented the duplicate-switch incident separately in `../troubleshooting/002-hyper-v-duplicate-virtual-switches.md`.
 
