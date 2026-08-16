@@ -10,11 +10,9 @@ A virtualization platform allows multiple isolated operating systems and infrast
 
 ## What I Must Understand First
 
-Before building VMs, I need to understand these terms:
-
 - **Host** — my physical Windows desktop running Hyper-V.
 - **Guest / VM** — an operating system running virtually on the host.
-- **vCPU** — virtual processors assigned to a VM; they consume scheduling time on the physical CPU rather than representing dedicated physical cores.
+- **vCPU** — virtual processors assigned to a VM.
 - **VHDX** — Hyper-V virtual hard-disk file format.
 - **Virtual NIC** — a network adapter presented to a VM.
 - **Virtual switch** — a software Ethernet switch connecting VM NICs to other VMs, the Windows host, or an external network depending on switch type.
@@ -25,11 +23,8 @@ Before building VMs, I need to understand these terms:
 PHYSICAL WINDOWS HOST
         |
         +-- Hyper-V hypervisor/platform
-        |
         +-- Hyper-V Manager / PowerShell
-        |
         +-- Virtual switches
-        |
         +-- Virtual machines
                |
                +-- vCPU
@@ -47,23 +42,20 @@ PHYSICAL WINDOWS HOST
 5. [x] Define VM and VHDX storage conventions.
 6. [x] Create and verify the planned virtual switches.
 7. [x] Configure and verify the Windows host's MGMT virtual adapter.
-8. [ ] Deploy a small test VM.
-9. [ ] Verify CPU, memory, disk, and network operation.
-10. [ ] Complete evidence/documentation for the remaining Chapter 1 steps.
+8. [x] Create and pre-boot verify a small test VM.
+9. [ ] Boot TEST01 and install Ubuntu Server.
+10. [ ] Verify guest CPU, memory, disk, network, and host-to-guest management connectivity.
+11. [ ] Complete the remaining Chapter 1 evidence and close the chapter.
 
 ## Step 1 — Enable and Verify Hyper-V
 
-I enabled Hyper-V from an elevated PowerShell session with:
+I enabled Hyper-V from an elevated PowerShell session:
 
 ```powershell
 Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
 ```
 
-I restarted Windows before validating the platform.
-
-### Verified Post-Restart State
-
-I observed the following state on 2026-08-14:
+After restarting Windows, I verified:
 
 | Check | Observed state |
 |---|---|
@@ -74,27 +66,23 @@ I observed the following state on 2026-08-14:
 
 ### Evidence
 
-![Hyper-V verification PowerShell evidence](../screenshots/chapter-01/01-01-hyperv-verification.png)
+![Hyper-V verification](../screenshots/chapter-01/01-01-hyperv-verification.png)
 
-## Step 2 — Inspect Host and Define Storage Convention
+## Step 2 — Hyper-V Storage Convention
 
 My storage inspection showed one usable Windows volume:
 
-| Volume | File system | Size | Free space |
+| Volume | File system | Size | Free space at inspection |
 |---|---|---:|---:|
 | `C:` | NTFS | 952.8 GB | 691.2 GB |
 
-### Final Storage Convention
-
-I chose the following dedicated lab structure:
+I created and configured this dedicated lab structure:
 
 ```text
 C:\Hyper-V\BelkaCorp\
 ├── Virtual Machines\
 └── Virtual Hard Disks\
 ```
-
-I configured the Hyper-V host defaults as:
 
 ```text
 VirtualMachinePath  C:\Hyper-V\BelkaCorp
@@ -103,13 +91,11 @@ VirtualHardDiskPath C:\Hyper-V\BelkaCorp\Virtual Hard Disks
 
 ### Evidence
 
-![Hyper-V storage configuration evidence](../screenshots/chapter-01/01-02-hyperv-storage-configuration.png)
-
-**Step 2 is complete.**
+![Hyper-V storage configuration](../screenshots/chapter-01/01-02-hyperv-storage-configuration.png)
 
 ## Step 3 — Create and Verify Virtual Switches
 
-For my BelkaCorp design, I need three lab-side Hyper-V switches in addition to the Windows-managed Default Switch:
+My planned Hyper-V switches are:
 
 ```text
 Default Switch -> FW01 WAN
@@ -118,40 +104,15 @@ vSW-SERVERS    -> Private
 vSW-MGMT       -> Internal
 ```
 
-I initially created them with:
-
-```powershell
-New-VMSwitch -Name "vSW-USERS" -SwitchType Private
-New-VMSwitch -Name "vSW-SERVERS" -SwitchType Private
-New-VMSwitch -Name "vSW-MGMT" -SwitchType Internal
-```
+I created the custom switches with `New-VMSwitch`.
 
 ### Real Troubleshooting Incident — Duplicate Switch Objects
 
-While working through the commands, I pasted the creation commands more than once. This created multiple Hyper-V switch objects with the same friendly names.
+I accidentally pasted the creation commands more than once, which created duplicate switch objects with the same friendly names. I noticed the problem while using both PowerShell and Hyper-V Virtual Switch Manager. Because no lab VMs were attached yet, I removed the extra objects manually in the GUI and verified the cleaned state again with PowerShell.
 
-I noticed the duplicate state while reviewing both PowerShell output and Hyper-V Virtual Switch Manager. Because no VMs were attached yet, I removed the extra custom switch entries manually in the GUI and then re-ran verification in PowerShell.
+I documented the incident in `troubleshooting/002-hyper-v-duplicate-virtual-switches.md`.
 
-I documented the incident in:
-
-`troubleshooting/002-hyper-v-duplicate-virtual-switches.md`
-
-### Final Verification
-
-I verified the cleaned configuration with:
-
-```powershell
-Get-VMSwitch |
-    Group-Object Name |
-    Sort-Object Name |
-    Select-Object Name, Count
-
-Get-VMSwitch |
-    Sort-Object Name |
-    Select-Object Name, SwitchType, Id
-```
-
-My final observed state is:
+My final verified switch inventory was:
 
 | Switch | Count | Type |
 |---|---:|---|
@@ -162,114 +123,121 @@ My final observed state is:
 
 I also verified that each remaining switch has a distinct Hyper-V `Id`.
 
-### Why I Chose These Types
-
-```text
-vSW-USERS      Private  -> lab VMs only
-vSW-SERVERS    Private  -> lab VMs only
-vSW-MGMT       Internal -> lab VMs + Windows host
-```
-
-The virtual switch itself does not own the subnet gateway IP. Later, the `FW01` virtual NIC attached to each network will own the `.1` gateway address for that subnet.
-
 ### Evidence
 
-![Duplicate Hyper-V switches detected](../screenshots/chapter-01/01-03a-duplicate-switches-detected.png)
+![Duplicate switches detected](../screenshots/chapter-01/01-03a-duplicate-switches-detected.png)
 
-![Final Hyper-V switch inventory](../screenshots/chapter-01/01-03b-virtual-switches-final.png)
+![Final switch inventory](../screenshots/chapter-01/01-03b-virtual-switches-final.png)
 
-![Hyper-V Virtual Switch Manager](../screenshots/chapter-01/01-03c-virtual-switch-manager-gui.png)
-
-**Step 3 is complete and fully evidenced.**
+![Virtual Switch Manager](../screenshots/chapter-01/01-03c-virtual-switch-manager-gui.png)
 
 ## Step 4 — Windows Host MGMT Adapter
 
-Creating `vSW-MGMT` as an Internal switch also created a host-side adapter named `vEthernet (vSW-MGMT)`.
+Because `vSW-MGMT` is an Internal switch, Hyper-V created a host-side adapter named `vEthernet (vSW-MGMT)`.
 
-### Initial State
-
-Before configuring it, I inspected the adapter and found:
+Before configuration I observed:
 
 ```text
-Adapter       vEthernet (vSW-MGMT)
-Status        Up
-DHCP          Enabled
-IPv4          169.254.112.94/16
-PrefixOrigin  WellKnown
+Status    Up
+DHCP      Enabled
+IPv4      169.254.112.94/16
 ```
 
-Because there was no DHCP server on this isolated management network, Windows had assigned itself a `169.254.0.0/16` link-local/APIPA address.
+The `169.254.x.x` address showed that the interface had no usable DHCP lease on the isolated management network.
 
-### Static Management Configuration
-
-I disabled DHCP on this adapter, removed the temporary APIPA address, and assigned the Windows host a permanent address in the BelkaCorp MGMT subnet:
+I then deliberately configured the host management address:
 
 ```text
-MGMT subnet   10.10.30.0/24
-FW01 later    10.10.30.1/24
-Windows host  10.10.30.10/24
+Interface   vEthernet (vSW-MGMT)
+IPv4        10.10.30.10/24
+DHCP        Disabled
+Gateway     none
 ```
 
-I intentionally did **not** configure a default gateway on this adapter. My normal Windows Internet connection remains responsible for the host's default route; the MGMT adapter is only for direct access to the isolated management network.
+I removed the temporary link-local address, assigned `10.10.30.10/24`, and intentionally did **not** configure a default gateway on this interface so my normal Windows Internet route remains separate from the lab management network.
 
 ### Final Verification
 
-I verified the resulting state:
+I verified:
 
-| Check | Final state |
-|---|---|
-| Adapter | `vEthernet (vSW-MGMT)` |
-| DHCP | Disabled |
-| Connection | Connected |
-| IPv4 | `10.10.30.10/24` |
-| Prefix origin | Manual |
-| Address state | Preferred |
-| Connected route | `10.10.30.0/24` via `0.0.0.0` on `vEthernet (vSW-MGMT)` |
-| Default gateway on MGMT adapter | None |
-
-This gives my physical Windows workstation a deliberate Layer-3 presence on the management network without creating a second default route.
-
-### Small PowerShell Troubleshooting Note
-
-During the first gateway verification, I entered `else` after PowerShell had already completed the preceding `if` statement, so PowerShell interpreted `else` as a separate command. I re-ran the verification with `} else {` as part of the same statement. This was a PowerShell syntax issue only; the network configuration itself was already correct.
+```text
+DHCP              Disabled
+ConnectionState   Connected
+IPAddress         10.10.30.10
+PrefixLength      24
+PrefixOrigin      Manual
+AddressState      Preferred
+Connected route   10.10.30.0/24 -> 0.0.0.0
+Default gateway   none
+```
 
 ### Evidence Status
 
-I captured two screenshots during this step:
+Captured in the working session; repository upload pending:
 
-- `01-04a-mgmt-static-ip-configuration` — the configuration commands and static IP assignment.
-- `01-04b-mgmt-static-ip-verification` — the final DHCP, IP, route, and no-default-gateway verification.
+- `01-04a-mgmt-static-ip-configuration`
+- `01-04b-mgmt-static-ip-verification`
 
-The screenshots are captured and will be marked committed once the actual files are present under `screenshots/chapter-01/`.
+## Step 5 — TEST01 Pre-Boot Validation
 
-**Step 4 is technically complete and verified.**
+I created a small temporary Linux VM to prove that the Hyper-V platform, storage convention, virtual networking, and Generation 2 firmware configuration work together before I deploy the real BelkaCorp infrastructure roles.
+
+### TEST01 Design
+
+```text
+TEST01
+├── Generation 2
+├── 2 vCPU
+├── 2 GB startup RAM
+├── VHDX: C:\Hyper-V\BelkaCorp\Virtual Hard Disks\TEST01.vhdx
+├── vNIC: vSW-MGMT
+├── Ubuntu Server ISO: C:\Hyper-V\ISOs\ubuntu-26.04-live-server-amd64.iso
+└── Secure Boot: Microsoft UEFI Certificate Authority
+```
+
+I used the Hyper-V Manager wizard so I could also understand the GUI workflow, then used PowerShell to verify the resulting VM configuration precisely.
+
+### Pre-Boot PowerShell Verification
+
+I verified the following before starting the VM:
+
+| Property | Verified state |
+|---|---|
+| Name | `TEST01` |
+| State | Off |
+| Generation | 2 |
+| ProcessorCount | 2 |
+| MemoryStartup | 2147483648 bytes (2 GiB) |
+| Virtual disk | `C:\Hyper-V\BelkaCorp\Virtual Hard Disks\TEST01.vhdx` |
+| Disk controller | SCSI |
+| Virtual switch | `vSW-MGMT` |
+| Secure Boot | On |
+| Secure Boot template | `MicrosoftUEFICertificateAuthority` |
+
+The pre-boot `MacAddress` field displayed `000000000000`. I have not treated that as the final network validation; I will re-check the adapter after TEST01 starts and Hyper-V has an active guest network interface.
+
+### Evidence Status
+
+Captured in the working session; repository upload pending:
+
+- `01-05a-test-vm-wizard-summary`
+- `01-05b-test-vm-preboot-verification`
 
 ## Evidence Workflow
 
 ```text
 UNDERSTAND
     |
-    v
 IMPLEMENT
     |
-    v
 VERIFY
     |
-    v
 CAPTURE USEFUL EVIDENCE
     |
-    v
 DOCUMENT
     |
-    v
 COMMIT
 ```
-
-## GitHub Evidence Rule
-
-I do not commit passwords, license keys, Windows product keys, private addresses unrelated to the isolated lab, or unnecessary raw system dumps.
-
-I only keep evidence that demonstrates a validated state, a sanitized configuration, real troubleshooting, or a meaningful project result.
 
 ## AI-Assisted Workflow
 
@@ -277,19 +245,20 @@ I use AI as a learning, troubleshooting, and documentation assistant during this
 
 ## Interview Explanation Target
 
-At the end of the chapter, I should be able to explain:
+At the end of this chapter, I should be able to explain:
 
 - why I selected Hyper-V for this host;
 - host vs guest virtualization;
 - vCPU, RAM, VHDX, virtual NICs, and virtual switches;
 - External vs Internal vs Private switches;
-- why the Windows host uses `10.10.30.10/24` on the MGMT network without a default gateway;
-- how my BelkaCorp VM networks remain isolated while `FW01` performs routing;
-- how my physical Windows workstation retains a management path into the lab;
-- how I detected, corrected, and verified the duplicate-switch incident.
+- why my USERS and SERVERS networks are isolated from the Windows host;
+- why the host joins only the MGMT network;
+- why the MGMT host adapter has a static address but no default gateway;
+- how I detected and corrected the duplicate-switch incident;
+- why I used a Generation 2 test VM and how I verified its firmware, storage, CPU, memory, and network attachment before booting it.
 
 ## Status
 
 **IN PROGRESS**
 
-Current step: commit the two MGMT adapter screenshots, then deploy and verify a small Hyper-V test VM.
+Current step: boot `TEST01`, install Ubuntu Server, then verify the guest and host-to-guest management network end to end.
