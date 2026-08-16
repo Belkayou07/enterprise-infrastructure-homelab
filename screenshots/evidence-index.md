@@ -22,9 +22,9 @@ I documented the SMT troubleshooting record separately in `../troubleshooting/00
 |---|---|---|
 | [`chapter-01/01-01-hyperv-verification.png`](chapter-01/01-01-hyperv-verification.png) | COMMITTED | Hyper-V is enabled; VMMS is running automatically; the Hyper-V PowerShell module is available; and the Default Switch is present as an Internal switch. |
 | [`chapter-01/01-02-hyperv-storage-configuration.png`](chapter-01/01-02-hyperv-storage-configuration.png) | COMMITTED | Hyper-V host defaults point to the dedicated BelkaCorp storage path and the `Virtual Machines` / `Virtual Hard Disks` directories exist. |
-| [`chapter-01/01-03a-duplicate-switches-detected.png.png`](chapter-01/01-03a-duplicate-switches-detected.png.png) | COMMITTED | Shows the accidental duplicate custom switch state I detected during verification. |
-| [`chapter-01/01-03b-virtual-switches-final.png.png`](chapter-01/01-03b-virtual-switches-final.png.png) | COMMITTED | Shows my final PowerShell switch counts, intended switch types, and unique switch IDs after cleanup. |
-| [`chapter-01/01-03c-virtual-switch-manager-gui.png.png`](chapter-01/01-03c-virtual-switch-manager-gui.png.png) | COMMITTED | Shows the BelkaCorp virtual-switch layout in Hyper-V Virtual Switch Manager. |
+| [`chapter-01/01-03a-duplicate-switches-detected.png`](chapter-01/01-03a-duplicate-switches-detected.png) | COMMITTED | Shows the accidental duplicate custom switch state I detected during verification. |
+| [`chapter-01/01-03b-virtual-switches-final.png`](chapter-01/01-03b-virtual-switches-final.png) | COMMITTED | Shows my final PowerShell switch counts, intended switch types, and unique switch IDs after cleanup. |
+| [`chapter-01/01-03c-virtual-switch-manager-gui.png`](chapter-01/01-03c-virtual-switch-manager-gui.png) | COMMITTED | Shows the BelkaCorp virtual-switch layout in Hyper-V Virtual Switch Manager. |
 
 I documented the duplicate-switch incident separately in `../troubleshooting/002-hyper-v-duplicate-virtual-switches.md`.
 
