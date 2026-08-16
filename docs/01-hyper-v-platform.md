@@ -46,7 +46,7 @@ PHYSICAL WINDOWS HOST
 4. [x] Inspect the Hyper-V host configuration.
 5. [x] Define VM and VHDX storage conventions.
 6. [x] Create and verify the planned virtual switches.
-7. [ ] Configure the Windows host's MGMT virtual adapter.
+7. [x] Configure and verify the Windows host's MGMT virtual adapter.
 8. [ ] Deploy a small test VM.
 9. [ ] Verify CPU, memory, disk, and network operation.
 10. [ ] Complete evidence/documentation for the remaining Chapter 1 steps.
@@ -184,7 +184,65 @@ The virtual switch itself does not own the subnet gateway IP. Later, the `FW01` 
 
 ## Step 4 — Windows Host MGMT Adapter
 
-Next, I will inspect the host-side `vEthernet (vSW-MGMT)` adapter created by the Internal switch and deliberately assign its management-network address. I will not configure a default gateway on this adapter, because I do not want it to interfere with my Windows host's normal Internet route.
+Creating `vSW-MGMT` as an Internal switch also created a host-side adapter named `vEthernet (vSW-MGMT)`.
+
+### Initial State
+
+Before configuring it, I inspected the adapter and found:
+
+```text
+Adapter       vEthernet (vSW-MGMT)
+Status        Up
+DHCP          Enabled
+IPv4          169.254.112.94/16
+PrefixOrigin  WellKnown
+```
+
+Because there was no DHCP server on this isolated management network, Windows had assigned itself a `169.254.0.0/16` link-local/APIPA address.
+
+### Static Management Configuration
+
+I disabled DHCP on this adapter, removed the temporary APIPA address, and assigned the Windows host a permanent address in the BelkaCorp MGMT subnet:
+
+```text
+MGMT subnet   10.10.30.0/24
+FW01 later    10.10.30.1/24
+Windows host  10.10.30.10/24
+```
+
+I intentionally did **not** configure a default gateway on this adapter. My normal Windows Internet connection remains responsible for the host's default route; the MGMT adapter is only for direct access to the isolated management network.
+
+### Final Verification
+
+I verified the resulting state:
+
+| Check | Final state |
+|---|---|
+| Adapter | `vEthernet (vSW-MGMT)` |
+| DHCP | Disabled |
+| Connection | Connected |
+| IPv4 | `10.10.30.10/24` |
+| Prefix origin | Manual |
+| Address state | Preferred |
+| Connected route | `10.10.30.0/24` via `0.0.0.0` on `vEthernet (vSW-MGMT)` |
+| Default gateway on MGMT adapter | None |
+
+This gives my physical Windows workstation a deliberate Layer-3 presence on the management network without creating a second default route.
+
+### Small PowerShell Troubleshooting Note
+
+During the first gateway verification, I entered `else` after PowerShell had already completed the preceding `if` statement, so PowerShell interpreted `else` as a separate command. I re-ran the verification with `} else {` as part of the same statement. This was a PowerShell syntax issue only; the network configuration itself was already correct.
+
+### Evidence Status
+
+I captured two screenshots during this step:
+
+- `01-04a-mgmt-static-ip-configuration` — the configuration commands and static IP assignment.
+- `01-04b-mgmt-static-ip-verification` — the final DHCP, IP, route, and no-default-gateway verification.
+
+The screenshots are captured and will be marked committed once the actual files are present under `screenshots/chapter-01/`.
+
+**Step 4 is technically complete and verified.**
 
 ## Evidence Workflow
 
@@ -225,6 +283,7 @@ At the end of the chapter, I should be able to explain:
 - host vs guest virtualization;
 - vCPU, RAM, VHDX, virtual NICs, and virtual switches;
 - External vs Internal vs Private switches;
+- why the Windows host uses `10.10.30.10/24` on the MGMT network without a default gateway;
 - how my BelkaCorp VM networks remain isolated while `FW01` performs routing;
 - how my physical Windows workstation retains a management path into the lab;
 - how I detected, corrected, and verified the duplicate-switch incident.
@@ -233,4 +292,4 @@ At the end of the chapter, I should be able to explain:
 
 **IN PROGRESS**
 
-Current step: configure and verify the Windows host's `vEthernet (vSW-MGMT)` adapter.
+Current step: commit the two MGMT adapter screenshots, then deploy and verify a small Hyper-V test VM.
