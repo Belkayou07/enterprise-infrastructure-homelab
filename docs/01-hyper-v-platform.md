@@ -43,9 +43,10 @@ PHYSICAL WINDOWS HOST
 6. [x] Create and verify the planned virtual switches.
 7. [x] Configure and verify the Windows host's MGMT virtual adapter.
 8. [x] Create and pre-boot verify a small test VM.
-9. [ ] Boot TEST01 and install Ubuntu Server.
-10. [ ] Verify guest CPU, memory, disk, network, and host-to-guest management connectivity.
-11. [ ] Complete the remaining Chapter 1 evidence and close the chapter.
+9. [x] Boot TEST01 and install Ubuntu Server.
+10. [ ] Configure and verify TEST01 management networking.
+11. [ ] Verify guest CPU, memory, disk, network, and host-to-guest connectivity.
+12. [ ] Complete the remaining Chapter 1 evidence and close the chapter.
 
 ## Step 1 — Enable and Verify Hyper-V
 
@@ -197,9 +198,7 @@ TEST01
 
 I used the Hyper-V Manager wizard so I could also understand the GUI workflow, then used PowerShell to verify the resulting VM configuration precisely.
 
-### Pre-Boot PowerShell Verification
-
-I verified the following before starting the VM:
+### Pre-Boot Verification
 
 | Property | Verified state |
 |---|---|
@@ -214,14 +213,37 @@ I verified the following before starting the VM:
 | Secure Boot | On |
 | Secure Boot template | `MicrosoftUEFICertificateAuthority` |
 
-The pre-boot `MacAddress` field displayed `000000000000`. I have not treated that as the final network validation; I will re-check the adapter after TEST01 starts and Hyper-V has an active guest network interface.
+### Evidence
 
-### Evidence Status
+![TEST01 wizard summary](../screenshots/chapter-01/01-05a-test-vm-wizard-summary.png)
 
-Captured in the working session; repository upload pending:
+![TEST01 pre-boot verification](../screenshots/chapter-01/01-05b-test-vm-preboot-verification.png)
 
-- `01-05a-test-vm-wizard-summary`
-- `01-05b-test-vm-preboot-verification`
+## Step 6 — Ubuntu Installation and First Boot
+
+I booted `TEST01` from the Ubuntu Server ISO, completed the Ubuntu Server installation, rebooted from the installed VHDX, and successfully logged in to the guest console.
+
+The first successful login verified that the VM can boot as a Generation 2 guest with the selected Secure Boot template and that the Ubuntu operating system was installed successfully on the virtual disk.
+
+Observed first-boot state:
+
+```text
+VM        TEST01
+State     Running
+Guest OS  Ubuntu 26.04 LTS
+Hostname  test01
+Console   Successful login
+```
+
+### Evidence
+
+![TEST01 Ubuntu first boot](../screenshots/chapter-01/01-06a-test-vm-ubuntu-first-boot.png)
+
+## Step 7 — TEST01 Management Networking
+
+Next, I will inspect the Linux network interface inside `TEST01`, configure `10.10.30.20/24` on the interface attached to `vSW-MGMT`, and verify communication between the Windows host (`10.10.30.10`) and the Ubuntu guest (`10.10.30.20`).
+
+At this stage I will not configure a default gateway on TEST01 because the management subnet does not yet have `FW01` deployed as its router.
 
 ## Evidence Workflow
 
@@ -255,10 +277,11 @@ At the end of this chapter, I should be able to explain:
 - why the host joins only the MGMT network;
 - why the MGMT host adapter has a static address but no default gateway;
 - how I detected and corrected the duplicate-switch incident;
-- why I used a Generation 2 test VM and how I verified its firmware, storage, CPU, memory, and network attachment before booting it.
+- why I used a Generation 2 test VM and how I verified its firmware, storage, CPU, memory, and network attachment before booting it;
+- how I validated that Ubuntu could install and boot successfully on the Hyper-V guest.
 
 ## Status
 
 **IN PROGRESS**
 
-Current step: boot `TEST01`, install Ubuntu Server, then verify the guest and host-to-guest management network end to end.
+Current step: configure `TEST01` as `10.10.30.20/24` and verify host-to-guest management connectivity.
