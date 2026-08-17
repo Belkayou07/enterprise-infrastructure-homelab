@@ -30,8 +30,11 @@ I documented the SMT troubleshooting record separately in `../troubleshooting/00
 | [`chapter-01/01-05a-test-vm-wizard-summary.png`](chapter-01/01-05a-test-vm-wizard-summary.png) | COMMITTED | Shows the Hyper-V wizard summary for `TEST01`: Generation 2, 2048 MB, `vSW-MGMT`, dedicated VHDX path, and Ubuntu Server ISO. |
 | [`chapter-01/01-05b-test-vm-preboot-verification.png`](chapter-01/01-05b-test-vm-preboot-verification.png) | COMMITTED | Shows PowerShell verification of `TEST01` before boot: 2 vCPU, 2 GiB startup RAM, SCSI VHDX, `vSW-MGMT`, and Linux-compatible Secure Boot template. |
 | [`chapter-01/01-06a-test-vm-ubuntu-first-boot.png`](chapter-01/01-06a-test-vm-ubuntu-first-boot.png) | COMMITTED | Shows `TEST01` running in Hyper-V and a successful Ubuntu 26.04 LTS login after installation. |
+| [`chapter-01/01-06b-test-vm-network-preconfig.png`](chapter-01/01-06b-test-vm-network-preconfig.png) | COMMITTED | Shows the detected `eth0` interface, its Hyper-V MAC address, no IPv4 address before configuration, and the installer-created Netplan file. |
+| [`chapter-01/01-06c-test-vm-static-network-one-way-ping.png`](chapter-01/01-06c-test-vm-static-network-one-way-ping.png) | COMMITTED | Shows `TEST01` configured as `10.10.30.20/24`, its connected route, and the initial failed ping from TEST01 to the Windows host. |
+| [`chapter-01/01-06d-test-vm-bidirectional-ping.png`](chapter-01/01-06d-test-vm-bidirectional-ping.png) | COMMITTED | Shows the scoped Windows Firewall ICMP rule and successful ping in both directions between `10.10.30.10` and `10.10.30.20`. |
 
-I documented the duplicate-switch incident separately in `../troubleshooting/002-hyper-v-duplicate-virtual-switches.md`.
+I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-duplicate-virtual-switches.md` and the one-way ICMP incident in `../troubleshooting/003-windows-firewall-blocked-test01-icmp.md`.
 
 ## Evidence Rule
 
