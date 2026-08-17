@@ -17,7 +17,8 @@ CHAPTER 1  Hyper-V platform             [NOW]
    1.3     Virtual switches             [DONE]
    1.3b    Host MGMT adapter            [DONE]
    1.4     TEST01 pre-boot config       [DONE]
-   1.5     Ubuntu install / guest test  [NEXT]
+   1.5     Ubuntu install / first boot  [DONE]
+   1.6     TEST01 static MGMT network   [NEXT]
 
 CHAPTER 2  Network architecture
 CHAPTER 3  Firewall / routing
@@ -58,10 +59,13 @@ CREATE TEST01           [DONE]
 PRE-BOOT VERIFY TEST01  [DONE]
       |
       v
-BOOT + INSTALL UBUNTU   [NEXT]
+INSTALL + BOOT UBUNTU   [DONE]
       |
       v
-VERIFY GUEST + NETWORK
+CONFIGURE TEST01 MGMT   [NEXT]
+      |
+      v
+VERIFY HOST <-> GUEST
 ```
 
 ## Hyper-V Verified State
@@ -123,7 +127,7 @@ Wi-Fi / normal NIC -> normal Windows Internet default route
 MGMT adapter       -> only BelkaCorp management subnet
 ```
 
-## TEST01 Pre-Boot Model
+## TEST01 Model
 
 ```text
 TEST01
@@ -133,8 +137,18 @@ TEST01
 +-- 2 GiB startup RAM
 +-- TEST01.vhdx -> C:\Hyper-V\BelkaCorp\Virtual Hard Disks\
 +-- vNIC        -> vSW-MGMT
-+-- Ubuntu ISO  -> C:\Hyper-V\ISOs\ubuntu-26.04-live-server-amd64.iso
++-- Ubuntu 26.04 LTS installed and booting
 +-- Secure Boot -> Microsoft UEFI Certificate Authority
+```
+
+Next network state:
+
+```text
+Windows host                 TEST01
+10.10.30.10/24               10.10.30.20/24
+      |                             |
+      +-------- vSW-MGMT -----------+
+                Internal
 ```
 
 ## Physical Model
@@ -217,6 +231,7 @@ BELKACORP PRIVATE SPACE
     |
     +-- MGMT     10.10.30.0/24   gateway .1
            Windows host 10.10.30.10
+           TEST01       10.10.30.20 planned
 ```
 
 ## Routing Between Two Subnets
