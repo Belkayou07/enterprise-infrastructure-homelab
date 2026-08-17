@@ -44,8 +44,8 @@ PHYSICAL WINDOWS HOST
 7. [x] Configure and verify the Windows host's MGMT virtual adapter.
 8. [x] Create and pre-boot verify a small test VM.
 9. [x] Boot TEST01 and install Ubuntu Server.
-10. [ ] Configure and verify TEST01 management networking.
-11. [ ] Verify guest CPU, memory, disk, network, and host-to-guest connectivity.
+10. [x] Configure and verify TEST01 management networking.
+11. [ ] Verify guest CPU, memory, disk, network runtime state, and persistence after reboot.
 12. [ ] Complete the remaining Chapter 1 evidence and close the chapter.
 
 ## Step 1 — Enable and Verify Hyper-V
@@ -174,7 +174,7 @@ Default gateway   none
 
 ### Evidence Status
 
-Captured in the working session; repository upload pending:
+I captured the following screenshots during the working session, but their repository upload is still pending:
 
 - `01-04a-mgmt-static-ip-configuration`
 - `01-04b-mgmt-static-ip-verification`
@@ -223,8 +223,6 @@ I used the Hyper-V Manager wizard so I could also understand the GUI workflow, t
 
 I booted `TEST01` from the Ubuntu Server ISO, completed the Ubuntu Server installation, rebooted from the installed VHDX, and successfully logged in to the guest console.
 
-The first successful login verified that the VM can boot as a Generation 2 guest with the selected Secure Boot template and that the Ubuntu operating system was installed successfully on the virtual disk.
-
 Observed first-boot state:
 
 ```text
@@ -241,9 +239,106 @@ Console   Successful login
 
 ## Step 7 — TEST01 Management Networking
 
-Next, I will inspect the Linux network interface inside `TEST01`, configure `10.10.30.20/24` on the interface attached to `vSW-MGMT`, and verify communication between the Windows host (`10.10.30.10`) and the Ubuntu guest (`10.10.30.20`).
+I inspected the actual Linux interface instead of assuming its device name.
 
-At this stage I will not configure a default gateway on TEST01 because the management subnet does not yet have `FW01` deployed as its router.
+My inspection showed:
+
+```text
+Interface  eth0
+State      UP
+MAC        00:15:5d:38:01:04
+IPv4       none before configuration
+IPv6       link-local only
+IPv4 route none before configuration
+```
+
+The installer-created `/etc/netplan/00-installer-config.yaml` matched the Hyper-V MAC address and named the interface `eth0`, but it did not assign an IPv4 address.
+
+### Static Netplan Configuration
+
+I configured TEST01 as:
+
+```text
+IPv4      10.10.30.20/24
+Interface eth0
+Gateway   none
+```
+
+My Netplan configuration uses the detected Hyper-V MAC address and a static address:
+
+```yaml
+network:
+  ethernets:
+    eth0:
+      match:
+        macaddress: 00:15:5d:38:01:04
+      set-name: eth0
+      dhcp4: false
+      addresses:
+        - 10.10.30.20/24
+  version: 2
+```
+
+I validated the YAML with `netplan generate`, tested it with `netplan try`, accepted the configuration, and applied it.
+
+The resulting Linux network state was:
+
+```text
+eth0              UP
+IPv4              10.10.30.20/24
+Connected route   10.10.30.0/24 via eth0
+Default route     none
+```
+
+### Real Troubleshooting Incident — One-Way ICMP
+
+After configuring the address, Windows could ping TEST01 successfully, but TEST01 could not initially ping the Windows host:
+
+```text
+Windows 10.10.30.10 -> TEST01 10.10.30.20   success
+TEST01 10.10.30.20  -> Windows 10.10.30.10  failed
+```
+
+Because one direction already worked, I did not assume that the Hyper-V switch or subnet design was broken. I inspected the Windows management network profile and firewall state.
+
+The host-side `vEthernet (vSW-MGMT)` adapter was an `Unidentified network` using the `Public` network category. Windows Firewall was enabled.
+
+I kept the firewall enabled and created a narrow inbound rule that only permits ICMPv4 echo requests from the BelkaCorp management subnet to the host management address on the MGMT interface:
+
+```powershell
+New-NetFirewallRule `
+    -DisplayName "BelkaCorp MGMT - ICMPv4 Echo" `
+    -Description "Allow ICMPv4 echo requests from the isolated BelkaCorp MGMT subnet to the Windows Hyper-V host." `
+    -Direction Inbound `
+    -Action Allow `
+    -Protocol ICMPv4 `
+    -IcmpType 8 `
+    -InterfaceAlias "vEthernet (vSW-MGMT)" `
+    -LocalAddress "10.10.30.10" `
+    -RemoteAddress "10.10.30.0/24"
+```
+
+I documented the incident separately in `troubleshooting/003-windows-firewall-blocked-test01-icmp.md`.
+
+### Final Connectivity Verification
+
+After applying the scoped firewall rule, ping succeeded in both directions:
+
+```text
+Windows host                   TEST01
+10.10.30.10/24  <---------->  10.10.30.20/24
+      ping success                 ping success
+```
+
+This proves that the Hyper-V Internal switch carries traffic correctly between the Windows management OS and the Ubuntu guest, and that both static IPv4 configurations are usable on the MGMT subnet.
+
+### Evidence
+
+![TEST01 network before static IPv4](../screenshots/chapter-01/01-06b-test-vm-network-preconfig.png)
+
+![TEST01 static network with one-way ping failure](../screenshots/chapter-01/01-06c-test-vm-static-network-one-way-ping.png)
+
+![TEST01 bidirectional ping after Windows Firewall rule](../screenshots/chapter-01/01-06d-test-vm-bidirectional-ping.png)
 
 ## Evidence Workflow
 
@@ -278,10 +373,12 @@ At the end of this chapter, I should be able to explain:
 - why the MGMT host adapter has a static address but no default gateway;
 - how I detected and corrected the duplicate-switch incident;
 - why I used a Generation 2 test VM and how I verified its firmware, storage, CPU, memory, and network attachment before booting it;
-- how I validated that Ubuntu could install and boot successfully on the Hyper-V guest.
+- how I configured a persistent static Linux address with Netplan;
+- why two hosts in the same `/24` do not require a router to communicate;
+- how I isolated a one-way connectivity problem to the Windows host firewall and fixed it with a narrowly scoped rule instead of disabling firewall protection.
 
 ## Status
 
 **IN PROGRESS**
 
-Current step: configure `TEST01` as `10.10.30.20/24` and verify host-to-guest management connectivity.
+Current step: verify TEST01 runtime CPU, memory, disk, network state, and persistence after a reboot before closing Chapter 1.
