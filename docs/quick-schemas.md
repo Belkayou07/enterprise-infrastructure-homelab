@@ -18,7 +18,8 @@ CHAPTER 1  Hyper-V platform             [NOW]
    1.3b    Host MGMT adapter            [DONE]
    1.4     TEST01 pre-boot config       [DONE]
    1.5     Ubuntu install / first boot  [DONE]
-   1.6     TEST01 static MGMT network   [NEXT]
+   1.6     TEST01 static MGMT network   [DONE]
+   1.7     Runtime + reboot validation  [NEXT]
 
 CHAPTER 2  Network architecture
 CHAPTER 3  Firewall / routing
@@ -56,16 +57,16 @@ CONFIGURE HOST MGMT     [DONE]
 CREATE TEST01           [DONE]
       |
       v
-PRE-BOOT VERIFY TEST01  [DONE]
-      |
-      v
 INSTALL + BOOT UBUNTU   [DONE]
       |
       v
-CONFIGURE TEST01 MGMT   [NEXT]
+CONFIGURE TEST01 MGMT   [DONE]
       |
       v
-VERIFY HOST <-> GUEST
+VERIFY HOST <-> GUEST   [DONE]
+      |
+      v
+VERIFY RUNTIME + REBOOT [NEXT]
 ```
 
 ## Hyper-V Verified State
@@ -120,11 +121,41 @@ vSW-MGMT  Internal
     +---- FW01 MGMT 10.10.30.1/24 later
 ```
 
-Why no gateway on the Windows MGMT adapter:
+## TEST01 Final MGMT Network
 
 ```text
-Wi-Fi / normal NIC -> normal Windows Internet default route
-MGMT adapter       -> only BelkaCorp management subnet
+Windows host                  TEST01
+10.10.30.10/24                10.10.30.20/24
+      |                              |
+      +--------- vSW-MGMT -----------+
+                  Internal
+
+Ping Windows -> TEST01   [OK]
+Ping TEST01  -> Windows  [OK]
+Default gateway          [NONE yet]
+```
+
+Both hosts are in `10.10.30.0/24`, so they communicate directly through the Layer-2 virtual switch. A router is not required for this same-subnet test.
+
+## One-Way Ping Troubleshooting
+
+```text
+Windows -> TEST01   OK
+TEST01  -> Windows  FAIL
+          |
+          v
+Windows MGMT profile = Public
+Windows Firewall      = enabled
+          |
+          v
+Add narrow inbound rule:
+ICMPv4 Echo
+interface = vEthernet (vSW-MGMT)
+local     = 10.10.30.10
+remote    = 10.10.30.0/24
+          |
+          v
+Ping both ways        OK
 ```
 
 ## TEST01 Model
@@ -137,18 +168,9 @@ TEST01
 +-- 2 GiB startup RAM
 +-- TEST01.vhdx -> C:\Hyper-V\BelkaCorp\Virtual Hard Disks\
 +-- vNIC        -> vSW-MGMT
-+-- Ubuntu 26.04 LTS installed and booting
++-- Ubuntu 26.04 LTS installed
++-- eth0        -> 10.10.30.20/24
 +-- Secure Boot -> Microsoft UEFI Certificate Authority
-```
-
-Next network state:
-
-```text
-Windows host                 TEST01
-10.10.30.10/24               10.10.30.20/24
-      |                             |
-      +-------- vSW-MGMT -----------+
-                Internal
 ```
 
 ## Physical Model
@@ -229,9 +251,9 @@ BELKACORP PRIVATE SPACE
     |      LNX01 10.10.20.20
     |      MON01 10.10.20.30
     |
-    +-- MGMT     10.10.30.0/24   gateway .1
+    +-- MGMT     10.10.30.0/24   gateway .1 later
            Windows host 10.10.30.10
-           TEST01       10.10.30.20 planned
+           TEST01       10.10.30.20
 ```
 
 ## Routing Between Two Subnets
