@@ -173,7 +173,7 @@ This showed that the Microsoft hypervisor was already active for Windows securit
 
 **Reasoning:** This gives me meaningful routing and firewall boundaries while remaining simple enough to understand and reproduce on one desktop. I designed `vSW-USERS` and `vSW-SERVERS` as private Hyper-V switches and `vSW-MGMT` as internal so my Windows administrator workstation can reach the lab through the management network. I use the Hyper-V Default Switch as the planned upstream/WAN side for `FW01`.
 
-I documented the detailed architecture and addressing in `docs/00-04-enterprise-architecture.md`.
+I documented the detailed architecture and addressing in `docs/00-enterprise-architecture.md`.
 
 ## Evidence
 
