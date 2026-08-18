@@ -19,7 +19,8 @@ CHAPTER 1  Hyper-V platform             [NOW]
    1.4     TEST01 pre-boot config       [DONE]
    1.5     Ubuntu install / first boot  [DONE]
    1.6     TEST01 static MGMT network   [DONE]
-   1.7     Runtime + reboot validation  [NEXT]
+   1.7     Runtime + reboot validation  [DONE]
+   1.8     Final Chapter 1 audit        [NEXT]
 
 CHAPTER 2  Network architecture
 CHAPTER 3  Firewall / routing
@@ -66,7 +67,10 @@ CONFIGURE TEST01 MGMT   [DONE]
 VERIFY HOST <-> GUEST   [DONE]
       |
       v
-VERIFY RUNTIME + REBOOT [NEXT]
+VERIFY RUNTIME + REBOOT [DONE]
+      |
+      v
+FINAL CHAPTER AUDIT     [NEXT]
 ```
 
 ## Hyper-V Verified State
@@ -165,12 +169,59 @@ TEST01
 |
 +-- Generation 2
 +-- 2 vCPU
-+-- 2 GiB startup RAM
++-- Dynamic Memory
+|     startup  = 2048 MB
+|     minimum  = 1536 MB
+|     maximum  = 4096 MB
+|     buffer   = 20%
 +-- TEST01.vhdx -> C:\Hyper-V\BelkaCorp\Virtual Hard Disks\
 +-- vNIC        -> vSW-MGMT
 +-- Ubuntu 26.04 LTS installed
 +-- eth0        -> 10.10.30.20/24
 +-- Secure Boot -> Microsoft UEFI Certificate Authority
+```
+
+## Dynamic Memory Quick Note
+
+```text
+STARTUP RAM
+RAM available to start/boot the VM
+        |
+        v
+DYNAMIC MEMORY ENABLED
+        |
+        +-- MINIMUM = lowest Hyper-V should reclaim toward
+        |
+        +-- DEMAND  = what the guest currently needs
+        |
+        +-- ASSIGNED = what Hyper-V currently gives the VM
+        |
+        +-- MAXIMUM = upper growth limit
+```
+
+TEST01 incident:
+
+```text
+Old minimum = 512 MB
+        |
+        v
+Hyper-V reclaimed RAM aggressively
+        |
+        v
+Guest showed very low memory
+        |
+        v
+Inspect Get-VMMemory + Get-VM
+        |
+        v
+New limits = 2048 startup / 1536 min / 4096 max
+        |
+        v
+Cold boot
+        |
+        v
+Assigned memory = 1536 MB [OK]
+Network persistence           [OK]
 ```
 
 ## Physical Model
