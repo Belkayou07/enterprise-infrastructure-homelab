@@ -191,17 +191,6 @@ This PowerShell verification confirms 12 cores, 24 logical processors, and 24 th
 
 The complete evidence inventory is tracked in [`screenshots/evidence-index.md`](../screenshots/evidence-index.md). I do not commit raw command output simply for completeness when it adds no useful portfolio evidence.
 
-## Interview Explanation Target
-
-At the end of Chapter 0, I should be able to explain:
-
-- why I audited the host before designing the lab;
-- why the Ryzen 9 7900 initially exposed only 12 logical processors and how I resolved it;
-- why I chose Hyper-V for this Windows host;
-- why I preserved VBS/Memory Integrity rather than weakening the host security baseline;
-- why I designed the project around one physical desktop;
-- how the initial BelkaCorp roles, naming convention, IP plan, and network segmentation fit together.
-
 ## Completion Criteria
 
 I considered Chapter 0 complete when:
