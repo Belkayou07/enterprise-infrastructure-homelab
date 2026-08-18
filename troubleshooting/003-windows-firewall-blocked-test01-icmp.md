@@ -10,7 +10,7 @@ TEST01        10.10.30.20/24
 Switch        vSW-MGMT (Internal)
 ```
 
-Because both systems are in the same `/24` subnet, they should be able to communicate directly through the Hyper-V virtual switch without a router.
+Because both systems are in the same `/24` subnet, they should communicate directly through the Hyper-V virtual switch without a router.
 
 ## Symptom
 
@@ -21,19 +21,17 @@ Windows -> TEST01   success
 TEST01  -> Windows  failed
 ```
 
-The Ubuntu guest had the expected connected route:
+The Ubuntu guest already had the expected connected route:
 
 ```text
 10.10.30.0/24 dev eth0 proto kernel scope link src 10.10.30.20
 ```
 
-This showed that the guest address and local subnet route were present.
-
 ## Investigation
 
-I inspected the Windows host-side management interface and firewall state.
+Because Windows could initiate a ping to TEST01 but TEST01 could not initiate an ICMP echo request to Windows, I did not assume the Hyper-V switch or IP addressing was broken.
 
-The `vEthernet (vSW-MGMT)` interface was classified as:
+I inspected the Windows host-side management interface and firewall state. The `vEthernet (vSW-MGMT)` interface was classified as:
 
 ```text
 Name             Unidentified network
@@ -41,13 +39,15 @@ NetworkCategory  Public
 IPv4Connectivity LocalNetwork
 ```
 
-Windows Firewall was enabled for Domain, Private, and Public profiles.
+Windows Firewall was enabled for the Domain, Private, and Public profiles.
 
-Because Windows could initiate a ping to TEST01 but TEST01 could not initiate an ICMP echo request to Windows, I suspected the Windows host firewall rather than the Hyper-V switch or IP configuration.
+## Root Cause
+
+The Windows host firewall policy was blocking inbound ICMPv4 echo requests arriving from TEST01 on the MGMT interface. The underlying Hyper-V switch and same-subnet IP configuration were functioning correctly.
 
 ## Resolution
 
-I kept Windows Firewall enabled and created a narrowly scoped inbound ICMPv4 rule instead of disabling firewall protection globally.
+I kept Windows Firewall enabled and created a narrowly scoped inbound ICMPv4 rule instead of disabling firewall protection globally:
 
 ```powershell
 New-NetFirewallRule `
@@ -62,12 +62,7 @@ New-NetFirewallRule `
     -RemoteAddress "10.10.30.0/24"
 ```
 
-The rule is restricted to:
-
-- inbound ICMPv4 echo requests;
-- the Hyper-V MGMT adapter;
-- the local management IP `10.10.30.10`;
-- source addresses inside `10.10.30.0/24`.
+The rule is restricted to inbound ICMPv4 echo requests on the Hyper-V MGMT adapter, to the host address `10.10.30.10`, and to source addresses inside `10.10.30.0/24`.
 
 ## Final Verification
 
@@ -78,9 +73,11 @@ Windows 10.10.30.10 <-> TEST01 10.10.30.20
                  ping success both ways
 ```
 
-This confirmed that the Hyper-V Internal switch, host static address, guest static address, and same-subnet communication were functioning correctly. The failed reverse ping had been caused by the Windows host firewall policy.
+This confirmed that the Hyper-V Internal switch, host static address, guest static address, and same-subnet communication were all functioning correctly.
 
 ## Evidence
+
+The actual evidence is committed in the repository:
 
 - `screenshots/chapter-01/01-06c-test-vm-static-network-one-way-ping.png`
 - `screenshots/chapter-01/01-06d-test-vm-bidirectional-ping.png`
@@ -109,4 +106,4 @@ MAKE NARROW CHANGE
 RETEST BOTH DIRECTIONS
 ```
 
-This incident also reinforced why I should prefer a specific firewall exception over disabling a firewall during troubleshooting.
+This incident reinforced why I should make the narrowest practical change during troubleshooting instead of disabling security controls to make a test pass.
