@@ -450,25 +450,6 @@ COMMIT
 
 I use AI as a learning, troubleshooting, and documentation assistant during this project. I still execute and verify the infrastructure changes myself, and I only document states that I have actually observed in the lab.
 
-## Interview Explanation Target
-
-At the end of this chapter, I should be able to explain:
-
-- why I selected Hyper-V for this host;
-- host vs guest virtualization;
-- vCPU, RAM, VHDX, virtual NICs, and virtual switches;
-- External vs Internal vs Private switches;
-- why my USERS and SERVERS networks are isolated from the Windows host;
-- why the host joins only the MGMT network;
-- why the MGMT host adapter has a static address but no default gateway;
-- how I detected and corrected the duplicate-switch incident;
-- why I used a Generation 2 test VM and how I verified its firmware, storage, CPU, memory, and network attachment before booting it;
-- how I configured a persistent static Linux address with Netplan;
-- why two hosts in the same `/24` do not require a router to communicate;
-- how I isolated a one-way connectivity problem to the Windows host firewall and fixed it with a narrowly scoped rule instead of disabling firewall protection;
-- the difference between Startup RAM, Minimum RAM, currently assigned RAM, and guest demand when Hyper-V Dynamic Memory is enabled;
-- how I used host-side and guest-side evidence together to diagnose and correct the TEST01 memory mismatch.
-
 ## Status
 
 **IN PROGRESS**
