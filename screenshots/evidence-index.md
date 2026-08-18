@@ -33,8 +33,13 @@ I documented the SMT troubleshooting record separately in `../troubleshooting/00
 | [`chapter-01/01-06b-test-vm-network-preconfig.png`](chapter-01/01-06b-test-vm-network-preconfig.png) | COMMITTED | Shows the detected `eth0` interface, its Hyper-V MAC address, no IPv4 address before configuration, and the installer-created Netplan file. |
 | [`chapter-01/01-06c-test-vm-static-network-one-way-ping.png`](chapter-01/01-06c-test-vm-static-network-one-way-ping.png) | COMMITTED | Shows `TEST01` configured as `10.10.30.20/24`, its connected route, and the initial failed ping from TEST01 to the Windows host. |
 | [`chapter-01/01-06d-test-vm-bidirectional-ping.png`](chapter-01/01-06d-test-vm-bidirectional-ping.png) | COMMITTED | Shows the scoped Windows Firewall ICMP rule and successful ping in both directions between `10.10.30.10` and `10.10.30.20`. |
+| [`chapter-01/01-07a-test-vm-runtime-low-memory-detected.png`](chapter-01/01-07a-test-vm-runtime-low-memory-detected.png) | COMMITTED | Shows the guest CPU, disk, network, and connectivity checks while exposing the unexpectedly low guest-visible memory value. |
+| [`chapter-01/01-07b-test-vm-dynamic-memory-diagnosis.png`](chapter-01/01-07b-test-vm-dynamic-memory-diagnosis.png) | COMMITTED | Shows Dynamic Memory enabled with 2048 MB startup RAM, a 512 MB minimum, and live assigned/demand values that explained the low guest memory. |
+| [`chapter-01/01-07c-test-vm-dynamic-memory-corrected.png`](chapter-01/01-07c-test-vm-dynamic-memory-corrected.png) | COMMITTED | Shows the corrected Dynamic Memory limits: 2048 MB startup, 1536 MB minimum, 4096 MB maximum, and 20% buffer. |
+| [`chapter-01/01-07d-test-vm-post-memory-fix-validation.png`](chapter-01/01-07d-test-vm-post-memory-fix-validation.png) | COMMITTED | Shows TEST01 after a cold boot with 2 vCPU, persistent `10.10.30.20/24`, the connected route, and successful host connectivity. |
+| [`chapter-01/01-07e-test-vm-dynamic-memory-runtime.png`](chapter-01/01-07e-test-vm-dynamic-memory-runtime.png) | COMMITTED | Shows Hyper-V assigning the corrected 1536 MB minimum at runtime while preserving the 2048/1536/4096 MB Dynamic Memory limits. |
 
-I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-duplicate-virtual-switches.md` and the one-way ICMP incident in `../troubleshooting/003-windows-firewall-blocked-test01-icmp.md`.
+I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-duplicate-virtual-switches.md`, the one-way ICMP incident in `../troubleshooting/003-windows-firewall-blocked-test01-icmp.md`, and the TEST01 Dynamic Memory incident in `../troubleshooting/004-test01-dynamic-memory-minimum.md`.
 
 ## Evidence Rule
 
