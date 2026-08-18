@@ -16,6 +16,7 @@ A virtualization platform allows multiple isolated operating systems and infrast
 - **VHDX** — Hyper-V virtual hard-disk file format.
 - **Virtual NIC** — a network adapter presented to a VM.
 - **Virtual switch** — a software Ethernet switch connecting VM NICs to other VMs, the Windows host, or an external network depending on switch type.
+- **Dynamic Memory** — Hyper-V can vary the amount of RAM assigned to a running VM between configured minimum and maximum limits according to guest demand.
 
 ## Quick Schema
 
@@ -28,7 +29,7 @@ PHYSICAL WINDOWS HOST
         +-- Virtual machines
                |
                +-- vCPU
-               +-- RAM
+               +-- RAM / Dynamic Memory
                +-- VHDX
                +-- virtual NIC(s)
 ```
@@ -45,8 +46,8 @@ PHYSICAL WINDOWS HOST
 8. [x] Create and pre-boot verify a small test VM.
 9. [x] Boot TEST01 and install Ubuntu Server.
 10. [x] Configure and verify TEST01 management networking.
-11. [ ] Verify guest CPU, memory, disk, network runtime state, and persistence after reboot.
-12. [ ] Complete the remaining Chapter 1 evidence and close the chapter.
+11. [x] Verify guest CPU, memory, disk, network runtime state, and persistence after reboot.
+12. [ ] Perform the final Chapter 1 audit and close the chapter.
 
 ## Step 1 — Enable and Verify Hyper-V
 
@@ -339,6 +340,96 @@ This proves that the Hyper-V Internal switch carries traffic correctly between t
 
 ![TEST01 bidirectional ping after Windows Firewall rule](../screenshots/chapter-01/01-06d-test-vm-bidirectional-ping.png)
 
+## Step 8 — TEST01 Runtime, Dynamic Memory, and Persistence Validation
+
+I validated the running guest instead of assuming that the pre-boot configuration matched what Ubuntu actually received.
+
+### Initial Runtime Check
+
+The first runtime validation showed:
+
+```text
+CPU             2 vCPU
+Virtual disk    20 GB
+Root filesystem approximately 9.8 GB
+IPv4            10.10.30.20/24
+Connected route 10.10.30.0/24
+Host ping       successful
+Guest memory    approximately 465 MiB visible
+```
+
+The CPU, disk, network, and connectivity checks were correct, but the guest-visible memory was much lower than the 2 GiB startup value configured during VM creation.
+
+### Real Troubleshooting Incident — Dynamic Memory Minimum Too Low
+
+I inspected the actual Hyper-V memory policy and found:
+
+```text
+DynamicMemoryEnabled  True
+StartupMB             2048
+MinimumMB              512
+MaximumMB          1048576
+Buffer                   20
+```
+
+While TEST01 was running, Hyper-V reported:
+
+```text
+AssignedMB  880
+DemandMB    457
+```
+
+This showed that the VM creation settings had not been ignored. Dynamic Memory was enabled, and Hyper-V had reclaimed unused RAM toward the configured 512 MB minimum.
+
+I shut TEST01 down cleanly and changed the Dynamic Memory policy to an intentional range:
+
+```text
+Startup RAM   2048 MB
+Minimum RAM   1536 MB
+Maximum RAM   4096 MB
+Buffer          20%
+```
+
+I documented the full incident in `troubleshooting/004-test01-dynamic-memory-minimum.md`.
+
+### Cold-Boot Verification
+
+After starting TEST01 again, I verified the guest and host sides.
+
+Inside Ubuntu:
+
+```text
+CPU             2
+eth0            10.10.30.20/24
+Connected route 10.10.30.0/24
+Host ping       4/4 successful
+```
+
+On the Hyper-V host:
+
+```text
+TEST01 state    Running
+AssignedMB      1536
+DemandMB         522
+StartupMB       2048
+MinimumMB       1536
+MaximumMB       4096
+```
+
+This confirms that the corrected Dynamic Memory policy is active and that the persistent Netplan configuration survived the shutdown/start cycle. The static `10.10.30.20/24` address, connected route, and host connectivity returned automatically after boot.
+
+### Evidence
+
+![TEST01 low memory detected](../screenshots/chapter-01/01-07a-test-vm-runtime-low-memory-detected.png)
+
+![TEST01 Dynamic Memory diagnosis](../screenshots/chapter-01/01-07b-test-vm-dynamic-memory-diagnosis.png)
+
+![TEST01 corrected Dynamic Memory configuration](../screenshots/chapter-01/01-07c-test-vm-dynamic-memory-corrected.png)
+
+![TEST01 post-fix guest validation](../screenshots/chapter-01/01-07d-test-vm-post-memory-fix-validation.png)
+
+![TEST01 Hyper-V runtime memory validation](../screenshots/chapter-01/01-07e-test-vm-dynamic-memory-runtime.png)
+
 ## Evidence Workflow
 
 ```text
@@ -374,10 +465,12 @@ At the end of this chapter, I should be able to explain:
 - why I used a Generation 2 test VM and how I verified its firmware, storage, CPU, memory, and network attachment before booting it;
 - how I configured a persistent static Linux address with Netplan;
 - why two hosts in the same `/24` do not require a router to communicate;
-- how I isolated a one-way connectivity problem to the Windows host firewall and fixed it with a narrowly scoped rule instead of disabling firewall protection.
+- how I isolated a one-way connectivity problem to the Windows host firewall and fixed it with a narrowly scoped rule instead of disabling firewall protection;
+- the difference between Startup RAM, Minimum RAM, currently assigned RAM, and guest demand when Hyper-V Dynamic Memory is enabled;
+- how I used host-side and guest-side evidence together to diagnose and correct the TEST01 memory mismatch.
 
 ## Status
 
 **IN PROGRESS**
 
-Current step: verify TEST01 runtime CPU, memory, disk, network state, and persistence after a reboot before closing Chapter 1.
+Current step: perform one final Chapter 1 audit of the Hyper-V host, TEST01, storage, virtual switches, management network, and evidence set before marking the chapter complete.
