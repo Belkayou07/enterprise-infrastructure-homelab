@@ -86,15 +86,17 @@ I only keep directories when they contain real project material; I do not add em
 
 I audited the Windows host, restored SMT so the CPU exposes the expected 24 logical processors, selected Hyper-V as the primary hypervisor, and documented the initial BelkaCorp architecture, naming convention, VM resource budget, subnet plan, and virtual-switch design.
 
-**Chapter 1 — In progress**
+**Chapter 1 — Final audit in progress**
 
 I enabled and verified Hyper-V, configured dedicated VM/VHDX storage, built the planned virtual switches, and configured the Windows host management adapter as `10.10.30.10/24` without a default gateway.
 
-I also created `TEST01` as a Generation 2 Ubuntu Server validation VM, verified its CPU, memory, VHDX, virtual switch attachment, and Linux-compatible Secure Boot configuration before boot, installed Ubuntu Server, and configured the guest as `10.10.30.20/24` on `vSW-MGMT`.
+I created `TEST01` as a Generation 2 Ubuntu Server validation VM, verified its CPU, memory, VHDX, virtual switch attachment, and Linux-compatible Secure Boot configuration, installed Ubuntu Server, and configured the guest as `10.10.30.20/24` on `vSW-MGMT`.
 
-During Chapter 1 I documented two real troubleshooting incidents: accidental duplicate Hyper-V switch objects and one-way ICMP connectivity caused by the Windows host firewall. I resolved the firewall issue with a narrowly scoped inbound rule and verified successful ping in both directions between the Windows host and TEST01.
+I verified host-to-guest connectivity in both directions and proved that the static TEST01 Netplan configuration survives a shutdown/start cycle.
 
-My next Chapter 1 step is to verify TEST01 runtime CPU, memory, disk, and network state, reboot the VM, and prove that the static Netplan configuration and host-to-guest connectivity persist after restart.
+Chapter 1 has produced three real troubleshooting records: accidental duplicate Hyper-V switch objects, one-way ICMP connectivity caused by the Windows host firewall, and an overly low TEST01 Dynamic Memory minimum. For the memory incident, I traced a low guest-memory reading to Hyper-V Dynamic Memory, changed the policy to 2048 MB startup / 1536 MB minimum / 4096 MB maximum, and verified the corrected limits and persistent guest networking after a cold boot.
+
+The remaining Chapter 1 task is a final consolidated audit of the host, storage paths, virtual switches, TEST01 state, management addressing, and evidence set before I mark the virtualization chapter complete.
 
 ## AI-Assisted Learning and Documentation
 
