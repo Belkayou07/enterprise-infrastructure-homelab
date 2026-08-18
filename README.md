@@ -88,11 +88,13 @@ I audited the Windows host, restored SMT so the CPU exposes the expected 24 logi
 
 **Chapter 1 — In progress**
 
-I have enabled and verified Hyper-V, configured dedicated VM/VHDX storage, built the planned virtual switches, resolved and documented a real duplicate-switch mistake, configured the Windows host management adapter as `10.10.30.10/24` without a default gateway, and created `TEST01` as a Generation 2 Ubuntu Server validation VM.
+I enabled and verified Hyper-V, configured dedicated VM/VHDX storage, built the planned virtual switches, and configured the Windows host management adapter as `10.10.30.10/24` without a default gateway.
 
-I have also verified `TEST01` before boot: 2 vCPU, 2 GiB startup RAM, its VHDX in the BelkaCorp storage path, its vNIC attached to `vSW-MGMT`, and Linux-compatible Secure Boot enabled.
+I also created `TEST01` as a Generation 2 Ubuntu Server validation VM, verified its CPU, memory, VHDX, virtual switch attachment, and Linux-compatible Secure Boot configuration before boot, installed Ubuntu Server, and configured the guest as `10.10.30.20/24` on `vSW-MGMT`.
 
-Next I will boot `TEST01`, install Ubuntu Server, and validate the guest CPU, memory, storage, network adapter, static management addressing, and host-to-guest communication.
+During Chapter 1 I documented two real troubleshooting incidents: accidental duplicate Hyper-V switch objects and one-way ICMP connectivity caused by the Windows host firewall. I resolved the firewall issue with a narrowly scoped inbound rule and verified successful ping in both directions between the Windows host and TEST01.
+
+My next Chapter 1 step is to verify TEST01 runtime CPU, memory, disk, and network state, reboot the VM, and prove that the static Netplan configuration and host-to-guest connectivity persist after restart.
 
 ## AI-Assisted Learning and Documentation
 
