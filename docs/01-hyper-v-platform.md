@@ -172,12 +172,11 @@ Connected route   10.10.30.0/24 -> 0.0.0.0
 Default gateway   none
 ```
 
-### Evidence Status
+### Evidence
 
-I captured the following screenshots during the working session, but their repository upload is still pending:
+![MGMT static IP configuration](../screenshots/chapter-01/01-04a-mgmt-static-ip-configuration.png)
 
-- `01-04a-mgmt-static-ip-configuration`
-- `01-04b-mgmt-static-ip-verification`
+![MGMT static IP verification](../screenshots/chapter-01/01-04b-mgmt-static-ip-verification.png)
 
 ## Step 5 — TEST01 Pre-Boot Validation
 
