@@ -1,25 +1,29 @@
 # Chapter 0 — Project Scope, Hardware Audit, and Repository Setup
 
-## Objective
+## Goal
 
-Establish the real constraints of the homelab before choosing the architecture. This chapter records the available desktop hardware, Windows environment, network access, and the design decisions that follow from those facts.
+I established the real constraints of my homelab before choosing the architecture. In this chapter I recorded the available desktop hardware, Windows environment, network access, and the engineering decisions that followed from those facts.
+
+## Why This Matters in a Company
+
+Before deploying infrastructure, I need to know the actual capacity, platform state, and operational constraints of the host. This prevents me from designing around assumptions and gives me a verified baseline for later virtualization, networking, security, and automation work.
 
 ## Business Scenario
 
-The lab will simulate the infrastructure of a small organization with multiple user groups, centralized services, segmented networking, security controls, monitoring, backup, and later automation/cloud integration.
+I am using the lab to simulate the infrastructure of a small organization with multiple user groups, centralized services, segmented networking, security controls, monitoring, backup, and later automation/cloud integration.
 
-The environment should be realistic enough to demonstrate junior system administration, network engineering, cloud, and DevOps skills while remaining practical on one physical workstation.
+I want the environment to be realistic enough to demonstrate junior systems administration, network engineering, cloud, and DevOps skills while remaining practical on one physical workstation.
 
 ## Core Lab Constraint
 
-The entire lab will be operated from a **single Windows desktop**.
+I operate the entire required lab from a **single Windows desktop**.
 
-The desktop will serve two roles:
+My desktop serves two roles:
 
-1. **Physical administrator workstation** — the normal Windows environment used to manage, test, document, and troubleshoot the lab.
-2. **Lab compute host** — virtual machines and network simulation/emulation tools will provide the servers, clients, firewalls, routers, switches, and other infrastructure required by later chapters.
+1. **Physical administrator workstation** — my normal Windows environment for managing, testing, documenting, and troubleshooting the lab.
+2. **Lab compute host** — Hyper-V virtual machines and later network simulation/emulation provide the servers, clients, firewalls, routers, switches, and other infrastructure required by later chapters.
 
-The separate laptop is intentionally excluded from the required architecture so the project remains convenient to reproduce and operate from one machine. It may only be used later as an optional extension if there is a clear engineering reason.
+I intentionally excluded my separate laptop from the required architecture so the project remains convenient to reproduce and operate from one machine. I may only use it later as an optional extension if there is a clear engineering reason.
 
 ## Planned Logical Model
 
@@ -60,7 +64,7 @@ Physical Windows 11 Pro Desktop
 
 ### Desktop
 
-Initial PowerShell audit performed on 2026-08-12 and completed on 2026-08-13.
+I performed the initial PowerShell audit on 2026-08-12 and completed the host validation on 2026-08-13.
 
 | Component | Observed value |
 |---|---|
@@ -80,15 +84,15 @@ Initial PowerShell audit performed on 2026-08-12 and completed on 2026-08-13.
 | Windows edition | Windows 11 Pro |
 | Windows release/build | 25H2, build 26200.8973 |
 
-The Ryzen 9 7900 originally appeared in Windows as 12 cores and 12 logical processors while WMI still reported `ThreadCount = 24`. No Windows `numproc` boot limit was present and BIOS `SMT Control` was set to `Auto`.
+During the audit, the Ryzen 9 7900 initially appeared in Windows as 12 cores and 12 logical processors while WMI still reported `ThreadCount = 24`. I verified that no Windows `numproc` boot limit was present and that BIOS `SMT Control` was set to `Auto`.
 
-AMD Ryzen Master was then inspected and showed `Simultaneous Multithreading = OFF`. SMT was changed to `ON` in Ryzen Master and applied. After restart, Windows correctly reported 12 cores, 24 logical processors, and 24 threads.
+I then inspected AMD Ryzen Master and found `Simultaneous Multithreading = OFF`. I changed SMT to `ON`, applied the change, and restarted Windows. After the restart, Windows correctly reported 12 cores, 24 logical processors, and 24 threads.
 
-This resolved the host CPU-capacity anomaly before the virtualization chapter began.
+I resolved this host CPU-capacity anomaly before beginning the virtualization chapter.
 
 ### Installed CPU / Platform Utilities Relevant to Investigation
 
-The Windows software inventory identified:
+My Windows software inventory identified:
 
 - AMD Ryzen Master 2.14.2.3341
 - AMD Ryzen Master SDK 3.0.0.3620
@@ -98,11 +102,11 @@ Ryzen Master was the relevant control point for the logical-processor issue.
 
 ### Additional Physical Hardware
 
-Not required for the core project.
+I do not require additional physical hardware for the core project.
 
 ## Network Environment
 
-Observed adapters during the initial audit:
+I observed these adapters during the initial audit:
 
 | Adapter | State | Observed link speed / purpose |
 |---|---|---|
@@ -112,13 +116,13 @@ Observed adapters during the initial audit:
 | VirtualBox Host-Only Ethernet Adapter | Up | 1 Gbps virtual host-only adapter |
 | Additional VirtualBox Host-Only adapter | Not present | Stale/unused virtual adapter |
 
-The VirtualBox adapters indicate a previous virtualization installation. They are not part of the planned final architecture and can be reviewed later if cleanup becomes useful.
+The VirtualBox adapters showed that another virtualization platform had previously been installed. I did not include them in the final lab architecture and can review them later if cleanup becomes useful.
 
-## Current Windows Virtualization State
+## Windows Virtualization State at the Chapter 0 Audit
 
-Verified from an elevated PowerShell session on 2026-08-12:
+I verified this state from an elevated PowerShell session on 2026-08-12:
 
-| Feature / setting | State |
+| Feature / setting | Observed state |
 |---|---|
 | Microsoft-Hyper-V-All | Disabled |
 | VirtualMachinePlatform | Enabled |
@@ -127,49 +131,49 @@ Verified from an elevated PowerShell session on 2026-08-12:
 | Virtualization-Based Security | Enabled and running |
 | Memory Integrity / HVCI | Configured and running |
 
-The Windows hypervisor is therefore already active for host security features even though the full Hyper-V VM-management feature has not yet been enabled.
+This showed that the Microsoft hypervisor was already active for Windows security features even though I had not yet enabled the full Hyper-V VM-management feature. Chapter 1 later changed this state by enabling the full Hyper-V platform.
 
 ## Design Decisions
 
 ### DD-001 — Single-desktop lab
 
-**Decision:** All required project work will run from one Windows desktop using virtualization and, where useful, network simulation/emulation.
+**Decision:** I will run all required project work from one Windows desktop using virtualization and, where useful, network simulation/emulation.
 
-**Reasoning:** This removes the operational friction of moving between physical machines while still allowing realistic isolated servers, clients, firewalls, and network topologies to be built and tested.
+**Reasoning:** This removes the operational friction of moving between physical machines while still allowing me to build and test realistic isolated servers, clients, firewalls, and network topologies.
 
-### DD-002 — Preserve the current Windows security baseline
+### DD-002 — Preserve the Windows security baseline
 
-**Decision:** Keep the host's current VBS/Memory Integrity security baseline while building the lab.
+**Decision:** I will keep the host's VBS/Memory Integrity security baseline while building the lab.
 
-**Reasoning:** The lab should demonstrate sensible infrastructure practice on the everyday workstation rather than weakening the host merely to accommodate a different virtualization stack.
+**Reasoning:** I want the project to demonstrate sensible infrastructure practice on my everyday workstation rather than weakening the host simply to accommodate another virtualization stack.
 
 ### DD-003 — Hyper-V as the primary desktop hypervisor
 
-**Decision:** Use Microsoft Hyper-V as the primary virtualization platform.
+**Decision:** I selected Microsoft Hyper-V as the primary virtualization platform.
 
-**Reasoning:** The host runs Windows 11 Pro, virtualization is enabled, the Microsoft hypervisor is already active for Windows security features, and Hyper-V integrates naturally with Windows administration and PowerShell. Current GNS3 releases also provide a Hyper-V-compatible GNS3 VM.
+**Reasoning:** My host runs Windows 11 Pro, firmware virtualization is enabled, the Microsoft hypervisor was already active for Windows security features, and Hyper-V integrates naturally with Windows administration and PowerShell.
 
-**Consequence:** Chapter 1 will enable and validate the full Hyper-V feature, establish VM storage conventions, create virtual networking, and deploy a small test VM before the enterprise services are built.
+**Consequence:** Chapter 1 enables and validates the full Hyper-V feature, establishes storage conventions, creates virtual networking, and deploys a small validation VM before the enterprise services are built.
 
 ### DD-004 — GNS3 for advanced network emulation
 
-**Decision:** Add GNS3 later when router/switch appliance emulation and larger network topologies become useful.
+**Decision:** I will add GNS3 later when router/switch appliance emulation and larger network topologies become useful.
 
-**Reasoning:** Hyper-V will host the main server/client infrastructure; GNS3 adds dedicated network-engineering capabilities without requiring a second physical machine.
+**Reasoning:** Hyper-V hosts the main server/client infrastructure, while GNS3 can add dedicated network-engineering capabilities without requiring a second physical machine.
 
 ### DD-005 — Restore full CPU thread capacity before virtualization
 
-**Decision:** Resolve the 12-logical-processor anomaly before deploying the lab.
+**Decision:** I resolved the 12-logical-processor anomaly before deploying the lab.
 
-**Reasoning:** The host is the only physical compute platform for the project. Confirming and restoring the expected 24 logical processors prevents unnecessary CPU contention and demonstrates proper pre-deployment troubleshooting rather than designing around an unexplained constraint.
+**Reasoning:** My desktop is the project's only required physical compute platform. Restoring and verifying the expected 24 logical processors prevents me from designing around an unexplained limitation and demonstrates proper pre-deployment troubleshooting.
 
 ### DD-006 — Segmented lab architecture behind FW01
 
-**Decision:** Use separate USERS, SERVERS, and MGMT networks behind `FW01`, with `10.10.0.0/16` reserved for the lab and functional `/24` subnets allocated from it.
+**Decision:** I designed separate USERS, SERVERS, and MGMT networks behind `FW01`, with `10.10.0.0/16` reserved for the lab and functional `/24` subnets allocated from it.
 
-**Reasoning:** The design creates meaningful routing and firewall boundaries while remaining simple enough to understand and reproduce on one desktop. `vSW-USERS` and `vSW-SERVERS` will be private Hyper-V switches; `vSW-MGMT` will be internal so the Windows administrator workstation can reach the lab through the management network. The Hyper-V Default Switch will provide the upstream/WAN side for `FW01`.
+**Reasoning:** This gives me meaningful routing and firewall boundaries while remaining simple enough to understand and reproduce on one desktop. I designed `vSW-USERS` and `vSW-SERVERS` as private Hyper-V switches and `vSW-MGMT` as internal so my Windows administrator workstation can reach the lab through the management network. I use the Hyper-V Default Switch as the planned upstream/WAN side for `FW01`.
 
-Detailed architecture and addressing are documented in `docs/00-04-enterprise-architecture.md`.
+I documented the detailed architecture and addressing in `docs/00-04-enterprise-architecture.md`.
 
 ## Evidence
 
@@ -177,25 +181,36 @@ Detailed architecture and addressing are documented in `docs/00-04-enterprise-ar
 
 ![Windows Task Manager CPU evidence](../screenshots/chapter-00/00-01-host-cpu.png)
 
-This screenshot records the real host state after remediation: Ryzen 9 7900, 12 physical cores, 24 logical processors, and virtualization enabled.
+This screenshot records my real host state after remediation: Ryzen 9 7900, 12 physical cores, 24 logical processors, and virtualization enabled.
 
 ### SMT remediation verification
 
 ![PowerShell SMT verification](../screenshots/chapter-00/00-03-smt-24-logical-processors.png)
 
-The PowerShell verification confirms 12 cores, 24 logical processors, and 24 threads after SMT was restored.
+This PowerShell verification confirms 12 cores, 24 logical processors, and 24 threads after I restored SMT.
 
-The complete evidence inventory is tracked in [`screenshots/evidence-index.md`](../screenshots/evidence-index.md). Raw command output containing no useful portfolio evidence does not need to be committed simply for completeness.
+The complete evidence inventory is tracked in [`screenshots/evidence-index.md`](../screenshots/evidence-index.md). I do not commit raw command output simply for completeness when it adds no useful portfolio evidence.
+
+## Interview Explanation Target
+
+At the end of Chapter 0, I should be able to explain:
+
+- why I audited the host before designing the lab;
+- why the Ryzen 9 7900 initially exposed only 12 logical processors and how I resolved it;
+- why I chose Hyper-V for this Windows host;
+- why I preserved VBS/Memory Integrity rather than weakening the host security baseline;
+- why I designed the project around one physical desktop;
+- how the initial BelkaCorp roles, naming convention, IP plan, and network segmentation fit together.
 
 ## Completion Criteria
 
-Chapter 0 is complete when:
+I considered Chapter 0 complete when:
 
-1. The desktop hardware, Windows edition/build, and interfaces are documented.
-2. Virtualization capability and the current Windows virtualization state are confirmed.
-3. The virtualization platform and network-lab tooling have been selected with stated reasons.
-4. SMT is enabled and the expected 24 logical processors are verified.
-5. An initial lab architecture, naming convention, and IP plan have been designed.
-6. The next implementation chapter can begin without guessing about the environment.
+1. I documented the desktop hardware, Windows edition/build, and interfaces.
+2. I confirmed virtualization capability and the Windows virtualization state.
+3. I selected the virtualization platform and planned network-lab tooling with stated reasons.
+4. I restored SMT and verified the expected 24 logical processors.
+5. I designed the initial lab architecture, naming convention, and IP plan.
+6. I could begin the implementation chapter without guessing about the environment.
 
-**Status: COMPLETE.** Chapter 1 begins with enabling and validating Hyper-V on the Windows host.
+**Status: COMPLETE.** I moved into Chapter 1 with a verified host baseline and documented architecture.
