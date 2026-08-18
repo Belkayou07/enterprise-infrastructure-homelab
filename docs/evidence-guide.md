@@ -1,105 +1,124 @@
 # Evidence Capture Guide
 
-This project uses screenshots as supporting evidence, not as a replacement for documentation. Evidence should prove that a real configuration, verification, or troubleshooting step was performed.
+I use screenshots as supporting evidence for my BelkaCorp homelab. They do not replace the written documentation; they prove that I actually implemented, observed, verified, or troubleshot the state described in the repository.
 
-## Rule
+## Evidence Rule
 
-Each chapter must contain explicit **EVIDENCE CHECKPOINTS**. When a checkpoint is reached, capture the requested screenshot before moving on when practical.
+I capture evidence at meaningful checkpoints rather than screenshotting every command.
 
-Do not screenshot every command. Capture only states that materially prove the work.
+I prefer evidence that proves one of these things:
+
+- a design or configuration was actually implemented;
+- the final state was verified;
+- a real problem was observed;
+- a troubleshooting change resolved the problem;
+- a GUI view adds useful visual context to a PowerShell or terminal verification.
 
 ## What Makes a Good Screenshot
 
 A useful screenshot should:
 
-- show the relevant command and its result, or the relevant management console state;
-- include enough context to understand what is being proven;
-- avoid passwords, product keys, tokens, personal email addresses, unrelated private IPs, and other secrets;
-- avoid excessive desktop clutter when possible;
-- be named consistently.
+- show the relevant command and result or the relevant management-console state;
+- include enough context for a reviewer to understand what is being proven;
+- avoid passwords, product keys, tokens, personal email addresses, and other secrets;
+- avoid unrelated desktop clutter when practical;
+- have one clear purpose;
+- use the project naming convention once committed to GitHub.
 
 ## Naming Convention
+
+Committed evidence files use:
 
 ```text
 chapter-step-short-description.png
 ```
 
-Examples:
+Examples from the real project:
 
 ```text
 00-03-smt-24-logical-processors.png
 01-01-hyperv-verification.png
-01-03-virtual-switches.png
-04-02-dc01-domain-controller.png
+01-03b-virtual-switches-final.png
+01-06d-test-vm-bidirectional-ping.png
 ```
+
+Suffixes such as `a`, `b`, `c`, and `d` are useful when several screenshots belong to the same technical step and tell a sequence such as before-state, remediation, and final verification.
 
 ## Evidence Levels
 
-```text
-DESIGN EVIDENCE
-Architecture diagrams, schemas, addressing plans, engineering decisions
+### Design Evidence
 
-IMPLEMENTATION EVIDENCE
-Configuration screens, commands that create resources, deployed systems
+I use diagrams, schemas, addressing plans, and documented engineering decisions when they prove design intent better than a screenshot.
 
-VERIFICATION EVIDENCE
-Commands or consoles proving the intended state actually exists
+### Implementation Evidence
 
-TROUBLESHOOTING EVIDENCE
-Before/after states and the key observation that identified a real fault
-```
+I capture configuration screens or commands when they show that I actually created or changed a resource.
 
-## Chapter 0 — Retroactive Evidence Recovery
+### Verification Evidence
 
-Useful evidence that can still be captured now:
+I capture commands or management consoles that prove the intended final state exists.
 
-1. `00-01-host-cpu-memory.png`
-   - Task Manager -> Performance -> CPU
-   - show Ryzen 9 7900, 12 cores, 24 logical processors
-   - RAM may be visible in a separate screenshot if useful
+### Troubleshooting Evidence
 
-2. `00-03-smt-24-logical-processors.png`
-   - PowerShell output showing:
-   - `NumberOfCores = 12`
-   - `NumberOfLogicalProcessors = 24`
-   - `ThreadCount = 24`
-
-3. Architecture and IP-plan evidence is already represented as version-controlled documentation/schemas and does not require screenshots simply for appearance.
-
-The earlier Ryzen Master `SMT = OFF` state was observed during troubleshooting. If the original screenshot is available, it is useful as before-state evidence, but it should not be recreated artificially.
-
-## Chapter 1 — Current Evidence Checkpoints
-
-### Checkpoint 1.1 — Hyper-V installation verification
-
-Capture:
+When a real problem occurs, I keep useful before/after evidence when it helps explain:
 
 ```text
-01-01-hyperv-verification.png
+SYMPTOM
+   |
+   v
+INVESTIGATION
+   |
+   v
+ROOT CAUSE
+   |
+   v
+REMEDIATION
+   |
+   v
+FINAL VERIFICATION
 ```
 
-The PowerShell window should show, preferably in one screenshot:
+I do not recreate a historical failure artificially just to make the portfolio look better.
 
-- `Microsoft-Hyper-V-All = Enabled`
-- `vmms = Running / Automatic`
-- `Get-VM` from module `Hyper-V`
-- `Default Switch = Internal`
+## Evidence Status
 
-### Checkpoint 1.2 — Storage convention
+The source of truth is [`../screenshots/evidence-index.md`](../screenshots/evidence-index.md).
 
-Capture after the storage paths have been deliberately configured and verified, not before.
+I use two statuses:
 
-### Checkpoint 1.3 — Virtual-switch inventory
+- `CAPTURED` — I took the screenshot, but the actual image file is not yet stored under its intended repository path.
+- `COMMITTED` — the actual evidence file exists in GitHub and can be opened from the evidence index.
 
-Capture after `vSW-USERS`, `vSW-SERVERS`, and `vSW-MGMT` have been created and verified.
+I only mark evidence `COMMITTED` after the file is really present in the repository.
 
-### Checkpoint 1.4 — Test VM
+## Screenshot Workflow
 
-Capture the Hyper-V Manager or PowerShell inventory proving the test VM exists and is running, plus one guest-side verification if it adds value.
+My normal workflow is:
+
+```text
+UNDERSTAND
+    |
+    v
+IMPLEMENT
+    |
+    v
+VERIFY
+    |
+    v
+CAPTURE USEFUL EVIDENCE
+    |
+    v
+STORE + NAME IT CONSISTENTLY
+    |
+    v
+DOCUMENT THE RESULT
+```
+
+I may use both CLI and GUI evidence when they prove different things. PowerShell or terminal output gives me precise, scriptable state; Hyper-V Manager and other management consoles can provide useful visual confirmation.
 
 ## Portfolio Principle
 
-A reviewer should be able to follow this chain:
+A reviewer should be able to follow this chain through the repository:
 
 ```text
 DESIGN
@@ -111,10 +130,13 @@ IMPLEMENT
 VERIFY
   |
   v
+TROUBLESHOOT WHEN NEEDED
+  |
+  v
 EVIDENCE
   |
   v
 EXPLAIN
 ```
 
-Evidence should be concise, credible, and tied to a documented result.
+I keep the evidence concise, credible, and tied to results I actually observed in the lab.
