@@ -11,7 +11,7 @@ CHAPTER 0  Design / host audit          [DONE]
    0.3     CPU / SMT troubleshooting    [DONE]
    0.4     Enterprise architecture      [DONE]
 
-CHAPTER 1  Hyper-V platform             [NOW]
+CHAPTER 1  Hyper-V platform             [DONE]
    1.1     Enable + verify Hyper-V      [DONE]
    1.2     Host storage convention      [DONE]
    1.3     Virtual switches             [DONE]
@@ -20,9 +20,9 @@ CHAPTER 1  Hyper-V platform             [NOW]
    1.5     Ubuntu install / first boot  [DONE]
    1.6     TEST01 static MGMT network   [DONE]
    1.7     Runtime + reboot validation  [DONE]
-   1.8     Final Chapter 1 audit        [NEXT]
+   1.8     Final Chapter 1 audit        [DONE]
 
-CHAPTER 2  Network architecture
+CHAPTER 2  Network architecture         [NEXT]
 CHAPTER 3  Firewall / routing
 CHAPTER 4  Windows Server / AD
 CHAPTER 5  Linux administration
@@ -70,7 +70,10 @@ VERIFY HOST <-> GUEST   [DONE]
 VERIFY RUNTIME + REBOOT [DONE]
       |
       v
-FINAL CHAPTER AUDIT     [NEXT]
+FINAL CHAPTER AUDIT     [DONE]
+      |
+      v
+CHAPTER 1 COMPLETE      [DONE]
 ```
 
 ## Hyper-V Verified State
@@ -179,6 +182,8 @@ TEST01
 +-- Ubuntu 26.04 LTS installed
 +-- eth0        -> 10.10.30.20/24
 +-- Secure Boot -> Microsoft UEFI Certificate Authority
++-- Automatic checkpoints -> Disabled
++-- Existing checkpoints  -> None
 ```
 
 ## Dynamic Memory Quick Note
@@ -222,6 +227,42 @@ Cold boot
         v
 Assigned memory = 1536 MB [OK]
 Network persistence           [OK]
+```
+
+## Checkpoint Quick Note
+
+```text
+BASE DISK
+TEST01.vhdx
+    |
+    v
+CHECKPOINT CREATED
+    |
+    +--> writes move into .avhdx differencing disk
+    |
+    v
+MORE CHECKPOINTS
+    |
+    +--> .avhdx chain can grow
+    |
+    v
+REMOVE CHECKPOINT THROUGH HYPER-V
+    |
+    v
+Hyper-V merges checkpoint data
+    |
+    v
+TEST01.vhdx active again
+```
+
+Final TEST01 checkpoint state:
+
+```text
+Automatic checkpoints  Disabled
+Existing checkpoints   None
+Active disk             TEST01.vhdx
+TEST01 .avhdx files     None
+Post-cleanup ping       4/4 [OK]
 ```
 
 ## Physical Model
