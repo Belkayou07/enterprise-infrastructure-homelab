@@ -38,8 +38,13 @@ I documented the SMT troubleshooting record separately in `../troubleshooting/00
 | [`chapter-01/01-07c-test-vm-dynamic-memory-corrected.png`](chapter-01/01-07c-test-vm-dynamic-memory-corrected.png) | COMMITTED | Shows the corrected Dynamic Memory limits: 2048 MB startup, 1536 MB minimum, 4096 MB maximum, and 20% buffer. |
 | [`chapter-01/01-07d-test-vm-post-memory-fix-validation.png`](chapter-01/01-07d-test-vm-post-memory-fix-validation.png) | COMMITTED | Shows TEST01 after a cold boot with 2 vCPU, persistent `10.10.30.20/24`, the connected route, and successful host connectivity. |
 | [`chapter-01/01-07e-test-vm-dynamic-memory-runtime.png`](chapter-01/01-07e-test-vm-dynamic-memory-runtime.png) | COMMITTED | Shows Hyper-V assigning the corrected 1536 MB minimum at runtime while preserving the 2048/1536/4096 MB Dynamic Memory limits. |
+| [`chapter-01/01-08a-hyperv-final-host-audit.png`](chapter-01/01-08a-hyperv-final-host-audit.png) | COMMITTED | Shows the final Hyper-V host audit: feature/service state, BelkaCorp storage defaults, final virtual-switch inventory, and MGMT adapter state. |
+| [`chapter-01/01-08b-test01-final-audit.png`](chapter-01/01-08b-test01-final-audit.png) | COMMITTED | Shows TEST01's final VM, Dynamic Memory, storage, network, and connectivity audit and exposes automatic checkpoints as still enabled. |
+| [`chapter-01/01-08c-test01-checkpoint-diagnosis.png`](chapter-01/01-08c-test01-checkpoint-diagnosis.png) | COMMITTED | Shows `10.10.30.10/24`, automatic checkpoints enabled, two existing checkpoints, and the active `.avhdx` differencing-disk chain. |
+| [`chapter-01/01-08d-test01-checkpoint-cleanup.png`](chapter-01/01-08d-test01-checkpoint-cleanup.png) | COMMITTED | Shows TEST01 powered off, automatic checkpoints disabled, no remaining checkpoints, direct `TEST01.vhdx` attachment, and no remaining TEST01 `.avhdx` files. |
+| [`chapter-01/01-08e-test01-final-post-cleanup-validation.png`](chapter-01/01-08e-test01-final-post-cleanup-validation.png) | COMMITTED | Shows TEST01 running after cleanup with automatic checkpoints still disabled, no checkpoints, direct base-VHDX attachment, and successful 4/4 connectivity to `10.10.30.20`. |
 
-I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-duplicate-virtual-switches.md`, the one-way ICMP incident in `../troubleshooting/003-windows-firewall-blocked-test01-icmp.md`, and the TEST01 Dynamic Memory incident in `../troubleshooting/004-test01-dynamic-memory-minimum.md`.
+I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-duplicate-virtual-switches.md`, the one-way ICMP incident in `../troubleshooting/003-windows-firewall-blocked-test01-icmp.md`, the TEST01 Dynamic Memory incident in `../troubleshooting/004-test01-dynamic-memory-minimum.md`, and the automatic-checkpoint chain in `../troubleshooting/005-test01-automatic-checkpoint-chain.md`.
 
 ## Evidence Rule
 
