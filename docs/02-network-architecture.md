@@ -27,7 +27,7 @@ The Windows host currently has `10.10.30.10/24` on `vEthernet (vSW-MGMT)`. `TEST
 
 - [x] 2.1A — Verify the Windows host network baseline
 - [x] 2.1B — Verify the TEST01 guest network baseline
-- [ ] 2.2 — Confirm subnet and address allocation
+- [x] 2.2 — Confirm subnet and address allocation
 - [ ] 2.3 — Define Layer-2 and Layer-3 boundaries
 - [ ] 2.4 — Define gateway and routing behavior
 - [ ] 2.5 — Define DHCP and DNS ownership
@@ -170,6 +170,54 @@ Different subnet -> no BelkaCorp route yet
 
 A router is therefore unnecessary for communication inside `10.10.30.0/24`, but a Layer-3 device will be required when traffic must move between MGMT, SERVERS, and USERS.
 
+## 2.2 — Subnet and Address Allocation
+
+I use the private `10.10.0.0/16` block as the BelkaCorp address space and divide the current lab into three `/24` networks.
+
+| Network | Subnet | Planned gateway | Main use |
+|---|---|---|---|
+| USERS | `10.10.10.0/24` | `10.10.10.1` | User/client systems |
+| SERVERS | `10.10.20.0/24` | `10.10.20.1` | Infrastructure and application servers |
+| MGMT | `10.10.30.0/24` | `10.10.30.1` | Administration and management access |
+
+For each `/24`, the `.0` address is the network address and `.255` is the broadcast address, leaving `.1` through `.254` as usable host addresses.
+
+The `.1` address is not reserved by IPv4 itself; I intentionally reserve it in my design as the default-gateway address on each subnet so the addressing convention remains predictable.
+
+### Addressing convention
+
+```text
+.1           FW01 / default gateway
+.2 - .9      reserved infrastructure
+.10 - .49    static infrastructure and servers
+.50 - .99    future static systems
+.100 - .199  dynamic clients where DHCP is appropriate
+.200 - .254  spare / future use
+```
+
+This is a design convention rather than a protocol requirement, and I only use the ranges where they make sense for the specific subnet.
+
+### Current planned assignments
+
+```text
+USERS — 10.10.10.0/24
+10.10.10.1         FW01
+10.10.10.100-.199  planned DHCP pool
+
+SERVERS — 10.10.20.0/24
+10.10.20.1         FW01
+10.10.20.10        DC01
+10.10.20.20        LNX01
+10.10.20.30        MON01
+
+MGMT — 10.10.30.0/24
+10.10.30.1         FW01
+10.10.30.10        Windows host
+10.10.30.20        TEST01 (temporary)
+```
+
+The third octet also reflects the network purpose (`10` USERS, `20` SERVERS, `30` MGMT), which makes addresses easier to recognize during configuration and troubleshooting.
+
 ## Status
 
-**Chapter 2 is IN PROGRESS.** The complete pre-router network baseline is verified from both the Windows host and TEST01. The next step is to confirm the subnet and address allocation before defining the Layer-2 and Layer-3 boundaries.
+**Chapter 2 is IN PROGRESS.** The pre-router baseline and the subnet/address allocation are now defined. The next step is to define the Layer-2 and Layer-3 boundaries of the BelkaCorp topology.
