@@ -46,6 +46,12 @@ I documented the SMT troubleshooting record separately in `../troubleshooting/00
 
 I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-duplicate-virtual-switches.md`, the one-way ICMP incident in `../troubleshooting/003-windows-firewall-blocked-test01-icmp.md`, the TEST01 Dynamic Memory incident in `../troubleshooting/004-test01-dynamic-memory-minimum.md`, and the automatic-checkpoint chain in `../troubleshooting/005-test01-automatic-checkpoint-chain.md`.
 
+## Chapter 2 — Network Architecture and IP Design
+
+| Evidence | Status | What it proves |
+|---|---|---|
+| [`chapter-02/02-01a-network-baseline-host.png`](chapter-02/02-01a-network-baseline-host.png) | COMMITTED | Shows the pre-router Windows network baseline: final virtual-switch inventory, manual `10.10.30.10/24` MGMT addressing, the directly connected `10.10.30.0/24` route, and the normal Windows default route remaining on Wi-Fi through `192.168.0.1`. |
+
 ## Evidence Rule
 
 I keep useful evidence that shows a meaningful state or verification result rather than capturing every command I type.
