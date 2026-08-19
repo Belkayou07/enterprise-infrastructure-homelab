@@ -51,6 +51,7 @@ I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-du
 | Evidence | Status | What it proves |
 |---|---|---|
 | [`chapter-02/02-01a-network-baseline-host.png`](chapter-02/02-01a-network-baseline-host.png) | COMMITTED | Shows the pre-router Windows network baseline: final virtual-switch inventory, manual `10.10.30.10/24` MGMT addressing, the directly connected `10.10.30.0/24` route, and the normal Windows default route remaining on Wi-Fi through `192.168.0.1`. |
+| [`chapter-02/02-01b-network-baseline-test01.png`](chapter-02/02-01b-network-baseline-test01.png) | COMMITTED | Shows TEST01 at `10.10.30.20/24`, its directly connected MGMT route, direct route selection to `10.10.30.10`, successful 4/4 host connectivity, the learned Windows MAC neighbor, and the expected unreachable result for `10.10.20.20` before a router exists. |
 
 ## Evidence Rule
 
