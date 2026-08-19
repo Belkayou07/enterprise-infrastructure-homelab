@@ -26,7 +26,7 @@ The Windows host currently has `10.10.30.10/24` on `vEthernet (vSW-MGMT)`. `TEST
 ## Chapter 2 Plan
 
 - [x] 2.1A — Verify the Windows host network baseline
-- [ ] 2.1B — Verify the TEST01 guest network baseline
+- [x] 2.1B — Verify the TEST01 guest network baseline
 - [ ] 2.2 — Confirm subnet and address allocation
 - [ ] 2.3 — Define Layer-2 and Layer-3 boundaries
 - [ ] 2.4 — Define gateway and routing behavior
@@ -88,24 +88,88 @@ There is no default route through `vEthernet (vSW-MGMT)`. This confirms that the
 
 This evidence captures the final switch inventory, the host's manual `10.10.30.10/24` management address, its directly connected MGMT route, and the normal Wi-Fi default route.
 
-## What This Baseline Proves
+## 2.1B — TEST01 Guest Network Baseline
 
-At this point the Windows host knows how to reach `10.10.30.0/24` directly, but it has no BelkaCorp route toward the future USERS or SERVERS subnets. That is expected because `FW01` has not been deployed yet.
+I then verified the same management network from inside the Linux guest.
 
-The current behavior is therefore:
+### Guest address and connected route
+
+TEST01 reports:
 
 ```text
-Windows 10.10.30.10
-        |
-        | destination 10.10.30.x
-        v
-   direct Layer-2 delivery
-        |
-     vSW-MGMT
+eth0  UP  10.10.30.20/24
 ```
 
-A destination such as `10.10.20.20` will later require a Layer-3 gateway and routing path through `FW01`.
+Its IPv4 routing table contains:
+
+```text
+10.10.30.0/24 dev eth0 proto kernel scope link src 10.10.30.20
+```
+
+This means TEST01 also treats `10.10.30.0/24` as directly connected.
+
+### Route to the Windows host
+
+For destination `10.10.30.10`, Linux selected:
+
+```text
+10.10.30.10 dev eth0 src 10.10.30.20
+```
+
+There is no `via` gateway in this decision because both systems are in the same `/24` subnet.
+
+### Layer-2 neighbor resolution
+
+After successful communication with the Windows host, TEST01 learned the host's Layer-2 neighbor mapping:
+
+```text
+10.10.30.10 lladdr 00:15:5d:38:01:02 REACHABLE
+```
+
+This confirms that TEST01 resolves the destination IP to the Windows host's MAC address and delivers the frame directly through `vSW-MGMT`.
+
+### Connectivity
+
+The guest successfully reached the Windows host:
+
+```text
+4 packets transmitted
+4 received
+0% packet loss
+```
+
+### Route to the future SERVERS subnet
+
+When TEST01 tried to resolve a route toward the future server address `10.10.20.20`, Linux returned:
+
+```text
+RTNETLINK answers: Network is unreachable
+```
+
+This is expected in the pre-router state. TEST01 has no route for `10.10.20.0/24`, no default gateway, and no `FW01` interface yet to forward traffic between MGMT and SERVERS.
+
+### Evidence
+
+![TEST01 pre-router network baseline](../screenshots/chapter-02/02-01b-network-baseline-test01.png)
+
+This evidence shows TEST01's `10.10.30.20/24` address, its directly connected MGMT route, direct route selection to the Windows host, successful 4/4 connectivity, the learned Layer-2 neighbor entry, and the expected unreachable result for the future SERVERS subnet.
+
+## What the Pre-Router Baseline Proves
+
+Both systems independently make the same decision for management traffic:
+
+```text
+Windows 10.10.30.10          TEST01 10.10.30.20
+        |                            |
+        +-------- vSW-MGMT ----------+
+               10.10.30.0/24
+
+Same subnet -> direct Layer-2 delivery
+Different subnet -> no BelkaCorp route yet
+```
+
+A router is therefore unnecessary for communication inside `10.10.30.0/24`, but a Layer-3 device will be required when traffic must move between MGMT, SERVERS, and USERS.
 
 ## Status
 
-**Chapter 2 is IN PROGRESS.** The Windows host network baseline is verified. The next step is to verify TEST01 from inside the guest so I have both sides of the pre-router management network documented before moving into the subnet and routing design.
+**Chapter 2 is IN PROGRESS.** The complete pre-router network baseline is verified from both the Windows host and TEST01. The next step is to confirm the subnet and address allocation before defining the Layer-2 and Layer-3 boundaries.
