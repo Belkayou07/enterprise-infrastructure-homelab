@@ -13,8 +13,8 @@ I am intentionally building the project in chapters. I do not treat a chapter as
 ## Learning Path
 
 1. **Chapter 0 — Scope, desktop audit, and repository setup** ✅
-2. **Chapter 1 — Virtualization platform** ← current
-3. **Chapter 2 — Network architecture and IP design**
+2. **Chapter 1 — Virtualization platform** ✅
+3. **Chapter 2 — Network architecture and IP design** ← next
 4. **Chapter 3 — Firewall and routing**
 5. **Chapter 4 — Windows Server and Active Directory**
 6. **Chapter 5 — Linux server administration**
@@ -86,17 +86,21 @@ I only keep directories when they contain real project material; I do not add em
 
 I audited the Windows host, restored SMT so the CPU exposes the expected 24 logical processors, selected Hyper-V as the primary hypervisor, and documented the initial BelkaCorp architecture, naming convention, VM resource budget, subnet plan, and virtual-switch design.
 
-**Chapter 1 — Final audit in progress**
+**Chapter 1 — Complete**
 
 I enabled and verified Hyper-V, configured dedicated VM/VHDX storage, built the planned virtual switches, and configured the Windows host management adapter as `10.10.30.10/24` without a default gateway.
 
-I created `TEST01` as a Generation 2 Ubuntu Server validation VM, verified its CPU, memory, VHDX, virtual switch attachment, and Linux-compatible Secure Boot configuration, installed Ubuntu Server, and configured the guest as `10.10.30.20/24` on `vSW-MGMT`.
+I created `TEST01` as a Generation 2 Ubuntu Server validation VM, installed Ubuntu Server, configured the guest as `10.10.30.20/24` on `vSW-MGMT`, and verified CPU, Dynamic Memory, virtual storage, networking, Secure Boot, persistence, and host-to-guest connectivity.
 
-I verified host-to-guest connectivity in both directions and proved that the static TEST01 Netplan configuration survives a shutdown/start cycle.
+The chapter produced four real troubleshooting records: accidental duplicate Hyper-V switch objects, one-way ICMP connectivity caused by the Windows host firewall, an overly low TEST01 Dynamic Memory minimum, and an automatic-checkpoint chain detected during the final audit.
 
-Chapter 1 has produced three real troubleshooting records: accidental duplicate Hyper-V switch objects, one-way ICMP connectivity caused by the Windows host firewall, and an overly low TEST01 Dynamic Memory minimum. For the memory incident, I traced a low guest-memory reading to Hyper-V Dynamic Memory, changed the policy to 2048 MB startup / 1536 MB minimum / 4096 MB maximum, and verified the corrected limits and persistent guest networking after a cold boot.
+For the Dynamic Memory incident, I traced the low guest-memory reading to a 512 MB minimum and changed the policy to 2048 MB startup / 1536 MB minimum / 4096 MB maximum. For the checkpoint incident, I disabled automatic checkpoints, removed the existing checkpoints through Hyper-V, verified that TEST01 returned to direct `TEST01.vhdx` attachment with no remaining `.avhdx` files, and then successfully booted and reached the guest again.
 
-The remaining Chapter 1 task is a final consolidated audit of the host, storage paths, virtual switches, TEST01 state, management addressing, and evidence set before I mark the virtualization chapter complete.
+The final Chapter 1 audit confirmed the Hyper-V feature and service state, BelkaCorp storage paths, virtual-switch inventory, `10.10.30.10/24` host management addressing, TEST01 configuration, clean checkpoint policy, base-VHDX attachment, and successful connectivity to `10.10.30.20`.
+
+**Next — Chapter 2: Network architecture and IP design**
+
+The next chapter will build on the verified Hyper-V foundation and move into the network design and implementation required for the BelkaCorp environment.
 
 ## AI-Assisted Learning and Documentation
 
