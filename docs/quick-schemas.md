@@ -22,7 +22,16 @@ CHAPTER 1  Hyper-V platform             [DONE]
    1.7     Runtime + reboot validation  [DONE]
    1.8     Final Chapter 1 audit        [DONE]
 
-CHAPTER 2  Network architecture         [NEXT]
+CHAPTER 2  Network architecture         [NOW]
+   2.1A    Windows network baseline     [DONE]
+   2.1B    TEST01 network baseline      [DONE]
+   2.2     Subnet + address allocation  [NEXT]
+   2.3     L2 / L3 boundaries
+   2.4     Gateway + routing behavior
+   2.5     DHCP + DNS ownership
+   2.6     Implementation plan
+   2.7     Final Chapter 2 audit
+
 CHAPTER 3  Firewall / routing
 CHAPTER 4  Windows Server / AD
 CHAPTER 5  Linux administration
@@ -75,6 +84,25 @@ FINAL CHAPTER AUDIT     [DONE]
       v
 CHAPTER 1 COMPLETE      [DONE]
 ```
+
+## Chapter 2 Pre-Router Baseline
+
+```text
+Windows host                  TEST01
+10.10.30.10/24                10.10.30.20/24
+      |                              |
+      +--------- vSW-MGMT -----------+
+                  Internal
+
+Same-subnet route       direct / on-link [OK]
+Windows -> TEST01       reachable        [OK]
+TEST01 -> Windows       4/4              [OK]
+ARP / neighbor mapping  learned          [OK]
+Route to 10.10.20.20    unreachable      [EXPECTED]
+FW01                    not deployed yet
+```
+
+The MGMT subnet works directly at Layer 2. Neither host currently has a BelkaCorp route to the future SERVERS or USERS networks.
 
 ## Hyper-V Verified State
 
