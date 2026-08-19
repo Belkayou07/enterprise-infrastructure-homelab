@@ -2,11 +2,11 @@
 
 ## Goal
 
-I am enabling, validating, and organizing Microsoft Hyper-V on my Windows 11 Pro desktop so the host is ready to run the BelkaCorp virtual infrastructure.
+I enabled, validated, and organized Microsoft Hyper-V on my Windows 11 Pro desktop so the host is ready to run the BelkaCorp virtual infrastructure.
 
 ## Why This Matters in a Company
 
-A virtualization platform allows multiple isolated operating systems and infrastructure roles to share one physical server. By building this lab myself, I am learning how to manage the host, virtual machines, virtual disks, virtual network adapters, virtual switches, resource allocation, and the difference between the management operating system and guest systems.
+A virtualization platform allows multiple isolated operating systems and infrastructure roles to share one physical server. By building this lab myself, I am learning how to manage the host, virtual machines, virtual disks, virtual network adapters, virtual switches, resource allocation, checkpoint policy, and the difference between the management operating system and guest systems.
 
 ## What I Must Understand First
 
@@ -17,6 +17,7 @@ A virtualization platform allows multiple isolated operating systems and infrast
 - **Virtual NIC** — a network adapter presented to a VM.
 - **Virtual switch** — a software Ethernet switch connecting VM NICs to other VMs, the Windows host, or an external network depending on switch type.
 - **Dynamic Memory** — Hyper-V can vary the amount of RAM assigned to a running VM between configured minimum and maximum limits according to guest demand.
+- **Checkpoint** — a point-in-time VM state that can introduce `.avhdx` differencing disks above the base VHDX until the checkpoint is removed and merged.
 
 ## Quick Schema
 
@@ -47,7 +48,7 @@ PHYSICAL WINDOWS HOST
 9. [x] Boot TEST01 and install Ubuntu Server.
 10. [x] Configure and verify TEST01 management networking.
 11. [x] Verify guest CPU, memory, disk, network runtime state, and persistence after reboot.
-12. [ ] Perform the final Chapter 1 audit and close the chapter.
+12. [x] Perform the final Chapter 1 audit and close the chapter.
 
 ## Step 1 — Enable and Verify Hyper-V
 
@@ -430,6 +431,87 @@ This confirms that the corrected Dynamic Memory policy is active and that the pe
 
 ![TEST01 Hyper-V runtime memory validation](../screenshots/chapter-01/01-07e-test-vm-dynamic-memory-runtime.png)
 
+## Step 9 — Final Chapter Audit and Checkpoint Cleanup
+
+I performed a consolidated read-only audit before closing the chapter.
+
+### Host Audit
+
+The host-side audit confirmed:
+
+```text
+Microsoft-Hyper-V-All          Enabled
+vmms                           Running / Automatic
+VirtualMachinePath             C:\Hyper-V\BelkaCorp
+VirtualHardDiskPath            C:\Hyper-V\BelkaCorp\Virtual Hard Disks
+Default Switch                 Internal
+vSW-MGMT                       Internal
+vSW-SERVERS                    Private
+vSW-USERS                      Private
+vEthernet (vSW-MGMT) DHCP      Disabled
+vEthernet (vSW-MGMT) IPv4      10.10.30.10/24
+```
+
+### TEST01 Audit
+
+The VM audit confirmed the expected Generation 2, 2-vCPU, Dynamic Memory, VHDX, `vSW-MGMT`, and connectivity state. It also exposed one configuration detail I did not want to carry forward:
+
+```text
+AutomaticCheckpointsEnabled    True
+CheckpointType                 Standard
+Active disk                    .avhdx differencing disk
+```
+
+I inspected the checkpoint inventory and disk chain before changing anything. Two checkpoints existed, and the current `.avhdx` had another `.avhdx` as its parent.
+
+### Real Troubleshooting Incident — Automatic Checkpoint Chain
+
+I shut TEST01 down cleanly, disabled automatic checkpoints, and removed the existing checkpoints through Hyper-V rather than manipulating `.avhdx` files manually.
+
+```powershell
+Set-VM `
+    -Name "TEST01" `
+    -AutomaticCheckpointsEnabled $false
+
+Get-VMSnapshot -VMName "TEST01" |
+Remove-VMSnapshot -Confirm:$false
+```
+
+I documented the incident in `troubleshooting/005-test01-automatic-checkpoint-chain.md`.
+
+After Hyper-V completed the merge, I verified:
+
+```text
+AutomaticCheckpointsEnabled    False
+Remaining checkpoints          none
+Active disk                    C:\Hyper-V\BelkaCorp\Virtual Hard Disks\TEST01.vhdx
+Remaining TEST01 .avhdx files  none
+```
+
+I then started TEST01 once more and performed the final post-cleanup validation:
+
+```text
+TEST01 state                   Running
+AutomaticCheckpointsEnabled    False
+Remaining checkpoints          none
+Active disk                    TEST01.vhdx
+Ping 10.10.30.20               4/4 successful
+```
+
+This confirmed that the checkpoint cleanup did not break VM startup, storage attachment, or management connectivity.
+
+### Evidence
+
+![Final Hyper-V host audit](../screenshots/chapter-01/01-08a-hyperv-final-host-audit.png)
+
+![Final TEST01 audit](../screenshots/chapter-01/01-08b-test01-final-audit.png)
+
+![TEST01 checkpoint diagnosis](../screenshots/chapter-01/01-08c-test01-checkpoint-diagnosis.png)
+
+![TEST01 checkpoint cleanup](../screenshots/chapter-01/01-08d-test01-checkpoint-cleanup.png)
+
+![TEST01 final post-cleanup validation](../screenshots/chapter-01/01-08e-test01-final-post-cleanup-validation.png)
+
 ## Evidence Workflow
 
 ```text
@@ -452,6 +534,6 @@ I use AI as a learning, troubleshooting, and documentation assistant during this
 
 ## Status
 
-**IN PROGRESS**
+**COMPLETE**
 
-Current step: perform one final Chapter 1 audit of the Hyper-V host, TEST01, storage, virtual switches, management network, and evidence set before marking the chapter complete.
+Chapter 1 is complete. I finished with a verified Hyper-V host, deliberate storage paths, the planned virtual-switch foundation, a static Windows MGMT interface, a working Ubuntu validation VM, corrected Dynamic Memory limits, clean checkpoint policy, direct base-VHDX attachment, and validated host-to-guest management connectivity.
