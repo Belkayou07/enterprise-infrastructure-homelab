@@ -82,6 +82,12 @@ Next hop   192.168.0.1
 
 There is no default route through `vEthernet (vSW-MGMT)`. This confirms that the isolated lab management network does not replace the Windows host's normal Internet path.
 
+### Evidence
+
+![Windows pre-router network baseline](../screenshots/chapter-02/02-01a-network-baseline-host.png)
+
+This evidence captures the final switch inventory, the host's manual `10.10.30.10/24` management address, its directly connected MGMT route, and the normal Wi-Fi default route.
+
 ## What This Baseline Proves
 
 At this point the Windows host knows how to reach `10.10.30.0/24` directly, but it has no BelkaCorp route toward the future USERS or SERVERS subnets. That is expected because `FW01` has not been deployed yet.
