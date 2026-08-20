@@ -25,8 +25,8 @@ CHAPTER 1  Hyper-V platform             [DONE]
 CHAPTER 2  Network architecture         [NOW]
    2.1A    Windows network baseline     [DONE]
    2.1B    TEST01 network baseline      [DONE]
-   2.2     Subnet + address allocation  [NEXT]
-   2.3     L2 / L3 boundaries
+   2.2     Subnet + address allocation  [DONE]
+   2.3     L2 / L3 boundaries           [NEXT]
    2.4     Gateway + routing behavior
    2.5     DHCP + DNS ownership
    2.6     Implementation plan
