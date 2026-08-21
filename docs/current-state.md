@@ -111,3 +111,4 @@ When resuming after a chat/session break:
 4. Use actual committed evidence to confirm completed implementation/verification work.
 5. Do not redo completed steps simply because conversational context is missing.
 6. Update this file after each meaningful project milestone so `Last completed step` and `Next step` remain accurate.
+.
