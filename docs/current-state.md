@@ -5,8 +5,8 @@
 ## Current Position
 
 - **Current chapter:** Chapter 2 — Network Architecture and IP Design
-- **Last completed step:** 2.2 — Subnet and Address Allocation
-- **Next step:** 2.3 — Define Layer-2 and Layer-3 Boundaries
+- **Last completed step:** 2.3 — Define Layer-2 and Layer-3 Boundaries
+- **Next step:** 2.4 — Define Gateway and Routing Behavior
 - **Open issues:** None currently blocking progress
 
 ## Verified Live State
@@ -73,6 +73,16 @@ Addressing convention:
 .200 - .254  spare / future use
 ```
 
+## Layer-2 / Layer-3 Boundaries
+
+- `vSW-USERS`, `vSW-SERVERS`, and `vSW-MGMT` are separate Layer-2 broadcast domains.
+- Devices inside the same subnet can communicate directly by resolving each other's MAC addresses and exchanging Ethernet frames through the relevant virtual switch.
+- A device does not ARP for a host in another subnet; it sends the packet to its local default gateway instead.
+- `FW01` will later provide the Layer-3 boundary by attaching one interface to each BelkaCorp network.
+- The planned FW01 interface addresses are `10.10.10.1`, `10.10.20.1`, and `10.10.30.1`.
+- Inter-subnet communication will therefore require routing through `FW01`; the three Hyper-V switches do not route traffic between themselves.
+- Ethernet source/destination MAC addresses change at each routed Layer-2 hop, while the end-host source/destination IP addresses normally remain the same during internal routing.
+
 ## Hyper-V Foundation
 
 Chapter 1 is complete. The current verified foundation includes:
@@ -89,15 +99,15 @@ Chapter 1 is complete. The current verified foundation includes:
 
 ## Immediate Next Work
 
-Continue with **2.3 — Layer-2 / Layer-3 Boundaries**.
+Continue with **2.4 — Gateway and Routing Behavior**.
 
 The goal is to define clearly:
 
-- what each Hyper-V virtual switch does at Layer 2;
-- which systems share the same broadcast domain;
-- where Layer 2 ends;
-- where routing begins;
-- which Layer-3 responsibilities will later belong to `FW01`.
+- why each subnet needs its own default-gateway address;
+- how hosts decide whether a destination is local or remote;
+- which next hop is selected for inter-subnet traffic;
+- how `FW01` will route between directly connected BelkaCorp networks;
+- what should and should not be configured before `FW01` is deployed.
 
 Do **not** deploy `FW01` yet unless the Chapter 2 design explicitly reaches the implementation point.
 

@@ -28,7 +28,7 @@ The Windows host currently has `10.10.30.10/24` on `vEthernet (vSW-MGMT)`. `TEST
 - [x] 2.1A — Verify the Windows host network baseline
 - [x] 2.1B — Verify the TEST01 guest network baseline
 - [x] 2.2 — Confirm subnet and address allocation
-- [ ] 2.3 — Define Layer-2 and Layer-3 boundaries
+- [x] 2.3 — Define Layer-2 and Layer-3 boundaries
 - [ ] 2.4 — Define gateway and routing behavior
 - [ ] 2.5 — Define DHCP and DNS ownership
 - [ ] 2.6 — Produce the final network implementation plan
@@ -218,6 +218,74 @@ MGMT — 10.10.30.0/24
 
 The third octet also reflects the network purpose (`10` USERS, `20` SERVERS, `30` MGMT), which makes addresses easier to recognize during configuration and troubleshooting.
 
+## 2.3 — Layer-2 and Layer-3 Boundaries
+
+Each BelkaCorp Hyper-V virtual switch represents a separate Layer-2 broadcast domain.
+
+```text
+vSW-USERS    -> 10.10.10.0/24
+vSW-SERVERS  -> 10.10.20.0/24
+vSW-MGMT     -> 10.10.30.0/24
+```
+
+A system communicating with another system inside its own `/24` subnet can deliver traffic directly through the relevant virtual switch. It resolves the destination IP address to a MAC address and sends an Ethernet frame without involving a router.
+
+For example, the verified `TEST01` to Windows-host path stays entirely inside `10.10.30.0/24` and therefore uses direct Layer-2 delivery through `vSW-MGMT`.
+
+A destination in a different subnet cannot be reached through Layer 2 alone. The source host compares the destination against its own address and subnet mask, determines that the destination is remote, and sends the packet to its configured default gateway instead of resolving the remote host's MAC address directly.
+
+### Planned Layer-3 boundary
+
+`FW01` will become the Layer-3 boundary between the three BelkaCorp networks by attaching one interface to each virtual switch:
+
+```text
+                         FW01
+                  Router / Firewall
+                         |
+        +----------------+----------------+
+        |                |                |
+   10.10.10.1       10.10.20.1       10.10.30.1
+        |                |                |
+   vSW-USERS        vSW-SERVERS        vSW-MGMT
+        |                |                |
+     USERS            SERVERS            MGMT
+```
+
+The three planned FW01 addresses are therefore not three separate routers. They are interface addresses on the same Layer-3 device, with one interface participating in each subnet.
+
+### Routed traffic and MAC addresses
+
+For traffic from a future USERS host such as `10.10.10.125` to `DC01` at `10.10.20.10`, the IP packet is addressed end-to-end as:
+
+```text
+Source IP       10.10.10.125
+Destination IP  10.10.20.10
+```
+
+On the USERS side, the Ethernet frame is instead addressed to the next hop:
+
+```text
+Source MAC       CLIENT01
+Destination MAC  FW01-USERS
+```
+
+After FW01 routes the packet into the SERVERS network, a new Layer-2 frame is used:
+
+```text
+Source MAC       FW01-SERVERS
+Destination MAC  DC01
+```
+
+The Layer-2 source and destination MAC addresses therefore change as traffic crosses a router. The Layer-3 source and destination IP addresses normally remain the original end-host addresses during this internal routing path.
+
+### Security boundary consequence
+
+Because USERS, SERVERS, and MGMT are separate Layer-2 domains, they are not automatically connected to one another simply because their virtual switches exist on the same Hyper-V host.
+
+Inter-subnet traffic must later traverse `FW01`, which gives the lab a single Layer-3 enforcement point where routing and firewall policy can be applied. This will allow the project to define different trust relationships, such as restricting USERS access to MGMT while permitting controlled administrative traffic from MGMT to SERVERS.
+
+No new implementation or screenshot evidence is required for this step because 2.3 documents the architecture derived from the already verified pre-router behavior.
+
 ## Status
 
-**Chapter 2 is IN PROGRESS.** The pre-router baseline and the subnet/address allocation are now defined. The next step is to define the Layer-2 and Layer-3 boundaries of the BelkaCorp topology.
+**Chapter 2 is IN PROGRESS.** The pre-router baseline, subnet/address allocation, and Layer-2/Layer-3 boundaries are now defined. The next step is to define gateway and routing behavior before deploying `FW01`.
