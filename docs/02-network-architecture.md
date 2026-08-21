@@ -28,7 +28,7 @@ The Windows host currently has `10.10.30.10/24` on `vEthernet (vSW-MGMT)`. `TEST
 - [x] 2.1A — Verify the Windows host network baseline
 - [x] 2.1B — Verify the TEST01 guest network baseline
 - [x] 2.2 — Confirm subnet and address allocation
-- [ ] 2.3 — Define Layer-2 and Layer-3 boundaries
+- [x] 2.3 — Define Layer-2 and Layer-3 boundaries
 - [ ] 2.4 — Define gateway and routing behavior
 - [ ] 2.5 — Define DHCP and DNS ownership
 - [ ] 2.6 — Produce the final network implementation plan
@@ -218,6 +218,80 @@ MGMT — 10.10.30.0/24
 
 The third octet also reflects the network purpose (`10` USERS, `20` SERVERS, `30` MGMT), which makes addresses easier to recognize during configuration and troubleshooting.
 
+## 2.3 — Layer-2 and Layer-3 Boundaries
+
+I treat each custom Hyper-V virtual switch as a separate Layer-2 Ethernet segment and broadcast domain. The switches forward Ethernet frames within their own segment by using MAC-address information; they do not route IP traffic between the BelkaCorp subnets.
+
+```text
+vSW-USERS    -> USERS   -> 10.10.10.0/24
+vSW-SERVERS  -> SERVERS -> 10.10.20.0/24
+vSW-MGMT     -> MGMT    -> 10.10.30.0/24
+```
+
+A broadcast on one of these switches does not cross into either of the other custom switches. This preserves three distinct Layer-2 boundaries rather than creating one shared LAN.
+
+### Same-subnet communication
+
+Systems in the same `/24` communicate directly at Layer 2. They determine that the destination IP is local, resolve the destination's MAC address through ARP, and send the Ethernet frame through the local virtual switch without involving a router.
+
+The current Windows host and TEST01 relationship is the verified example:
+
+```text
+Windows 10.10.30.10          TEST01 10.10.30.20
+        |                            |
+        +-------- vSW-MGMT ----------+
+
+same subnet -> ARP -> destination MAC -> direct frame delivery
+```
+
+### Cross-subnet communication
+
+Communication between USERS, SERVERS, and MGMT requires Layer-3 routing. `FW01` will later connect to each Layer-2 segment with a separate virtual NIC and will own the planned `.1` address on each subnet.
+
+```text
+                 FW01
+             Layer 3 router
+          /        |        \
+         /         |         \
+10.10.10.1   10.10.20.1   10.10.30.1
+     |             |             |
+vSW-USERS    vSW-SERVERS     vSW-MGMT
+     |             |             |
+  USERS          SERVERS         MGMT
+```
+
+`FW01` will route between these networks; it will not bridge them into one Layer-2 domain.
+
+### Layer-2 next hop versus Layer-3 destination
+
+For cross-subnet traffic, the final destination IP remains the remote host, while the destination MAC on the first Ethernet frame is the local default gateway's MAC address.
+
+For example, when a future `CLIENT01` at `10.10.10.125/24` sends traffic to `DC01` at `10.10.20.10/24`:
+
+```text
+First Ethernet frame on USERS:
+source MAC       CLIENT01 MAC
+destination MAC  FW01 USERS-interface MAC
+
+IP packet:
+source IP        10.10.10.125
+destination IP   10.10.20.10
+```
+
+After `FW01` makes the routing decision, it creates a new Layer-2 frame on the SERVERS segment:
+
+```text
+Ethernet frame on SERVERS:
+source MAC       FW01 SERVERS-interface MAC
+destination MAC  DC01 MAC
+
+IP packet:
+source IP        10.10.10.125
+destination IP   10.10.20.10
+```
+
+This makes the boundary explicit: IP identifies the end-to-end logical destination, while the Ethernet MAC destination identifies the next Layer-2 hop on the current local segment.
+
 ## Status
 
-**Chapter 2 is IN PROGRESS.** The pre-router baseline and the subnet/address allocation are now defined. The next step is to define the Layer-2 and Layer-3 boundaries of the BelkaCorp topology.
+**Chapter 2 is IN PROGRESS.** The pre-router baseline, subnet/address allocation, and Layer-2/Layer-3 boundaries are now defined. The next step is to define the gateway and routing behavior that `FW01` will later implement.
