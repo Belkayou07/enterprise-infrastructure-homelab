@@ -5,8 +5,8 @@
 ## Current Position
 
 - **Current chapter:** Chapter 2 — Network Architecture and IP Design
-- **Last completed step:** 2.2 — Subnet and Address Allocation
-- **Next step:** 2.3 — Define Layer-2 and Layer-3 Boundaries
+- **Last completed step:** 2.3 — Define Layer-2 and Layer-3 Boundaries
+- **Next step:** 2.4 — Define Gateway and Routing Behavior
 - **Open issues:** None currently blocking progress
 
 ## Verified Live State
@@ -73,6 +73,20 @@ Addressing convention:
 .200 - .254  spare / future use
 ```
 
+## Layer Boundaries
+
+Each custom Hyper-V switch is a distinct Layer-2 segment and broadcast domain:
+
+```text
+vSW-USERS    -> USERS   -> 10.10.10.0/24
+vSW-SERVERS  -> SERVERS -> 10.10.20.0/24
+vSW-MGMT     -> MGMT    -> 10.10.30.0/24
+```
+
+Same-subnet communication is direct at Layer 2 through ARP and MAC-address forwarding. Cross-subnet communication requires Layer-3 routing. `FW01` will later connect to each segment with a separate virtual NIC and will route between them rather than bridge them into one Layer-2 network.
+
+For cross-subnet traffic, the IP destination remains the final remote host while the Ethernet destination MAC identifies the next local Layer-2 hop, initially the local `FW01` gateway interface.
+
 ## Hyper-V Foundation
 
 Chapter 1 is complete. The current verified foundation includes:
@@ -89,15 +103,15 @@ Chapter 1 is complete. The current verified foundation includes:
 
 ## Immediate Next Work
 
-Continue with **2.3 — Layer-2 / Layer-3 Boundaries**.
+Continue with **2.4 — Gateway and Routing Behavior**.
 
 The goal is to define clearly:
 
-- what each Hyper-V virtual switch does at Layer 2;
-- which systems share the same broadcast domain;
-- where Layer 2 ends;
-- where routing begins;
-- which Layer-3 responsibilities will later belong to `FW01`.
+- which gateway each subnet's hosts will use;
+- how hosts decide whether a destination is local or remote;
+- how `FW01` will select the outgoing connected network;
+- how Layer-2 headers change across a routed path while the end-to-end IP destination remains the remote host;
+- what routing behavior should exist before any firewall policy is implemented.
 
 Do **not** deploy `FW01` yet unless the Chapter 2 design explicitly reaches the implementation point.
 
