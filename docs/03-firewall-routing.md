@@ -33,27 +33,27 @@ vSW-USERS       Private
 
 At that point, the Hyper-V ISO directory contained only the existing Ubuntu Server installer, so the OPNsense installer still had to be added.
 
-I downloaded the OPNsense 26.7 DVD image for `amd64` and verified the compressed installer with SHA-256 before extracting it. The calculated hash matched the expected release hash:
+I downloaded the OPNsense 26.7 DVD image for `amd64` and verified the compressed installer with SHA-256 before extraction. The calculated hash matched the expected release hash:
 
 ```text
 95CAFEDDA6D5B22CE832E249DC2309110FBEE19F813AD78CF28BB3D387186BFB
 ```
 
-I then extracted the ISO and placed it at:
+I then extracted the ISO and staged it at:
 
 ```text
 C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 ```
 
-This gives me a verified installation source before I create or boot the firewall VM.
+### Evidence
 
-### Evidence status
-
-The pre-deployment baseline and installer-hash screenshots have been captured locally but are not yet committed to the repository.
+- [`03-01-fw01-predeployment-baseline.png`](../screenshots/chapter-03/03-01-fw01-predeployment-baseline.png) — pre-deployment VM/switch/ISO baseline.
+- [`03-02-opnsense-download-hash-verification.png`](../screenshots/chapter-03/03-02-opnsense-download-hash-verification.png) — SHA-256 verification of the downloaded installer.
+- [`03-03-opnsense-iso-staged.png`](../screenshots/chapter-03/03-03-opnsense-iso-staged.png) — extracted OPNsense ISO present in the Hyper-V ISO directory.
 
 ## 3.2 — FW01 VM Creation and Pre-Boot Verification
 
-I used the Hyper-V New Virtual Machine Wizard to prepare the initial `FW01` VM shell with the following settings:
+I used the Hyper-V New Virtual Machine Wizard to create the initial `FW01` VM shell with:
 
 ```text
 Name             FW01
@@ -65,13 +65,17 @@ Disk type        dynamically expanding VHDX
 Installer        C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 ```
 
-The wizard summary confirms those values before creation. The VM was then completed through the wizard, but I have not booted it yet.
+The VM was created through the wizard and remains unbooted.
+
+### Wizard evidence
+
+[`03-04-fw01-wizard-summary.png`](../screenshots/chapter-03/03-04-fw01-wizard-summary.png) records the wizard summary before creation.
 
 ### Initial PowerShell audit
 
-I inspected the actual Hyper-V VM object before first boot rather than assuming the wizard defaults matched the intended firewall design.
+I then inspected the actual Hyper-V VM object instead of assuming the wizard defaults matched the intended firewall design.
 
-The initial audit showed:
+Verified initial state:
 
 ```text
 State                    Off
@@ -87,18 +91,28 @@ Network adapters          1
 Initial switch            Default Switch
 ```
 
-The fixed 4096 MB memory policy, virtual disk path, ISO path, VM generation, and powered-off state are already correct. The PowerShell `Minimum` and `Maximum` memory values are not active constraints while Dynamic Memory is disabled.
+The fixed 4096 MB memory policy, virtual disk path, installer path, VM generation, and powered-off state are already correct. The displayed minimum/maximum memory values are not active limits because Dynamic Memory is disabled.
 
-The audit also exposed four pre-boot changes that are still required:
+The audit exposed four settings that must be corrected before first boot:
 
 ```text
-12 vCPU                  -> change to 2 vCPU
-Automatic checkpoints   -> disable
-Secure Boot              -> disable
-1 network adapter        -> add USERS, SERVERS, and MGMT adapters
+12 vCPU                  -> 2 vCPU
+Automatic checkpoints   -> Disabled
+Secure Boot              -> Disabled
+1 network adapter        -> 4 total adapters
 ```
 
-The initial adapter is attached to the Hyper-V Default Switch and will serve as the WAN-side adapter. The three remaining adapters will be attached to `vSW-USERS`, `vSW-SERVERS`, and `vSW-MGMT`.
+The current Default Switch adapter will become the WAN adapter. I still need to add:
+
+```text
+USERS    -> vSW-USERS
+SERVERS  -> vSW-SERVERS
+MGMT     -> vSW-MGMT
+```
+
+### Initial audit evidence
+
+[`03-05-fw01-initial-preboot-audit.png`](../screenshots/chapter-03/03-05-fw01-initial-preboot-audit.png) records the actual pre-remediation state discovered in PowerShell.
 
 ### Intended final pre-boot state
 
@@ -113,12 +127,35 @@ SERVERS NIC              vSW-SERVERS
 MGMT NIC                 vSW-MGMT
 ```
 
-I will not assign the Windows host's BelkaCorp routes yet because `10.10.30.1` is not a verified reachable next hop until OPNsense is installed and the MGMT interface is configured.
+The next evidence item will be `03-06-fw01-final-preboot-verification.png`, but only after those changes have been applied and verified.
 
-### Evidence status
+I will not add the Windows host's routes to `10.10.10.0/24` or `10.10.20.0/24` yet because `10.10.30.1` is not a real, verified next hop until OPNsense is installed and the MGMT interface is configured.
 
-The Hyper-V wizard summary screenshot has been captured and inspected. The initial pre-boot PowerShell audit is the next evidence capture because it records the actual defaults discovered before remediation. The Chapter 3 evidence queue is tracked under `screenshots/chapter-03/README.md`.
+## Evidence and Documentation Workflow
+
+From this point forward, I complete repository work at the same meaningful checkpoint as the technical work:
+
+```text
+IMPLEMENT
+   |
+   v
+VERIFY
+   |
+   v
+CAPTURE USEFUL EVIDENCE
+   |
+   v
+STORE + VERIFY IN GITHUB
+   |
+   v
+UPDATE DOCUMENTATION
+   |
+   v
+CONTINUE
+```
+
+This prevents the repository from lagging behind the real infrastructure state.
 
 ## Current Position
 
-`FW01` exists and remains unbooted. The current task is to remediate the initial VM defaults, add the three missing internal adapters, and then run one final pre-boot verification before starting OPNsense for the first time.
+`FW01` exists, remains powered off, and has never booted. The current task is still **3.2**: remediate the initial VM defaults, add the three missing internal network adapters, run a clean final pre-boot verification, store that evidence, and only then proceed to the OPNsense installation.
