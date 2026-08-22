@@ -5,8 +5,8 @@
 ## Current Position
 
 - **Current chapter:** Chapter 3 — Firewall and Routing
-- **Last completed step:** Chapter 2.7 — Final Chapter 2 Audit
-- **Next step:** Begin `FW01` deployment and pre-boot verification
+- **Last completed step:** 3.1 — Pre-Deployment Baseline and OPNsense Installer Verification
+- **Current step:** 3.2 — Create and Verify the `FW01` VM Before First Boot
 - **Open issues:** None currently blocking progress
 
 ## Verified Live State
@@ -24,8 +24,44 @@ Verified behavior:
 - Windows and TEST01 communicate directly inside `10.10.30.0/24`.
 - TEST01 has a directly connected route for `10.10.30.0/24`.
 - TEST01 resolves the Windows host at Layer 2 through neighbor/ARP discovery.
-- A route lookup toward `10.10.20.20` is currently unreachable, which is expected because no BelkaCorp router exists yet.
-- `FW01` has **not** been deployed yet.
+- A route lookup toward `10.10.20.20` remains unreachable until `FW01` is configured.
+
+## Chapter 3 Deployment State
+
+The pre-deployment baseline confirmed:
+
+```text
+FW01 VM          absent before creation
+Default Switch   Internal
+vSW-MGMT         Internal
+vSW-SERVERS      Private
+vSW-USERS        Private
+```
+
+The OPNsense 26.7 `amd64` DVD installer was downloaded, its compressed image passed SHA-256 verification, and the extracted ISO was placed at:
+
+```text
+C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
+```
+
+The verified SHA-256 was:
+
+```text
+95CAFEDDA6D5B22CE832E249DC2309110FBEE19F813AD78CF28BB3D387186BFB
+```
+
+The Hyper-V wizard summary for `FW01` has now been captured and inspected. It shows:
+
+```text
+Name             FW01
+Generation       2
+Memory           4096 MB
+Network          Default Switch
+Virtual disk     C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
+Installer        C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
+```
+
+The wizard was completed, but `FW01` has not been booted yet. The actual VM object and remaining pre-boot settings still need to be verified.
 
 ## Completed Network Design
 
@@ -74,31 +110,7 @@ vSW-MGMT     -> MGMT    -> 10.10.30.0/24
 
 `FW01` will connect to all three internal segments and route between them. Normal hosts use the `FW01` address on their own subnet as gateway. The Windows host will keep its Wi-Fi default route and will receive specific BelkaCorp routes only after `FW01` exists and `10.10.30.1` is reachable.
 
-## DHCP and DNS Ownership
-
-```text
-FW01
-- routing
-- firewall policy
-- DHCP relay between routed subnets
-
-DC01
-- Active Directory Domain Services later
-- internal / AD-integrated DNS
-- Windows Server DHCP
-
-CLIENT01
-- DHCP client
-- uses 10.10.20.10 for DNS
-```
-
-The USERS DHCP scope is planned as `10.10.10.100-10.10.10.199`, with gateway `10.10.10.1` and DNS server `10.10.20.10`.
-
-## Chapter 3 Starting Point
-
-The first implementation dependency is `FW01`.
-
-Planned interfaces:
+## Planned FW01 Interfaces
 
 ```text
 FW01 / OPNsense
@@ -109,35 +121,41 @@ FW01 / OPNsense
 +-- NIC 4  MGMT     -> vSW-MGMT     -> 10.10.30.1/24
 ```
 
-The first useful validation after installation will be the MGMT interface because the Windows host and TEST01 already provide known-good endpoints on `10.10.30.0/24`.
+Before first boot, verify/finalize:
 
-Do **not** add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until `FW01` is actually configured and `10.10.30.1` is reachable.
+```text
+2 vCPU
+4096 MB fixed memory
+Secure Boot disabled
+Automatic checkpoints disabled
+all four NIC attachments correct
+```
 
-## Hyper-V Foundation
+## Evidence Status
 
-Chapter 1 is complete. The current verified foundation includes:
+Chapter 3 screenshots currently captured but not yet committed:
 
-- Hyper-V enabled and validated.
-- BelkaCorp VM/VHDX storage paths configured under `C:\Hyper-V\BelkaCorp`.
-- `vSW-MGMT` = Internal.
-- `vSW-SERVERS` = Private.
-- `vSW-USERS` = Private.
-- TEST01 runs Ubuntu Server as a Generation 2 VM.
-- TEST01 Dynamic Memory is intentionally configured at 2048 MB startup / 1536 MB minimum / 4096 MB maximum.
-- TEST01 automatic checkpoints are disabled.
-- TEST01 currently runs directly from `TEST01.vhdx` with no active `.avhdx` checkpoint chain.
+```text
+03-01-fw01-predeployment-baseline
+03-02-opnsense-download-hash-verification
+03-03-fw01-wizard-summary
+```
+
+Do not mark these as committed until the actual image files exist in the repository.
 
 ## Immediate Next Work
 
-Start **Chapter 3 — Firewall and Routing** by preparing and deploying `FW01` as an OPNsense VM. Work one verified step at a time: define the VM configuration, verify the four virtual NIC attachments before installation, then install/configure OPNsense without jumping ahead to Windows routes or later services.
+Verify the newly created `FW01` object in PowerShell and apply the remaining pre-boot configuration. Do not start OPNsense until CPU, memory policy, Secure Boot, checkpoint policy, virtual disk, ISO, and all four NIC attachments have been checked.
+
+Do **not** add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until `FW01` is actually configured and `10.10.30.1` is reachable.
 
 ## Resume Rules
 
 When resuming after a chat/session break:
 
 1. Read this file first.
-2. Read the most relevant current chapter document.
+2. Read `docs/03-firewall-routing.md`.
 3. Check the latest `main` commits if files disagree.
 4. Use actual committed evidence to confirm completed implementation/verification work.
 5. Do not redo completed steps simply because conversational context is missing.
-6. Update this file after each meaningful project milestone so `Last completed step` and `Next step` remain accurate.
+6. Update this file after each meaningful project milestone so the current step remains accurate.
