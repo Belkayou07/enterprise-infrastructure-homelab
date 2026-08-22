@@ -29,7 +29,7 @@ The Windows host currently has `10.10.30.10/24` on `vEthernet (vSW-MGMT)`. `TEST
 - [x] 2.1B — Verify the TEST01 guest network baseline
 - [x] 2.2 — Confirm subnet and address allocation
 - [x] 2.3 — Define Layer-2 and Layer-3 boundaries
-- [ ] 2.4 — Define gateway and routing behavior
+- [x] 2.4 — Define gateway and routing behavior
 - [ ] 2.5 — Define DHCP and DNS ownership
 - [ ] 2.6 — Produce the final network implementation plan
 - [ ] 2.7 — Complete the Chapter 2 audit
@@ -292,6 +292,89 @@ destination IP   10.10.20.10
 
 This makes the boundary explicit: IP identifies the end-to-end logical destination, while the Ethernet MAC destination identifies the next Layer-2 hop on the current local segment.
 
+## 2.4 — Gateway and Routing Behavior
+
+Each normal BelkaCorp host will use the `FW01` address that belongs to its own local subnet as its default gateway.
+
+```text
+USERS hosts    -> 10.10.10.1
+SERVERS hosts  -> 10.10.20.1
+MGMT hosts     -> 10.10.30.1 where appropriate
+```
+
+A host must be able to reach its gateway directly at Layer 2. For example, `CLIENT01` in `10.10.10.0/24` can ARP for `10.10.10.1`; using `10.10.20.1` as its gateway would be invalid because that address is already on a remote subnet.
+
+### Directly connected routes on FW01
+
+When `FW01` is later configured with these interfaces:
+
+```text
+USERS    10.10.10.1/24
+SERVERS  10.10.20.1/24
+MGMT     10.10.30.1/24
+```
+
+it will automatically know that the three internal networks are directly connected:
+
+```text
+10.10.10.0/24 -> USERS interface
+10.10.20.0/24 -> SERVERS interface
+10.10.30.0/24 -> MGMT interface
+```
+
+I therefore do not need to add static routes on `FW01` for these directly attached networks. Static routing becomes relevant only for destinations that are not directly connected and are not otherwise learned.
+
+### Host route selection
+
+A host first checks whether the destination is local. If it is remote, the host consults its routing table and chooses the most specific matching route. A more specific prefix such as `/24` is preferred over the default `/0` route; this is longest-prefix matching.
+
+### Windows host exception
+
+The Windows Hyper-V host already uses the home router on Wi-Fi as its normal Internet default gateway:
+
+```text
+0.0.0.0/0 -> 192.168.0.1 -> Wi-Fi
+```
+
+I do not plan to replace that route with the BelkaCorp gateway. After `FW01` exists, the Windows host can instead use specific routes for the internal BelkaCorp networks while keeping normal Internet traffic on Wi-Fi:
+
+```text
+10.10.10.0/24 -> via 10.10.30.1
+10.10.20.0/24 -> via 10.10.30.1
+0.0.0.0/0     -> via 192.168.0.1
+```
+
+For a destination such as `10.10.20.10`, Windows will select the `/24` BelkaCorp route through `FW01` because it is more specific than the `/0` Wi-Fi default route.
+
+These routes are part of the planned design only; I will not add them until `FW01` and its MGMT interface actually exist.
+
+### Round-trip routing
+
+Routing must work in both directions. If the Windows host at `10.10.30.10` later contacts `DC01` at `10.10.20.10`, the path will be:
+
+```text
+Windows 10.10.30.10
+    |
+    | 10.10.20.0/24 via 10.10.30.1
+    v
+FW01 MGMT 10.10.30.1
+    |
+    | directly connected route to 10.10.20.0/24
+    v
+FW01 SERVERS 10.10.20.1
+    |
+    v
+DC01 10.10.20.10
+```
+
+On the return path, `DC01` sees `10.10.30.10` as remote and sends the reply to its own local gateway, `10.10.20.1`. `FW01` then routes the packet back out the MGMT interface toward Windows.
+
+This reinforces the rule that a host's gateway belongs to the host's own subnet; a remote subnet's `.1` address is not used directly as that host's gateway.
+
+### Routing versus firewall policy
+
+A valid route only tells `FW01` where traffic can go. Firewall policy separately determines whether that traffic is permitted. Chapter 2 defines the routing behavior; the actual routing/firewall implementation belongs to the later firewall chapter.
+
 ## Status
 
-**Chapter 2 is IN PROGRESS.** The pre-router baseline, subnet/address allocation, and Layer-2/Layer-3 boundaries are now defined. The next step is to define the gateway and routing behavior that `FW01` will later implement.
+**Chapter 2 is IN PROGRESS.** The pre-router baseline, subnet/address allocation, Layer-2/Layer-3 boundaries, and gateway/routing behavior are now defined. The next step is to define DHCP and DNS ownership.
