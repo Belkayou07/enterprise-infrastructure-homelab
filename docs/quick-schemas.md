@@ -28,8 +28,8 @@ CHAPTER 2  Network architecture         [NOW]
    2.2     Subnet + address allocation  [DONE]
    2.3     L2 / L3 boundaries           [DONE]
    2.4     Gateway + routing behavior   [DONE]
-   2.5     DHCP + DNS ownership         [NEXT]
-   2.6     Implementation plan
+   2.5     DHCP + DNS ownership         [DONE]
+   2.6     Implementation plan          [NEXT]
    2.7     Final Chapter 2 audit
 
 CHAPTER 3  Firewall / routing
@@ -396,6 +396,33 @@ SERVERS interface 10.10.20.1
        v
 DC01 10.10.20.10/24
 ```
+
+## DHCP and DNS Ownership
+
+```text
+CLIENT01
+  DHCP client
+     |
+     | broadcast on USERS
+     v
+FW01
+  DHCP relay
+     |
+     v
+DC01 10.10.20.10
+  DHCP server
+  DNS server
+  AD DS later
+```
+
+```text
+USERS DHCP scope
+10.10.10.100 - 10.10.10.199
+Gateway -> 10.10.10.1
+DNS     -> 10.10.20.10
+```
+
+Domain clients use `DC01` for internal DNS so Active Directory service records can be resolved. Public names can be forwarded or resolved upstream by `DC01` later.
 
 Quick note:
 
