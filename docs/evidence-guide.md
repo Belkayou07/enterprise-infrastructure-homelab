@@ -40,6 +40,7 @@ Examples from the real project:
 01-01-hyperv-verification.png
 01-03b-virtual-switches-final.png
 01-06d-test-vm-bidirectional-ping.png
+03-05-fw01-initial-preboot-audit.png
 ```
 
 Suffixes such as `a`, `b`, `c`, and `d` are useful when several screenshots belong to the same technical step and tell a sequence such as before-state, remediation, and final verification.
@@ -93,7 +94,7 @@ I only mark evidence `COMMITTED` after the file is really present in the reposit
 
 ## Screenshot Workflow
 
-My normal workflow is:
+I finish evidence and documentation at the same meaningful checkpoint as the technical work. I do not postpone a batch of screenshots or documentation until the end of a chapter.
 
 ```text
 UNDERSTAND
@@ -111,7 +112,13 @@ CAPTURE USEFUL EVIDENCE
 STORE + NAME IT CONSISTENTLY
     |
     v
+VERIFY THE FILE IN GITHUB
+    |
+    v
 DOCUMENT THE RESULT
+    |
+    v
+CONTINUE TO THE NEXT STEP
 ```
 
 I may use both CLI and GUI evidence when they prove different things. PowerShell or terminal output gives me precise, scriptable state; Hyper-V Manager and other management consoles can provide useful visual confirmation.
