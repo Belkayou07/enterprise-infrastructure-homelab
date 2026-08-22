@@ -7,7 +7,7 @@
 - **Current chapter:** Chapter 3 — Firewall and Routing
 - **Last completed step:** 3.1 — Pre-Deployment Baseline and OPNsense Installer Verification
 - **Current step:** 3.2 — Create and Verify the `FW01` VM Before First Boot
-- **Open issues:** None currently blocking progress
+- **Open issues:** None blocking progress; initial VM defaults still require remediation before first boot
 
 ## Verified Live State
 
@@ -28,40 +28,65 @@ Verified behavior:
 
 ## Chapter 3 Deployment State
 
-The pre-deployment baseline confirmed:
-
-```text
-FW01 VM          absent before creation
-Default Switch   Internal
-vSW-MGMT         Internal
-vSW-SERVERS      Private
-vSW-USERS        Private
-```
-
 The OPNsense 26.7 `amd64` DVD installer was downloaded, its compressed image passed SHA-256 verification, and the extracted ISO was placed at:
 
 ```text
 C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 ```
 
-The verified SHA-256 was:
+Verified SHA-256:
 
 ```text
 95CAFEDDA6D5B22CE832E249DC2309110FBEE19F813AD78CF28BB3D387186BFB
 ```
 
-The Hyper-V wizard summary for `FW01` has now been captured and inspected. It shows:
+`FW01` has now been created through the Hyper-V wizard and remains powered off.
+
+### Initial FW01 PowerShell audit
+
+Verified actual state:
 
 ```text
-Name             FW01
-Generation       2
-Memory           4096 MB
-Network          Default Switch
-Virtual disk     C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
-Installer        C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
+State                    Off
+Generation               2
+Automatic checkpoints    Enabled
+vCPU                     12
+Dynamic Memory           Disabled
+Startup memory           4096 MB
+Secure Boot              Enabled
+VHDX                     C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
+DVD                       C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
+Network adapters          1
+Initial switch            Default Switch
 ```
 
-The wizard was completed, but `FW01` has not been booted yet. The actual VM object and remaining pre-boot settings still need to be verified.
+Correct already:
+
+```text
+Generation 2
+4096 MB fixed memory
+VHDX path
+OPNsense ISO path
+powered-off state
+```
+
+Still to change before boot:
+
+```text
+12 vCPU                  -> 2 vCPU
+Automatic checkpoints   -> Disabled
+Secure Boot              -> Disabled
+1 NIC                    -> 4 NICs total
+```
+
+Planned adapter map:
+
+```text
+WAN      -> Default Switch
+USERS    -> vSW-USERS
+SERVERS  -> vSW-SERVERS
+MGMT     -> vSW-MGMT
+```
 
 ## Completed Network Design
 
@@ -79,73 +104,40 @@ SERVERS  10.10.20.0/24   planned gateway 10.10.20.1
 MGMT     10.10.30.0/24   planned gateway 10.10.30.1
 ```
 
-Planned addressing:
+The Windows host will keep its normal Wi-Fi default route and will receive specific BelkaCorp routes only after `FW01` is configured and `10.10.30.1` is reachable.
+
+## Evidence Workflow — Chapter 3
+
+The Chapter 3 evidence landing area now exists at:
 
 ```text
-USERS
-10.10.10.1          FW01
-10.10.10.100-.199   planned DHCP range
-
-SERVERS
-10.10.20.1          FW01
-10.10.20.10         DC01
-10.10.20.20         LNX01
-10.10.20.30         MON01
-
-MGMT
-10.10.30.1          FW01
-10.10.30.10         Windows Hyper-V host
-10.10.30.20         TEST01 temporary validation VM
+screenshots/chapter-03/
 ```
 
-## Layer and Routing Model
-
-Each custom Hyper-V switch is a distinct Layer-2 segment:
+Tracked evidence:
 
 ```text
-vSW-USERS    -> USERS   -> 10.10.10.0/24
-vSW-SERVERS  -> SERVERS -> 10.10.20.0/24
-vSW-MGMT     -> MGMT    -> 10.10.30.0/24
+03-01-fw01-predeployment-baseline            CAPTURED, not committed
+03-02-opnsense-download-hash-verification    CAPTURED, not committed
+03-03-fw01-wizard-summary                    CAPTURED, not committed
+03-04-fw01-initial-preboot-audit              next capture
+03-05-fw01-final-preboot-verification         planned after remediation
 ```
 
-`FW01` will connect to all three internal segments and route between them. Normal hosts use the `FW01` address on their own subnet as gateway. The Windows host will keep its Wi-Fi default route and will receive specific BelkaCorp routes only after `FW01` exists and `10.10.30.1` is reachable.
-
-## Planned FW01 Interfaces
-
-```text
-FW01 / OPNsense
-|
-+-- NIC 1  WAN      -> Hyper-V Default Switch
-+-- NIC 2  USERS    -> vSW-USERS    -> 10.10.10.1/24
-+-- NIC 3  SERVERS  -> vSW-SERVERS  -> 10.10.20.1/24
-+-- NIC 4  MGMT     -> vSW-MGMT     -> 10.10.30.1/24
-```
-
-Before first boot, verify/finalize:
-
-```text
-2 vCPU
-4096 MB fixed memory
-Secure Boot disabled
-Automatic checkpoints disabled
-all four NIC attachments correct
-```
-
-## Evidence Status
-
-Chapter 3 screenshots currently captured but not yet committed:
-
-```text
-03-01-fw01-predeployment-baseline
-03-02-opnsense-download-hash-verification
-03-03-fw01-wizard-summary
-```
-
-Do not mark these as committed until the actual image files exist in the repository.
+The actual PNG must exist in the repository before an item is marked `COMMITTED`.
 
 ## Immediate Next Work
 
-Verify the newly created `FW01` object in PowerShell and apply the remaining pre-boot configuration. Do not start OPNsense until CPU, memory policy, Secure Boot, checkpoint policy, virtual disk, ISO, and all four NIC attachments have been checked.
+While `FW01` is still off:
+
+1. Capture the current initial pre-boot audit as `03-04-fw01-initial-preboot-audit`.
+2. Change CPU count to 2.
+3. Disable automatic checkpoints.
+4. Disable Secure Boot.
+5. Keep Dynamic Memory disabled with 4096 MB startup RAM.
+6. Keep the existing Default Switch adapter as WAN and add USERS, SERVERS, and MGMT adapters.
+7. Run one clean final PowerShell verification and capture `03-05-fw01-final-preboot-verification`.
+8. Only then start the OPNsense installer.
 
 Do **not** add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until `FW01` is actually configured and `10.10.30.1` is reachable.
 
