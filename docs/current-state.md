@@ -7,7 +7,7 @@
 - **Current chapter:** Chapter 3 — Firewall and Routing
 - **Last completed step:** 3.1 — Pre-Deployment Baseline and OPNsense Installer Verification
 - **Current step:** 3.2 — Create and Verify the `FW01` VM Before First Boot
-- **Open issues:** None blocking progress; initial VM defaults still require remediation before first boot
+- **Open issues:** None blocking progress; several initial VM defaults still require remediation before first boot
 
 ## Verified Live State
 
@@ -28,11 +28,7 @@ Verified behavior:
 
 ## Chapter 3 Deployment State
 
-The OPNsense 26.7 `amd64` DVD installer was downloaded, its compressed image passed SHA-256 verification, and the extracted ISO was placed at:
-
-```text
-C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
-```
+The OPNsense 26.7 `amd64` DVD installer was downloaded and the compressed image passed SHA-256 verification.
 
 Verified SHA-256:
 
@@ -40,7 +36,13 @@ Verified SHA-256:
 95CAFEDDA6D5B22CE832E249DC2309110FBEE19F813AD78CF28BB3D387186BFB
 ```
 
-`FW01` has now been created through the Hyper-V wizard and remains powered off.
+The extracted installer is staged at:
+
+```text
+C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
+```
+
+`FW01` has been created through the Hyper-V wizard and remains powered off. It has never booted.
 
 ### Initial FW01 PowerShell audit
 
@@ -104,40 +106,60 @@ SERVERS  10.10.20.0/24   planned gateway 10.10.20.1
 MGMT     10.10.30.0/24   planned gateway 10.10.30.1
 ```
 
-The Windows host will keep its normal Wi-Fi default route and will receive specific BelkaCorp routes only after `FW01` is configured and `10.10.30.1` is reachable.
+The Windows host keeps its normal Wi-Fi default route. Specific routes to `10.10.10.0/24` and `10.10.20.0/24` are only added after `FW01` is configured and `10.10.30.1` is reachable.
 
-## Evidence Workflow — Chapter 3
+## Evidence Status
 
-The Chapter 3 evidence landing area now exists at:
-
-```text
-screenshots/chapter-03/
-```
-
-Tracked evidence:
+The current Chapter 3 evidence is committed and verified under `screenshots/chapter-03/`:
 
 ```text
-03-01-fw01-predeployment-baseline            CAPTURED, not committed
-03-02-opnsense-download-hash-verification    CAPTURED, not committed
-03-03-fw01-wizard-summary                    CAPTURED, not committed
-03-04-fw01-initial-preboot-audit              next capture
-03-05-fw01-final-preboot-verification         planned after remediation
+03-01-fw01-predeployment-baseline.png             COMMITTED
+03-02-opnsense-download-hash-verification.png     COMMITTED
+03-03-opnsense-iso-staged.png                     COMMITTED
+03-04-fw01-wizard-summary.png                     COMMITTED
+03-05-fw01-initial-preboot-audit.png               COMMITTED
+03-06-fw01-final-preboot-verification.png          PLANNED
 ```
 
-The actual PNG must exist in the repository before an item is marked `COMMITTED`.
+## Working Rule
+
+For each meaningful checkpoint:
+
+```text
+IMPLEMENT
+   |
+   v
+VERIFY
+   |
+   v
+CAPTURE EVIDENCE IF USEFUL
+   |
+   v
+STORE + VERIFY IN GITHUB
+   |
+   v
+UPDATE DOCUMENTATION
+   |
+   v
+CONTINUE
+```
+
+Do not batch evidence or documentation until the end of the chapter.
 
 ## Immediate Next Work
 
-While `FW01` is still off:
+While `FW01` is still powered off:
 
-1. Capture the current initial pre-boot audit as `03-04-fw01-initial-preboot-audit`.
-2. Change CPU count to 2.
-3. Disable automatic checkpoints.
-4. Disable Secure Boot.
-5. Keep Dynamic Memory disabled with 4096 MB startup RAM.
-6. Keep the existing Default Switch adapter as WAN and add USERS, SERVERS, and MGMT adapters.
-7. Run one clean final PowerShell verification and capture `03-05-fw01-final-preboot-verification`.
-8. Only then start the OPNsense installer.
+1. Change CPU count from 12 to 2.
+2. Disable automatic checkpoints.
+3. Disable Secure Boot.
+4. Keep Dynamic Memory disabled with 4096 MB startup RAM.
+5. Rename the existing Default Switch adapter to WAN.
+6. Add USERS, SERVERS, and MGMT adapters on the three intended custom switches.
+7. Run one clean final PowerShell verification.
+8. Capture/store `03-06-fw01-final-preboot-verification.png`.
+9. Update Chapter 3 documentation immediately.
+10. Only then boot the OPNsense installer.
 
 Do **not** add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until `FW01` is actually configured and `10.10.30.1` is reachable.
 
