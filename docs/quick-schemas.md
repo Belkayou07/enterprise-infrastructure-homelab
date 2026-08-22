@@ -32,7 +32,17 @@ CHAPTER 2  Network architecture         [DONE]
    2.6     Implementation plan          [DONE]
    2.7     Final Chapter 2 audit        [DONE]
 
-CHAPTER 3  Firewall / routing            [NEXT]
+CHAPTER 3  Firewall / routing           [NOW]
+   3.1     Baseline + installer verify  [DONE]
+   3.2     FW01 pre-boot configuration  [NOW]
+   3.3     Install OPNsense
+   3.4     Map four FW01 interfaces
+   3.5     Configure internal gateways
+   3.6     Verify MGMT + routing
+   3.7     Add Windows lab routes
+   3.8     Validate routing / policy
+   3.9     Final Chapter 3 audit
+
 CHAPTER 4  Windows Server / AD
 CHAPTER 5  Linux administration
 CHAPTER 6  Segmentation / access control
@@ -42,6 +52,23 @@ CHAPTER 9  Backup / disaster recovery
 CHAPTER 10 Automation
 CHAPTER 11 Cloud / DevOps extension
 ```
+
+## Chapter 3 Current State
+
+```text
+OPNsense 26.7 amd64 installer  SHA-256 verified [OK]
+Installer ISO                  C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
+FW01 wizard                    completed
+FW01 first boot                NOT YET
+
+Wizard summary:
+Generation                     2
+Startup memory                 4096 MB
+Initial NIC                    Default Switch
+VHDX                           C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
+```
+
+Before first boot, verify the actual VM object and finalize 2 vCPU, fixed 4096 MB memory, Secure Boot disabled, automatic checkpoints disabled, and all four NIC attachments.
 
 ## Chapter 1 Flow
 
