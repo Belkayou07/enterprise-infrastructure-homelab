@@ -67,7 +67,40 @@ Installer        C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 
 The wizard summary confirms those values before creation. The VM was then completed through the wizard, but I have not booted it yet.
 
-Before first boot I still need to verify and finalize the VM configuration:
+### Initial PowerShell audit
+
+I inspected the actual Hyper-V VM object before first boot rather than assuming the wizard defaults matched the intended firewall design.
+
+The initial audit showed:
+
+```text
+State                    Off
+Generation               2
+Automatic checkpoints    Enabled
+vCPU                     12
+Dynamic Memory           Disabled
+Startup memory           4096 MB
+Secure Boot              Enabled
+VHDX                     C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
+DVD                       C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
+Network adapters          1
+Initial switch            Default Switch
+```
+
+The fixed 4096 MB memory policy, virtual disk path, ISO path, VM generation, and powered-off state are already correct. The PowerShell `Minimum` and `Maximum` memory values are not active constraints while Dynamic Memory is disabled.
+
+The audit also exposed four pre-boot changes that are still required:
+
+```text
+12 vCPU                  -> change to 2 vCPU
+Automatic checkpoints   -> disable
+Secure Boot              -> disable
+1 network adapter        -> add USERS, SERVERS, and MGMT adapters
+```
+
+The initial adapter is attached to the Hyper-V Default Switch and will serve as the WAN-side adapter. The three remaining adapters will be attached to `vSW-USERS`, `vSW-SERVERS`, and `vSW-MGMT`.
+
+### Intended final pre-boot state
 
 ```text
 vCPU                    2
@@ -84,8 +117,8 @@ I will not assign the Windows host's BelkaCorp routes yet because `10.10.30.1` i
 
 ### Evidence status
 
-The Hyper-V wizard summary screenshot has been captured and inspected. It is not yet committed to the repository.
+The Hyper-V wizard summary screenshot has been captured and inspected. The initial pre-boot PowerShell audit is the next evidence capture because it records the actual defaults discovered before remediation. The Chapter 3 evidence queue is tracked under `screenshots/chapter-03/README.md`.
 
 ## Current Position
 
-`FW01` has been created through the Hyper-V wizard and remains unbooted. The next step is to verify the actual VM object and apply the remaining pre-boot settings before starting OPNsense for the first time.
+`FW01` exists and remains unbooted. The current task is to remediate the initial VM defaults, add the three missing internal adapters, and then run one final pre-boot verification before starting OPNsense for the first time.
