@@ -15,7 +15,7 @@ I am intentionally building the project in chapters. I do not treat a chapter as
 1. **Chapter 0 — Scope, desktop audit, and repository setup** ✅
 2. **Chapter 1 — Virtualization platform** ✅
 3. **Chapter 2 — Network architecture and IP design** ✅
-4. **Chapter 3 — Firewall and routing** ← next
+4. **Chapter 3 — Firewall and routing** ← current
 5. **Chapter 4 — Windows Server and Active Directory**
 6. **Chapter 5 — Linux server administration**
 7. **Chapter 6 — Network segmentation and access control**
@@ -101,11 +101,13 @@ I verified the pre-router network baseline from both Windows and TEST01, then de
 
 I also defined the planned `.1` gateway convention, routing and return-path behavior, Windows-specific routes that will preserve the host's normal Wi-Fi default route, DHCP ownership on `DC01`, DHCP relay through `FW01`, and internal DNS ownership on `DC01` for the future Active Directory environment.
 
-The final implementation plan now provides a dependency-aware handoff into Chapter 3: deploy `FW01`, identify and configure its WAN/USERS/SERVERS/MGMT interfaces, verify the MGMT interface first, and only then introduce cross-subnet routes and later services.
+The final implementation plan provides a dependency-aware handoff into Chapter 3: deploy `FW01`, identify and configure its WAN/USERS/SERVERS/MGMT interfaces, verify the MGMT interface first, and only then introduce cross-subnet routes and later services.
 
-**Next — Chapter 3: Firewall and routing**
+**Chapter 3 — In progress**
 
-The next chapter will deploy `FW01` with OPNsense and turn the Chapter 2 design into working routed infrastructure.
+I verified the pre-deployment Hyper-V state, downloaded and SHA-256 verified the OPNsense 26.7 `amd64` DVD installer, extracted the ISO into the Hyper-V ISO directory, and started the `FW01` VM deployment. The Hyper-V wizard summary has been captured with Generation 2, 4096 MB startup memory, the Default Switch as the initial network, a dedicated VHDX path, and the OPNsense installer attached.
+
+The next step is to verify the created VM object and finalize its pre-boot settings before OPNsense is started for the first time.
 
 ## AI-Assisted Learning and Documentation
 
