@@ -5,8 +5,8 @@
 ## Current Position
 
 - **Current chapter:** Chapter 2 — Network Architecture and IP Design
-- **Last completed step:** 2.4 — Define Gateway and Routing Behavior
-- **Next step:** 2.5 — Define DHCP and DNS Ownership
+- **Last completed step:** 2.5 — Define DHCP and DNS Ownership
+- **Next step:** 2.6 — Produce the Final Network Implementation Plan
 - **Open issues:** None currently blocking progress
 
 ## Verified Live State
@@ -103,6 +103,25 @@ The Windows host will keep its normal Wi-Fi default route through `192.168.0.1`.
 
 Routing must work in both directions. Remote hosts return traffic through their own local `FW01` gateway interface, not through the `.1` address of the destination subnet.
 
+## DHCP and DNS Design
+
+`DC01` will own both DHCP and internal DNS for the Windows domain environment.
+
+Planned USERS DHCP scope:
+
+```text
+Network        10.10.10.0/24
+Dynamic pool   10.10.10.100 - 10.10.10.199
+Gateway        10.10.10.1
+DNS server     10.10.20.10
+```
+
+`FW01` will relay DHCP requests from the USERS broadcast domain toward `DC01` at `10.10.20.10`. `FW01` does not own the DHCP lease pool; `DC01` does.
+
+Servers and management systems remain primarily statically addressed.
+
+Domain clients will use `DC01` at `10.10.20.10` for DNS. This allows Active Directory service discovery through internal DNS records for domain controllers and services such as Kerberos and LDAP. Public Internet names can be resolved through upstream DNS forwarding or recursion configured on `DC01` later.
+
 ## Hyper-V Foundation
 
 Chapter 1 is complete. The current verified foundation includes:
@@ -119,17 +138,18 @@ Chapter 1 is complete. The current verified foundation includes:
 
 ## Immediate Next Work
 
-Continue with **2.5 — DHCP and DNS Ownership**.
+Continue with **2.6 — Final Network Implementation Plan**.
 
-The goal is to decide explicitly:
+The goal is to turn the completed Chapter 2 design into an implementation-ready sequence for the next chapters, including:
 
-- which device/service will assign dynamic client addresses;
-- which systems should remain static;
-- which system will provide DNS to domain and infrastructure clients;
-- how the chosen ownership supports later Active Directory deployment;
-- whether any DHCP relay behavior will be required once the networks are routed.
+- `FW01` virtual NIC placement and planned addresses;
+- the order in which routing should be introduced and verified;
+- Windows-host BelkaCorp route changes only after the MGMT gateway exists;
+- later deployment of `DC01` with static addressing, DNS, and DHCP;
+- DHCP relay dependency between USERS and `DC01`;
+- verification points that must succeed before moving forward.
 
-Do **not** deploy `FW01`, `DC01`, or DHCP/DNS services yet unless the Chapter 2 design explicitly reaches the implementation point.
+Do **not** deploy `FW01`, `DC01`, DHCP, DNS, or Active Directory as part of this planning step. The actual deployment belongs to the following implementation chapters.
 
 ## Resume Rules
 
