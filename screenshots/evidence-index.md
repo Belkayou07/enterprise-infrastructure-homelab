@@ -57,11 +57,13 @@ I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-du
 
 | Evidence | Status | What it proves |
 |---|---|---|
-| `chapter-03/03-01-fw01-predeployment-baseline.png` | CAPTURED | Shows that `FW01` did not exist before deployment, confirms the expected Hyper-V switch inventory, and shows that the OPNsense installer had not yet been added to the ISO directory. |
-| `chapter-03/03-02-opnsense-download-hash-verification.png` | CAPTURED | Shows the SHA-256 verification of the downloaded OPNsense 26.7 `amd64` DVD image before extraction. |
-| `chapter-03/03-03-fw01-wizard-summary.png` | CAPTURED | Shows the `FW01` wizard summary with Generation 2, 4096 MB startup memory, Default Switch, dedicated VHDX path, and the OPNsense 26.7 installer ISO. |
+| [`chapter-03/03-01-fw01-predeployment-baseline.png`](chapter-03/03-01-fw01-predeployment-baseline.png) | COMMITTED | Shows that `FW01` did not exist before deployment, confirms the expected Hyper-V switch inventory, and shows the ISO directory before the OPNsense image was added. |
+| [`chapter-03/03-02-opnsense-download-hash-verification.png`](chapter-03/03-02-opnsense-download-hash-verification.png) | COMMITTED | Shows SHA-256 verification of the downloaded OPNsense 26.7 `amd64` DVD image before extraction. |
+| [`chapter-03/03-03-opnsense-iso-staged.png`](chapter-03/03-03-opnsense-iso-staged.png) | COMMITTED | Shows the extracted OPNsense ISO staged in `C:\Hyper-V\ISOs` beside the Ubuntu Server installer. |
+| [`chapter-03/03-04-fw01-wizard-summary.png`](chapter-03/03-04-fw01-wizard-summary.png) | COMMITTED | Shows the `FW01` wizard summary with Generation 2, 4096 MB startup memory, Default Switch, dedicated VHDX path, and the OPNsense 26.7 installer ISO. |
+| [`chapter-03/03-05-fw01-initial-preboot-audit.png`](chapter-03/03-05-fw01-initial-preboot-audit.png) | COMMITTED | Shows the actual pre-remediation VM state: powered off, Generation 2, automatic checkpoints enabled, 12 vCPU, fixed 4096 MB RAM, Secure Boot enabled, correct VHDX/ISO paths, and a single adapter on the Default Switch. |
 
-These Chapter 3 files remain `CAPTURED` until the actual image files are uploaded to the repository.
+The next planned Chapter 3 evidence item is `03-06-fw01-final-preboot-verification.png`, captured only after the pre-boot remediation has been applied and verified.
 
 ## Evidence Rule
 
@@ -76,11 +78,15 @@ IMPLEMENT
    |
 VERIFY
    |
-CAPTURE EVIDENCE
+CAPTURE EVIDENCE IF USEFUL
    |
-DOCUMENT
+STORE + VERIFY IN GITHUB
    |
-COMMIT
+DOCUMENT THE RESULT
+   |
+CONTINUE
 ```
+
+I do not postpone evidence and documentation until the end of a chapter. I finish them at the same meaningful checkpoint as the technical work.
 
 I do not commit sensitive data, credentials, license keys, unrelated personal information, or unnecessary raw dumps.
