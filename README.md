@@ -105,9 +105,11 @@ The final implementation plan provides a dependency-aware handoff into Chapter 3
 
 **Chapter 3 — In progress**
 
-I verified the pre-deployment Hyper-V state, downloaded and SHA-256 verified the OPNsense 26.7 `amd64` DVD installer, extracted the ISO into the Hyper-V ISO directory, and started the `FW01` VM deployment. The Hyper-V wizard summary has been captured with Generation 2, 4096 MB startup memory, the Default Switch as the initial network, a dedicated VHDX path, and the OPNsense installer attached.
+I verified the pre-deployment Hyper-V state, downloaded and SHA-256 verified the OPNsense 26.7 `amd64` DVD installer, extracted the ISO into the Hyper-V ISO directory, and created the initial `FW01` Generation 2 VM.
 
-The next step is to verify the created VM object and finalize its pre-boot settings before OPNsense is started for the first time.
+Before the first boot, I audited the actual VM object in PowerShell. The audit confirmed fixed 4096 MB RAM, the correct VHDX and ISO paths, and the powered-off Generation 2 VM state, while also exposing defaults that still need correction: 12 vCPU, automatic checkpoints enabled, Secure Boot enabled, and only one network adapter.
+
+The current task is to remediate those pre-boot defaults, attach the USERS/SERVERS/MGMT adapters, perform a final pre-boot verification, commit the evidence and documentation at that checkpoint, and only then start OPNsense.
 
 ## AI-Assisted Learning and Documentation
 
