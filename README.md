@@ -14,8 +14,8 @@ I am intentionally building the project in chapters. I do not treat a chapter as
 
 1. **Chapter 0 — Scope, desktop audit, and repository setup** ✅
 2. **Chapter 1 — Virtualization platform** ✅
-3. **Chapter 2 — Network architecture and IP design** ← next
-4. **Chapter 3 — Firewall and routing**
+3. **Chapter 2 — Network architecture and IP design** ✅
+4. **Chapter 3 — Firewall and routing** ← next
 5. **Chapter 4 — Windows Server and Active Directory**
 6. **Chapter 5 — Linux server administration**
 7. **Chapter 6 — Network segmentation and access control**
@@ -71,14 +71,11 @@ Windows 11 Pro Desktop
 enterprise-infrastructure-homelab/
 ├── README.md
 ├── docs/              # Chapter documentation and engineering decisions
-├── diagrams/          # Architecture and network diagrams
-├── configs/           # Sanitized configuration exports/examples
-├── scripts/           # Automation created during later chapters
 ├── screenshots/       # Selected evidence of completed work
 └── troubleshooting/   # Incident and troubleshooting records
 ```
 
-I only keep directories when they contain real project material; I do not add empty folders simply for appearance.
+I only keep directories when they contain real project material. Later chapters can introduce configuration, diagram, or automation directories when those artifacts actually exist.
 
 ## Current Status
 
@@ -98,9 +95,17 @@ For the Dynamic Memory incident, I traced the low guest-memory reading to a 512 
 
 The final Chapter 1 audit confirmed the Hyper-V feature and service state, BelkaCorp storage paths, virtual-switch inventory, `10.10.30.10/24` host management addressing, TEST01 configuration, clean checkpoint policy, base-VHDX attachment, and successful connectivity to `10.10.30.20`.
 
-**Next — Chapter 2: Network architecture and IP design**
+**Chapter 2 — Complete**
 
-The next chapter will build on the verified Hyper-V foundation and move into the network design and implementation required for the BelkaCorp environment.
+I verified the pre-router network baseline from both Windows and TEST01, then defined the BelkaCorp address plan across USERS (`10.10.10.0/24`), SERVERS (`10.10.20.0/24`), and MGMT (`10.10.30.0/24`). I documented the Layer-2 boundaries created by the Hyper-V virtual switches and the Layer-3 routing responsibilities that will belong to `FW01`.
+
+I also defined the planned `.1` gateway convention, routing and return-path behavior, Windows-specific routes that will preserve the host's normal Wi-Fi default route, DHCP ownership on `DC01`, DHCP relay through `FW01`, and internal DNS ownership on `DC01` for the future Active Directory environment.
+
+The final implementation plan now provides a dependency-aware handoff into Chapter 3: deploy `FW01`, identify and configure its WAN/USERS/SERVERS/MGMT interfaces, verify the MGMT interface first, and only then introduce cross-subnet routes and later services.
+
+**Next — Chapter 3: Firewall and routing**
+
+The next chapter will deploy `FW01` with OPNsense and turn the Chapter 2 design into working routed infrastructure.
 
 ## AI-Assisted Learning and Documentation
 
