@@ -61,14 +61,19 @@ Installer ISO                  C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 FW01 wizard                    completed
 FW01 first boot                NOT YET
 
-Wizard summary:
+Initial PowerShell audit:
+State                          Off
 Generation                     2
-Startup memory                 4096 MB
-Initial NIC                    Default Switch
-VHDX                           C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
+Memory                         4096 MB fixed [OK]
+vCPU                           12 -> change to 2
+Automatic checkpoints          Enabled -> disable
+Secure Boot                    Enabled -> disable
+Network adapters               1 -> add 3 internal adapters
+Initial NIC                    Default Switch -> WAN
+VHDX                           C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx [OK]
 ```
 
-Before first boot, verify the actual VM object and finalize 2 vCPU, fixed 4096 MB memory, Secure Boot disabled, automatic checkpoints disabled, and all four NIC attachments.
+Next checkpoint: remediate the four pre-boot defaults, verify all four NIC attachments, capture/store `03-06-fw01-final-preboot-verification.png`, update documentation, and only then start OPNsense.
 
 ## Chapter 1 Flow
 
