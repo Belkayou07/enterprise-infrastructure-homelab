@@ -53,6 +53,16 @@ I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-du
 | [`chapter-02/02-01a-network-baseline-host.png`](chapter-02/02-01a-network-baseline-host.png) | COMMITTED | Shows the pre-router Windows network baseline: final virtual-switch inventory, manual `10.10.30.10/24` MGMT addressing, the directly connected `10.10.30.0/24` route, and the normal Windows default route remaining on Wi-Fi through `192.168.0.1`. |
 | [`chapter-02/02-01b-network-baseline-test01.png`](chapter-02/02-01b-network-baseline-test01.png) | COMMITTED | Shows TEST01 at `10.10.30.20/24`, its directly connected MGMT route, direct route selection to `10.10.30.10`, successful 4/4 host connectivity, the learned Windows MAC neighbor, and the expected unreachable result for `10.10.20.20` before a router exists. |
 
+## Chapter 3 — Firewall and Routing
+
+| Evidence | Status | What it proves |
+|---|---|---|
+| `chapter-03/03-01-fw01-predeployment-baseline.png` | CAPTURED | Shows that `FW01` did not exist before deployment, confirms the expected Hyper-V switch inventory, and shows that the OPNsense installer had not yet been added to the ISO directory. |
+| `chapter-03/03-02-opnsense-download-hash-verification.png` | CAPTURED | Shows the SHA-256 verification of the downloaded OPNsense 26.7 `amd64` DVD image before extraction. |
+| `chapter-03/03-03-fw01-wizard-summary.png` | CAPTURED | Shows the `FW01` wizard summary with Generation 2, 4096 MB startup memory, Default Switch, dedicated VHDX path, and the OPNsense 26.7 installer ISO. |
+
+These Chapter 3 files remain `CAPTURED` until the actual image files are uploaded to the repository.
+
 ## Evidence Rule
 
 I keep useful evidence that shows a meaningful state or verification result rather than capturing every command I type.
