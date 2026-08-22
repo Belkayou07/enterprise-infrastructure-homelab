@@ -5,8 +5,8 @@
 ## Current Position
 
 - **Current chapter:** Chapter 2 — Network Architecture and IP Design
-- **Last completed step:** 2.3 — Define Layer-2 and Layer-3 Boundaries
-- **Next step:** 2.4 — Define Gateway and Routing Behavior
+- **Last completed step:** 2.4 — Define Gateway and Routing Behavior
+- **Next step:** 2.5 — Define DHCP and DNS Ownership
 - **Open issues:** None currently blocking progress
 
 ## Verified Live State
@@ -87,6 +87,22 @@ Same-subnet communication is direct at Layer 2 through ARP and MAC-address forwa
 
 For cross-subnet traffic, the IP destination remains the final remote host while the Ethernet destination MAC identifies the next local Layer-2 hop, initially the local `FW01` gateway interface.
 
+## Gateway and Routing Design
+
+Normal BelkaCorp hosts will use the `FW01` address in their own local subnet as default gateway:
+
+```text
+USERS    -> 10.10.10.1
+SERVERS  -> 10.10.20.1
+MGMT     -> 10.10.30.1 where appropriate
+```
+
+Once those interfaces exist, `FW01` will automatically have directly connected routes to `10.10.10.0/24`, `10.10.20.0/24`, and `10.10.30.0/24`; no manual static routes are required on `FW01` for those three networks.
+
+The Windows host will keep its normal Wi-Fi default route through `192.168.0.1`. After `FW01` exists, the design is to use specific routes for `10.10.10.0/24` and `10.10.20.0/24` through `10.10.30.1`, allowing longest-prefix matching to send BelkaCorp traffic to `FW01` without moving normal Internet traffic away from Wi-Fi.
+
+Routing must work in both directions. Remote hosts return traffic through their own local `FW01` gateway interface, not through the `.1` address of the destination subnet.
+
 ## Hyper-V Foundation
 
 Chapter 1 is complete. The current verified foundation includes:
@@ -103,17 +119,17 @@ Chapter 1 is complete. The current verified foundation includes:
 
 ## Immediate Next Work
 
-Continue with **2.4 — Gateway and Routing Behavior**.
+Continue with **2.5 — DHCP and DNS Ownership**.
 
-The goal is to define clearly:
+The goal is to decide explicitly:
 
-- which gateway each subnet's hosts will use;
-- how hosts decide whether a destination is local or remote;
-- how `FW01` will select the outgoing connected network;
-- how Layer-2 headers change across a routed path while the end-to-end IP destination remains the remote host;
-- what routing behavior should exist before any firewall policy is implemented.
+- which device/service will assign dynamic client addresses;
+- which systems should remain static;
+- which system will provide DNS to domain and infrastructure clients;
+- how the chosen ownership supports later Active Directory deployment;
+- whether any DHCP relay behavior will be required once the networks are routed.
 
-Do **not** deploy `FW01` yet unless the Chapter 2 design explicitly reaches the implementation point.
+Do **not** deploy `FW01`, `DC01`, or DHCP/DNS services yet unless the Chapter 2 design explicitly reaches the implementation point.
 
 ## Resume Rules
 
