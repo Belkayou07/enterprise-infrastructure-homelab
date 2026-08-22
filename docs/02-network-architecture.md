@@ -32,7 +32,7 @@ The Windows host currently has `10.10.30.10/24` on `vEthernet (vSW-MGMT)`. `TEST
 - [x] 2.4 — Define gateway and routing behavior
 - [x] 2.5 — Define DHCP and DNS ownership
 - [x] 2.6 — Produce the final network implementation plan
-- [ ] 2.7 — Complete the Chapter 2 audit
+- [x] 2.7 — Complete the Chapter 2 audit
 
 ## 2.1A — Windows Host Network Baseline
 
@@ -498,7 +498,7 @@ I will implement the network in dependency order so that each later service is i
 6. Deploy DC01 on vSW-SERVERS
        |
        v
-7. Configure AD-integrated DNS and later AD DS
+7. Configure AD DS and internal DNS on DC01
        |
        v
 8. Configure Windows Server DHCP scopes
@@ -567,7 +567,7 @@ DC01
 gateway 10.10.20.1
 ```
 
-`DC01` will later provide the internal DNS and DHCP services defined in this chapter. `FW01` will relay DHCP requests from USERS to `DC01`, and `CLIENT01` will be deployed after those dependencies exist so it can validate the complete client path.
+`DC01` will later provide the internal DNS and DHCP services defined in this chapter. Active Directory Domain Services and DNS will be established as part of the Windows Server chapter before domain clients depend on AD-integrated DNS. `FW01` will relay DHCP requests from USERS to `DC01`, and `CLIENT01` will be deployed after those dependencies exist so it can validate the complete client path.
 
 The intended client result is:
 
@@ -580,6 +580,41 @@ DNS      10.10.20.10
 
 At that point, a client can prove the design end to end by receiving configuration, reaching its gateway, resolving internal DNS through `DC01`, reaching approved remote services, and later joining the Active Directory domain.
 
+## 2.7 — Chapter 2 Audit
+
+I audited the Chapter 2 design and repository state before moving into firewall implementation.
+
+### Design consistency
+
+The three internal `/24` networks are non-overlapping and remain inside the planned `10.10.0.0/16` BelkaCorp allocation. Each network has one planned `.1` gateway on `FW01`, and the static/dynamic address conventions do not overlap with the current planned infrastructure addresses.
+
+The Layer-2 and Layer-3 responsibilities are consistent: each custom Hyper-V virtual switch remains a separate Layer-2 segment, while `FW01` will provide the Layer-3 path between USERS, SERVERS, and MGMT.
+
+The routing design is also internally consistent. Normal hosts use the `FW01` address on their own subnet as gateway, `FW01` learns the three internal networks as directly connected once its interfaces exist, and the Windows host keeps its Wi-Fi default route while using more-specific BelkaCorp routes only after `10.10.30.1` is real and reachable.
+
+### DHCP and DNS consistency
+
+`DC01` owns the future DHCP scopes and internal DNS service. `FW01` owns routing/firewall policy and relays DHCP requests from the USERS broadcast domain to `DC01`. Domain clients will use `DC01` for internal DNS so Active Directory service discovery works correctly.
+
+During the audit I corrected the implementation wording so Active Directory Domain Services and its internal DNS are established in the Windows Server chapter before domain clients depend on AD-integrated DNS.
+
+### Evidence audit
+
+Chapter 2 currently has two implementation evidence files, both committed:
+
+```text
+02-01a-network-baseline-host.png
+02-01b-network-baseline-test01.png
+```
+
+Those files prove the real pre-router state. Steps 2.2 through 2.6 are design decisions rather than deployed infrastructure, so I did not create screenshots that would falsely imply `FW01`, `DC01`, DHCP, DNS, or inter-subnet routing already exist.
+
+### Repository audit
+
+I synchronized the Chapter 2 progress markers and corrected the root README so it no longer describes Chapter 2 as future work. I also corrected the README repository tree so it lists only directories that actually exist instead of presenting future empty directories as current content.
+
+No unresolved Chapter 2 issue blocks the next phase.
+
 ## Status
 
-**Chapter 2 is IN PROGRESS.** The pre-router baseline, subnet/address allocation, Layer-2/Layer-3 boundaries, gateway/routing behavior, DHCP/DNS ownership, and final implementation order are now defined. The next step is the Chapter 2 audit before beginning the firewall/routing implementation in Chapter 3.
+**Chapter 2 is COMPLETE.** The network baseline, addressing, Layer-2/Layer-3 boundaries, gateway/routing behavior, DHCP/DNS ownership, implementation order, evidence scope, and repository consistency have been audited. The next project phase is **Chapter 3 — Firewall and Routing**, beginning with deployment and validation of `FW01`.
