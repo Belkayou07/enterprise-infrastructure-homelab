@@ -29,8 +29,8 @@ CHAPTER 2  Network architecture         [NOW]
    2.3     L2 / L3 boundaries           [DONE]
    2.4     Gateway + routing behavior   [DONE]
    2.5     DHCP + DNS ownership         [DONE]
-   2.6     Implementation plan          [NEXT]
-   2.7     Final Chapter 2 audit
+   2.6     Implementation plan          [DONE]
+   2.7     Final Chapter 2 audit        [NEXT]
 
 CHAPTER 3  Firewall / routing
 CHAPTER 4  Windows Server / AD
@@ -423,6 +423,41 @@ DNS     -> 10.10.20.10
 ```
 
 Domain clients use `DC01` for internal DNS so Active Directory service records can be resolved. Public names can be forwarded or resolved upstream by `DC01` later.
+
+## Chapter 2 Implementation Order
+
+```text
+FW01 deploy
+   |
+   v
+Identify 4 NICs
+   |
+   v
+Configure .1 gateways
+   |
+   v
+Verify MGMT access
+   |
+   v
+Add Windows BelkaCorp routes
+   |
+   v
+Deploy DC01
+   |
+   v
+DNS / AD + DHCP
+   |
+   v
+FW01 DHCP relay
+   |
+   v
+Deploy CLIENT01
+   |
+   v
+End-to-end validation
+```
+
+Do not add the Windows routes before `FW01` exists: `10.10.30.1` must first be a real, reachable next hop.
 
 Quick note:
 
