@@ -30,7 +30,7 @@ The Windows host currently has `10.10.30.10/24` on `vEthernet (vSW-MGMT)`. `TEST
 - [x] 2.2 — Confirm subnet and address allocation
 - [x] 2.3 — Define Layer-2 and Layer-3 boundaries
 - [x] 2.4 — Define gateway and routing behavior
-- [ ] 2.5 — Define DHCP and DNS ownership
+- [x] 2.5 — Define DHCP and DNS ownership
 - [ ] 2.6 — Produce the final network implementation plan
 - [ ] 2.7 — Complete the Chapter 2 audit
 
@@ -375,6 +375,101 @@ This reinforces the rule that a host's gateway belongs to the host's own subnet;
 
 A valid route only tells `FW01` where traffic can go. Firewall policy separately determines whether that traffic is permitted. Chapter 2 defines the routing behavior; the actual routing/firewall implementation belongs to the later firewall chapter.
 
+## 2.5 — DHCP and DNS Ownership
+
+I will keep infrastructure addressing predictable by using static addresses for the firewall interfaces, servers, and management systems, while using DHCP for normal client systems on the USERS network.
+
+### DHCP ownership
+
+`DC01` will provide the Windows Server DHCP service. The initial USERS scope is planned as:
+
+```text
+Network        10.10.10.0/24
+Dynamic pool   10.10.10.100 - 10.10.10.199
+Gateway        10.10.10.1
+DNS server     10.10.20.10
+```
+
+A future client could therefore receive configuration such as:
+
+```text
+CLIENT01
+IP       10.10.10.125
+Mask     255.255.255.0
+Gateway  10.10.10.1
+DNS      10.10.20.10
+```
+
+The SERVERS and MGMT networks will remain primarily statically addressed because infrastructure systems need stable, predictable addresses.
+
+### DHCP relay requirement
+
+`CLIENT01` and `DC01` will be in different broadcast domains. A client's initial DHCP discovery is a local broadcast, and routers do not normally forward that broadcast between subnets.
+
+`FW01` will therefore provide DHCP relay behavior for the USERS network and forward the request toward the DHCP server at `10.10.20.10`.
+
+```text
+CLIENT01
+   |
+   | DHCP broadcast
+   v
+vSW-USERS
+   |
+   v
+FW01 USERS interface
+   |
+   | DHCP relay
+   v
+DC01 10.10.20.10
+DHCP server
+```
+
+The relay allows the DHCP server to determine which client subnet originated the request and select the appropriate DHCP scope. `FW01` relays the traffic; `DC01` remains the system that owns the scope and leases the client configuration.
+
+### DNS ownership
+
+`DC01` will also provide DNS for the BelkaCorp Active Directory environment. Domain-joined clients will use `10.10.20.10` as their internal DNS server rather than querying a public resolver directly.
+
+Active Directory depends on DNS not only for normal host-name resolution but also for service discovery. AD-integrated DNS records allow clients to locate domain controllers and services such as Kerberos, LDAP, and the Global Catalog.
+
+A public DNS resolver can resolve public Internet names, but it does not own the private BelkaCorp Active Directory DNS data. Using a public resolver directly on domain clients would therefore prevent reliable discovery of internal AD services.
+
+For external names, the intended flow is:
+
+```text
+CLIENT01
+   |
+   | DNS query
+   v
+DC01 DNS
+   |
+   | forward / recurse upstream as configured later
+   v
+External DNS
+```
+
+This keeps internal DNS ownership on `DC01` while still allowing clients to resolve public Internet names.
+
+### Service ownership summary
+
+```text
+FW01
+- routing
+- firewall policy
+- DHCP relay between routed subnets
+
+DC01
+- Active Directory Domain Services later
+- internal / AD-integrated DNS
+- DHCP server and scopes
+
+CLIENT01
+- DHCP client
+- uses DC01 for DNS
+```
+
+These are design decisions only at this stage. `FW01`, `DC01`, DHCP, DNS, and Active Directory have not yet been deployed or configured.
+
 ## Status
 
-**Chapter 2 is IN PROGRESS.** The pre-router baseline, subnet/address allocation, Layer-2/Layer-3 boundaries, and gateway/routing behavior are now defined. The next step is to define DHCP and DNS ownership.
+**Chapter 2 is IN PROGRESS.** The pre-router baseline, subnet/address allocation, Layer-2/Layer-3 boundaries, gateway/routing behavior, and DHCP/DNS ownership are now defined. The next step is to produce the final network implementation plan.
