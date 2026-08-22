@@ -10,14 +10,36 @@ This folder is the landing area for real screenshots from Chapter 3 — Firewall
 
 ## Current queue
 
-| Evidence | State | Expected content |
+| Evidence | State | What it proves |
 |---|---|---|
-| `03-01-fw01-predeployment-baseline.png` | CAPTURED | PowerShell baseline showing no existing `FW01`, the four expected Hyper-V switches, and the ISO directory before the OPNsense image was added. |
-| `03-02-opnsense-download-hash-verification.png` | CAPTURED | PowerShell SHA-256 verification of the downloaded OPNsense 26.7 `amd64` DVD image. |
-| `03-03-fw01-wizard-summary.png` | CAPTURED | Hyper-V wizard summary showing `FW01`, Generation 2, 4096 MB, Default Switch, the VHDX path, and OPNsense ISO. |
-| `03-04-fw01-initial-preboot-audit.png` | PLANNED | PowerShell audit showing the initial VM defaults that still need correction: 12 vCPU, automatic checkpoints enabled, Secure Boot enabled, and only one network adapter. |
-| `03-05-fw01-final-preboot-verification.png` | PLANNED | Final PowerShell verification after remediation, showing 2 vCPU, fixed 4096 MB RAM, Secure Boot off, automatic checkpoints off, and four correctly attached NICs. |
+| [`03-01-fw01-predeployment-baseline.png`](03-01-fw01-predeployment-baseline.png) | COMMITTED | PowerShell baseline showing no existing `FW01`, the four expected Hyper-V switches, and the ISO directory before the OPNsense image was added. |
+| [`03-02-opnsense-download-hash-verification.png`](03-02-opnsense-download-hash-verification.png) | COMMITTED | PowerShell SHA-256 verification of the downloaded OPNsense 26.7 `amd64` DVD image. |
+| [`03-03-opnsense-iso-staged.png`](03-03-opnsense-iso-staged.png) | COMMITTED | File Explorer showing the extracted OPNsense ISO staged in `C:\Hyper-V\ISOs` beside the existing Ubuntu installer. |
+| [`03-04-fw01-wizard-summary.png`](03-04-fw01-wizard-summary.png) | COMMITTED | Hyper-V wizard summary showing `FW01`, Generation 2, 4096 MB, Default Switch, the dedicated VHDX path, and the OPNsense ISO. |
+| [`03-05-fw01-initial-preboot-audit.png`](03-05-fw01-initial-preboot-audit.png) | COMMITTED | PowerShell audit showing the actual initial VM defaults before remediation: 12 vCPU, automatic checkpoints enabled, Secure Boot enabled, and only one network adapter. |
+| `03-06-fw01-final-preboot-verification.png` | PLANNED | Final PowerShell verification after remediation, showing 2 vCPU, fixed 4096 MB RAM, Secure Boot off, automatic checkpoints off, and four correctly attached NICs. |
 
 ## Working rule
 
-For Chapter 3, I capture evidence at the point where it proves a meaningful implementation or troubleshooting state. I do not batch screenshots until the end of the chapter. After each useful screenshot is captured, I move it into this folder, verify the actual image, and only then mark it `COMMITTED` in `../evidence-index.md`.
+For Chapter 3 I finish evidence and documentation at the same checkpoint as the technical work instead of postponing it until later.
+
+```text
+DO WORK
+   |
+   v
+VERIFY
+   |
+   v
+CAPTURE EVIDENCE IF USEFUL
+   |
+   v
+STORE + VERIFY IN GITHUB
+   |
+   v
+UPDATE DOCUMENTATION
+   |
+   v
+ONLY THEN CONTINUE
+```
+
+I only keep screenshots that prove a meaningful implementation, verification, or troubleshooting state. I do not recreate historical failures just for evidence.
