@@ -22,7 +22,7 @@ CHAPTER 1  Hyper-V platform             [DONE]
    1.7     Runtime + reboot validation  [DONE]
    1.8     Final Chapter 1 audit        [DONE]
 
-CHAPTER 2  Network architecture         [NOW]
+CHAPTER 2  Network architecture         [DONE]
    2.1A    Windows network baseline     [DONE]
    2.1B    TEST01 network baseline      [DONE]
    2.2     Subnet + address allocation  [DONE]
@@ -30,9 +30,9 @@ CHAPTER 2  Network architecture         [NOW]
    2.4     Gateway + routing behavior   [DONE]
    2.5     DHCP + DNS ownership         [DONE]
    2.6     Implementation plan          [DONE]
-   2.7     Final Chapter 2 audit        [NEXT]
+   2.7     Final Chapter 2 audit        [DONE]
 
-CHAPTER 3  Firewall / routing
+CHAPTER 3  Firewall / routing            [NEXT]
 CHAPTER 4  Windows Server / AD
 CHAPTER 5  Linux administration
 CHAPTER 6  Segmentation / access control
@@ -445,7 +445,10 @@ Add Windows BelkaCorp routes
 Deploy DC01
    |
    v
-DNS / AD + DHCP
+AD DS + internal DNS
+   |
+   v
+Windows Server DHCP
    |
    v
 FW01 DHCP relay
