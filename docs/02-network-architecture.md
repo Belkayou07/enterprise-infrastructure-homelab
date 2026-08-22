@@ -31,7 +31,7 @@ The Windows host currently has `10.10.30.10/24` on `vEthernet (vSW-MGMT)`. `TEST
 - [x] 2.3 — Define Layer-2 and Layer-3 boundaries
 - [x] 2.4 — Define gateway and routing behavior
 - [x] 2.5 — Define DHCP and DNS ownership
-- [ ] 2.6 — Produce the final network implementation plan
+- [x] 2.6 — Produce the final network implementation plan
 - [ ] 2.7 — Complete the Chapter 2 audit
 
 ## 2.1A — Windows Host Network Baseline
@@ -470,6 +470,116 @@ CLIENT01
 
 These are design decisions only at this stage. `FW01`, `DC01`, DHCP, DNS, and Active Directory have not yet been deployed or configured.
 
+## 2.6 — Final Network Implementation Plan
+
+I will implement the network in dependency order so that each later service is introduced only after the network path it depends on exists and has been verified.
+
+### Planned build order
+
+```text
+1. Deploy FW01
+       |
+       v
+2. Attach and identify the four FW01 virtual NICs
+       |
+       v
+3. Configure the internal FW01 interfaces
+   USERS   10.10.10.1/24
+   SERVERS 10.10.20.1/24
+   MGMT    10.10.30.1/24
+       |
+       v
+4. Verify the MGMT-side routing foundation
+       |
+       v
+5. Add specific BelkaCorp routes on the Windows host
+       |
+       v
+6. Deploy DC01 on vSW-SERVERS
+       |
+       v
+7. Configure AD-integrated DNS and later AD DS
+       |
+       v
+8. Configure Windows Server DHCP scopes
+       |
+       v
+9. Configure DHCP relay on FW01 for USERS
+       |
+       v
+10. Deploy CLIENT01 on vSW-USERS
+       |
+       v
+11. Verify DHCP, DNS, routing, and later domain functionality
+```
+
+### FW01 first
+
+`FW01` must exist before I add routes that use `10.10.30.1` as their next hop. The existing Hyper-V virtual switches provide separate Layer-2 segments, but they do not provide Layer-3 connectivity between `10.10.10.0/24`, `10.10.20.0/24`, and `10.10.30.0/24`.
+
+The planned FW01 interface mapping is:
+
+```text
+NIC 1  WAN      -> Default Switch
+NIC 2  USERS    -> vSW-USERS    -> 10.10.10.1/24
+NIC 3  SERVERS  -> vSW-SERVERS  -> 10.10.20.1/24
+NIC 4  MGMT     -> vSW-MGMT     -> 10.10.30.1/24
+```
+
+The custom virtual switches themselves remain Layer-2 devices. They carry the three BelkaCorp Ethernet segments; `FW01` is the device that will provide the Layer-3 path between them.
+
+### First verification target
+
+The first useful FW01 validation will be on the already working MGMT segment:
+
+```text
+Windows host  10.10.30.10
+TEST01        10.10.30.20
+FW01 MGMT     10.10.30.1
+```
+
+I will verify that the existing MGMT hosts can reach the new `FW01` MGMT interface before relying on any cross-subnet behavior.
+
+### Windows routes only after FW01 exists
+
+Once `10.10.30.1` is configured and reachable, I can add specific routes on the Windows host for the internal networks:
+
+```text
+10.10.10.0/24 -> via 10.10.30.1
+10.10.20.0/24 -> via 10.10.30.1
+```
+
+The Windows host will keep its existing Wi-Fi default route for normal Internet access:
+
+```text
+0.0.0.0/0 -> via 192.168.0.1
+```
+
+I will not add the BelkaCorp routes before `FW01` exists because the next-hop address `10.10.30.1` would not be reachable and the routes could not provide a working path to the remote lab subnets.
+
+### Server and client deployment order
+
+After routing is available, I will deploy `DC01` on the SERVERS network with a static address and local gateway:
+
+```text
+DC01
+10.10.20.10/24
+gateway 10.10.20.1
+```
+
+`DC01` will later provide the internal DNS and DHCP services defined in this chapter. `FW01` will relay DHCP requests from USERS to `DC01`, and `CLIENT01` will be deployed after those dependencies exist so it can validate the complete client path.
+
+The intended client result is:
+
+```text
+CLIENT01
+IP       10.10.10.x from the USERS DHCP scope
+Gateway  10.10.10.1
+DNS      10.10.20.10
+```
+
+At that point, a client can prove the design end to end by receiving configuration, reaching its gateway, resolving internal DNS through `DC01`, reaching approved remote services, and later joining the Active Directory domain.
+
 ## Status
 
-**Chapter 2 is IN PROGRESS.** The pre-router baseline, subnet/address allocation, Layer-2/Layer-3 boundaries, gateway/routing behavior, and DHCP/DNS ownership are now defined. The next step is to produce the final network implementation plan.
+**Chapter 2 is IN PROGRESS.** The pre-router baseline, subnet/address allocation, Layer-2/Layer-3 boundaries, gateway/routing behavior, DHCP/DNS ownership, and final implementation order are now defined. The next step is the Chapter 2 audit before beginning the firewall/routing implementation in Chapter 3.
