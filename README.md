@@ -109,7 +109,9 @@ I verified the pre-deployment Hyper-V state, downloaded and SHA-256 verified the
 
 Before the first boot, I audited and corrected the VM configuration. The final verified pre-boot state is 2 vCPU, fixed 4096 MB RAM, Secure Boot disabled, automatic checkpoints disabled, the correct VHDX and installer ISO attached, and four named adapters mapped to the Default Switch, `vSW-USERS`, `vSW-SERVERS`, and `vSW-MGMT`.
 
-I installed OPNsense to `FW01.vhdx` and detached the installer ISO. The first post-install boot fell through to PXE instead of starting from the virtual disk, so I am currently validating and correcting the Hyper-V firmware boot order before declaring the installation complete.
+I installed OPNsense to `FW01.vhdx`, detached the installer ISO, and verified the installed system. The first post-install start fell through to Hyper-V PXE, so I investigated the boot chain instead of reinstalling. After explicitly prioritizing `FW01.vhdx` in the Generation 2 firmware boot order, OPNsense booted successfully from disk and reached the normal console menu.
+
+Step 3.3 is now complete. The current task is **3.4 — identify and map all four OPNsense guest interfaces to the authoritative Hyper-V WAN/USERS/SERVERS/MGMT adapters by MAC address** before assigning the planned BelkaCorp gateway addresses.
 
 ## AI-Assisted Learning and Documentation
 
