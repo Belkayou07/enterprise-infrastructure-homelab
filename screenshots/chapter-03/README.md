@@ -19,8 +19,10 @@ This folder is the landing area for real screenshots from Chapter 3 — Firewall
 | [`03-05-fw01-initial-preboot-audit.png`](03-05-fw01-initial-preboot-audit.png) | COMMITTED | PowerShell audit showing the initial VM defaults before remediation: 12 vCPU, automatic checkpoints enabled, Secure Boot enabled, and only one network adapter. |
 | [`03-06-fw01-final-preboot-verification.png`](03-06-fw01-final-preboot-verification.png) | COMMITTED | Final PowerShell verification showing `FW01` powered off with 2 vCPU, fixed 4096 MB RAM, Secure Boot off, automatic checkpoints off, correct VHDX/ISO paths, and four correctly attached NICs. |
 | [`03-07-opnsense-boot-menu.png`](03-07-opnsense-boot-menu.png) | COMMITTED | Shows `FW01` running and successfully booting the OPNsense installation media to the OPNsense boot menu. |
-| [`03-08-fw01-pxe-after-install.png`](03-08-fw01-pxe-after-install.png) | COMMITTED | Shows the first post-install start falling through to PXE instead of booting the installed VHDX, creating the current boot-order troubleshooting checkpoint. |
-| `03-09-opnsense-installed-first-disk-boot.png` | PLANNED | Final installation checkpoint showing OPNsense successfully booting from `FW01.vhdx` with the installer ISO detached. |
+| [`03-08-fw01-pxe-after-install.png`](03-08-fw01-pxe-after-install.png) | COMMITTED | Shows the first post-install start falling through to PXE instead of booting the installed VHDX, creating the boot-order troubleshooting checkpoint. |
+| [`03-09-opnsense-installed-first-disk-boot.png`](03-09-opnsense-installed-first-disk-boot.png) | COMMITTED | Shows OPNsense 26.7 successfully booted from the installed `FW01.vhdx`, with the normal console menu available after the firmware boot-order correction. |
+
+The PXE incident is documented in `../../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
 ## Working rule
 
