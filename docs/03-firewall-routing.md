@@ -140,17 +140,31 @@ USERS     -> vSW-USERS
 WAN       -> Default Switch
 ```
 
-The adapters still display `000000000000` before the first boot because Hyper-V has not yet assigned their dynamic MAC addresses. That does not invalidate the switch mapping.
+The adapters still displayed `000000000000` before the first boot because Hyper-V had not yet assigned their dynamic MAC addresses. That did not invalidate the switch mapping.
 
 ### Evidence
 
 ![FW01 final pre-boot verification](../screenshots/chapter-03/03-06-fw01-final-preboot-verification.png)
 
-`FW01` has still never booted. I also have not added the Windows host's routes to `10.10.10.0/24` or `10.10.20.0/24`, because `10.10.30.1` is not yet a configured, verified next hop.
+I did not add the Windows host's routes to `10.10.10.0/24` or `10.10.20.0/24`, because `10.10.30.1` was not yet a configured, verified next hop.
+
+## 3.3 — Install OPNsense
+
+### First Boot from the Installer ISO
+
+I started `FW01` for the first time with the verified OPNsense ISO still attached. Hyper-V showed the VM in a running state and the console reached the OPNsense boot menu, confirming that the Generation 2 VM can boot the installer successfully with Secure Boot disabled.
+
+I continued with the default multi-user boot. OPNsense completed the live-environment startup and reached the console login prompt. The installation to `FW01.vhdx` has not started yet.
+
+### Evidence
+
+![OPNsense boot menu](../screenshots/chapter-03/03-07-opnsense-boot-menu.png)
+
+This screenshot proves the first successful boot from the OPNsense installation media and shows `FW01` running in Hyper-V.
 
 ## Evidence and Documentation Workflow
 
-From this point forward, I complete repository work at the same meaningful checkpoint as the technical work:
+I complete repository work at the same meaningful checkpoint as the technical work:
 
 ```text
 IMPLEMENT
@@ -175,4 +189,4 @@ This prevents the repository from lagging behind the real infrastructure state.
 
 ## Current Position
 
-**Step 3.2 is complete.** `FW01` is correctly prepared at the Hyper-V layer and remains powered off. The next step is **3.3 — Install OPNsense**. Interface names and MAC addresses inside OPNsense will be identified and mapped only after the firewall boots.
+**Step 3.2 is complete and Step 3.3 is in progress.** `FW01` has successfully booted from the OPNsense ISO and the live environment has reached the login prompt. The next action is to enter the installer workflow and install OPNsense to `FW01.vhdx`. I will verify the installed system boots from the virtual disk before moving to **3.4 — Identify and map the four interfaces**.
