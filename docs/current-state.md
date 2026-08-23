@@ -42,8 +42,6 @@ The extracted installer is staged at:
 C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 ```
 
-`FW01` has been created and remains powered off. It has never booted.
-
 ### Final verified FW01 pre-boot state
 
 ```text
@@ -63,7 +61,22 @@ SERVERS  -> vSW-SERVERS
 MGMT     -> vSW-MGMT
 ```
 
-The network adapters still showed `000000000000` in the final pre-boot audit because their dynamic MAC addresses had not yet been assigned before first boot.
+### Current installer state
+
+`FW01` has now been started for the first time from the attached OPNsense ISO.
+
+Verified progress:
+
+```text
+FW01 state               Running
+Boot source              OPNsense installation media
+OPNsense boot menu       Reached successfully
+Default multi-user boot  Continued successfully
+Live console login       Reached
+Disk installation        Not started yet
+```
+
+The boot-menu screenshot is committed as `03-07-opnsense-boot-menu.png`. The next installation checkpoint is a successful first boot from `FW01.vhdx` after OPNsense has been installed.
 
 ## Completed Network Design
 
@@ -94,6 +107,8 @@ The current Chapter 3 evidence is committed and verified under `screenshots/chap
 03-04-fw01-wizard-summary.png                     COMMITTED
 03-05-fw01-initial-preboot-audit.png               COMMITTED
 03-06-fw01-final-preboot-verification.png          COMMITTED
+03-07-opnsense-boot-menu.png                       COMMITTED
+03-08-opnsense-installed-first-disk-boot.png       PLANNED
 ```
 
 ## Working Rule
@@ -123,7 +138,7 @@ Do not batch evidence or documentation until the end of the chapter.
 
 ## Immediate Next Work
 
-Start **3.3 — Install OPNsense**. Boot `FW01` from the attached OPNsense ISO, observe the installer/live environment, install OPNsense to `FW01.vhdx`, and verify a successful first boot from the virtual disk before moving to interface mapping.
+Continue **3.3 — Install OPNsense** from the live console login prompt. Enter the installer workflow, install OPNsense to `FW01.vhdx`, make sure the installed system boots from the virtual disk rather than returning to the ISO installer, and capture the successful first disk boot as the next evidence checkpoint.
 
 Do **not** add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until `FW01` is actually configured and `10.10.30.1` is reachable.
 
