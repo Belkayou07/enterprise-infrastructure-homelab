@@ -35,7 +35,7 @@ CHAPTER 2  Network architecture         [DONE]
 CHAPTER 3  Firewall / routing           [NOW]
    3.1     Baseline + installer verify  [DONE]
    3.2     FW01 pre-boot configuration  [DONE]
-   3.3     Install OPNsense             [NEXT]
+   3.3     Install OPNsense             [NOW]
    3.4     Map four FW01 interfaces
    3.5     Configure internal gateways
    3.6     Verify MGMT + routing
@@ -58,24 +58,28 @@ CHAPTER 11 Cloud / DevOps extension
 ```text
 OPNsense 26.7 amd64 installer  SHA-256 verified [OK]
 Installer ISO                  C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
-FW01 first boot                NOT YET
 
-Final pre-boot verification:
-State                          Off
+Final pre-boot configuration:
 Generation                     2
 Memory                         4096 MB fixed
 vCPU                           2
 Automatic checkpoints          Disabled
 Secure Boot                    Off
 VHDX                           C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
+WAN                            Default Switch
+USERS                          vSW-USERS
+SERVERS                        vSW-SERVERS
+MGMT                           vSW-MGMT
 
-WAN      -> Default Switch
-USERS    -> vSW-USERS
-SERVERS  -> vSW-SERVERS
-MGMT     -> vSW-MGMT
+First installer boot:
+FW01                           Running
+Boot source                    OPNsense ISO
+OPNsense boot menu             [OK]
+Live login prompt              [OK]
+Install to FW01.vhdx           NOT STARTED YET
 ```
 
-Next checkpoint: boot `FW01`, install OPNsense to the virtual disk, verify the first successful disk boot, then move to OPNsense interface mapping.
+Next checkpoint: run the OPNsense installer, install to `FW01.vhdx`, then verify the first successful boot from the virtual disk before starting interface mapping.
 
 ## Chapter 1 Flow
 
