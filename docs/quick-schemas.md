@@ -34,8 +34,8 @@ CHAPTER 2  Network architecture         [DONE]
 
 CHAPTER 3  Firewall / routing           [NOW]
    3.1     Baseline + installer verify  [DONE]
-   3.2     FW01 pre-boot configuration  [NOW]
-   3.3     Install OPNsense
+   3.2     FW01 pre-boot configuration  [DONE]
+   3.3     Install OPNsense             [NEXT]
    3.4     Map four FW01 interfaces
    3.5     Configure internal gateways
    3.6     Verify MGMT + routing
@@ -58,22 +58,24 @@ CHAPTER 11 Cloud / DevOps extension
 ```text
 OPNsense 26.7 amd64 installer  SHA-256 verified [OK]
 Installer ISO                  C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
-FW01 wizard                    completed
 FW01 first boot                NOT YET
 
-Initial PowerShell audit:
+Final pre-boot verification:
 State                          Off
 Generation                     2
-Memory                         4096 MB fixed [OK]
-vCPU                           12 -> change to 2
-Automatic checkpoints          Enabled -> disable
-Secure Boot                    Enabled -> disable
-Network adapters               1 -> add 3 internal adapters
-Initial NIC                    Default Switch -> WAN
-VHDX                           C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx [OK]
+Memory                         4096 MB fixed
+vCPU                           2
+Automatic checkpoints          Disabled
+Secure Boot                    Off
+VHDX                           C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
+
+WAN      -> Default Switch
+USERS    -> vSW-USERS
+SERVERS  -> vSW-SERVERS
+MGMT     -> vSW-MGMT
 ```
 
-Next checkpoint: remediate the four pre-boot defaults, verify all four NIC attachments, capture/store `03-06-fw01-final-preboot-verification.png`, update documentation, and only then start OPNsense.
+Next checkpoint: boot `FW01`, install OPNsense to the virtual disk, verify the first successful disk boot, then move to OPNsense interface mapping.
 
 ## Chapter 1 Flow
 
