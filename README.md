@@ -107,9 +107,9 @@ The final implementation plan provides a dependency-aware handoff into Chapter 3
 
 I verified the pre-deployment Hyper-V state, downloaded and SHA-256 verified the OPNsense 26.7 `amd64` DVD installer, extracted the ISO into the Hyper-V ISO directory, and created the initial `FW01` Generation 2 VM.
 
-Before the first boot, I audited the actual VM object in PowerShell. The audit confirmed fixed 4096 MB RAM, the correct VHDX and ISO paths, and the powered-off Generation 2 VM state, while also exposing defaults that still need correction: 12 vCPU, automatic checkpoints enabled, Secure Boot enabled, and only one network adapter.
+Before the first boot, I audited and corrected the VM configuration. The final verified pre-boot state is 2 vCPU, fixed 4096 MB RAM, Secure Boot disabled, automatic checkpoints disabled, the correct VHDX and installer ISO attached, and four named adapters mapped to the Default Switch, `vSW-USERS`, `vSW-SERVERS`, and `vSW-MGMT`.
 
-The current task is to remediate those pre-boot defaults, attach the USERS/SERVERS/MGMT adapters, perform a final pre-boot verification, commit the evidence and documentation at that checkpoint, and only then start OPNsense.
+Step 3.2 is complete. The next task is to boot `FW01`, install OPNsense to the virtual disk, verify a successful first boot, and then map the interfaces inside OPNsense.
 
 ## AI-Assisted Learning and Documentation
 
