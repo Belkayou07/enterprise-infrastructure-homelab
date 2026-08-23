@@ -7,7 +7,7 @@
 - **Current chapter:** Chapter 3 — Firewall and Routing
 - **Last completed step:** 3.2 — Create and Verify the `FW01` VM Before First Boot
 - **Current step:** 3.3 — Install OPNsense
-- **Open issues:** None currently blocking progress
+- **Open issue:** First post-install boot fell through to Hyper-V PXE instead of starting OPNsense from `FW01.vhdx`; firmware boot order has now been corrected for a controlled retry.
 
 ## Verified Live State
 
@@ -59,7 +59,7 @@ SERVERS  -> vSW-SERVERS
 MGMT     -> vSW-MGMT
 ```
 
-### Current installer state
+### OPNsense installation state
 
 `FW01` successfully booted from the OPNsense ISO, reached the live console, and completed installation to the dedicated virtual disk.
 
@@ -76,12 +76,33 @@ Root password            Set
 Post-install state       VM halted
 Mounted DVD ISO paths    None
 Installed VHDX           C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
-First installed boot     Pending
 ```
 
-PowerShell verification after the halt showed two DVD-drive objects with blank `Path` values and the expected `FW01.vhdx` still attached. Therefore the next VM start will not boot from the OPNsense installation ISO.
+### Current boot troubleshooting checkpoint
 
-The next installation checkpoint is a successful first boot from `FW01.vhdx`.
+The first post-install start did not boot OPNsense and instead reached Hyper-V `Start PXE over IPv4`.
+
+Investigation verified:
+
+```text
+FW01.vhdx attachment     SCSI controller 0, location 0 [OK]
+Secure Boot              Off [OK]
+Initial firmware order   mixed Drive / Network entries
+```
+
+The hard disk has now been explicitly set as the first boot device. Detailed verification shows:
+
+```text
+1. HardDiskDrive — SCSI 0:0 (FW01.vhdx)
+2. DVD Drive — SCSI 0:1
+3. WAN network adapter
+4. USERS network adapter
+5. SERVERS network adapter
+6. MGMT network adapter
+7. DVD Drive — SCSI 0:2
+```
+
+The next action is to start `FW01` again and determine whether the corrected firmware order resolves the boot failure. If it still falls through to PXE, the next investigation will focus on the installed UEFI/bootloader state rather than reinstalling blindly.
 
 ## Completed Network Design
 
@@ -113,7 +134,8 @@ The current Chapter 3 evidence is committed and verified under `screenshots/chap
 03-05-fw01-initial-preboot-audit.png               COMMITTED
 03-06-fw01-final-preboot-verification.png          COMMITTED
 03-07-opnsense-boot-menu.png                       COMMITTED
-03-08-opnsense-installed-first-disk-boot.png       PLANNED
+03-08-fw01-pxe-after-install.png                   COMMITTED
+03-09-opnsense-installed-first-disk-boot.png       PLANNED
 ```
 
 ## Working Rule
@@ -143,7 +165,7 @@ Do not batch evidence or documentation until the end of the chapter.
 
 ## Immediate Next Work
 
-Continue **3.3 — Install OPNsense** by starting `FW01` with the installer ISO detached. Verify that the VM reaches the installed OPNsense console from `FW01.vhdx` and capture that successful first disk boot as `03-08-opnsense-installed-first-disk-boot.png`.
+Continue **3.3 — Install OPNsense** by starting `FW01` with `FW01.vhdx` explicitly first in the Hyper-V firmware boot order. If the installed OPNsense console appears, capture the successful disk boot as `03-09-opnsense-installed-first-disk-boot.png` and close the incident. If PXE appears again, continue bootloader/UEFI diagnosis before considering reinstallation.
 
 Do not begin interface mapping or add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until the installed firewall has booted successfully and the later MGMT interface is configured and reachable at `10.10.30.1`.
 
