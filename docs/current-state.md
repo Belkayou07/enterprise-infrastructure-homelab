@@ -5,9 +5,9 @@
 ## Current Position
 
 - **Current chapter:** Chapter 3 — Firewall and Routing
-- **Last completed step:** 3.1 — Pre-Deployment Baseline and OPNsense Installer Verification
-- **Current step:** 3.2 — Create and Verify the `FW01` VM Before First Boot
-- **Open issues:** None blocking progress; several initial VM defaults still require remediation before first boot
+- **Last completed step:** 3.2 — Create and Verify the `FW01` VM Before First Boot
+- **Current step:** 3.3 — Install OPNsense
+- **Open issues:** None currently blocking progress
 
 ## Verified Live State
 
@@ -42,53 +42,28 @@ The extracted installer is staged at:
 C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 ```
 
-`FW01` has been created through the Hyper-V wizard and remains powered off. It has never booted.
+`FW01` has been created and remains powered off. It has never booted.
 
-### Initial FW01 PowerShell audit
-
-Verified actual state:
+### Final verified FW01 pre-boot state
 
 ```text
 State                    Off
 Generation               2
-Automatic checkpoints    Enabled
-vCPU                     12
+Automatic checkpoints    Disabled
+vCPU                     2
 Dynamic Memory           Disabled
 Startup memory           4096 MB
-Secure Boot              Enabled
+Secure Boot              Off
 VHDX                     C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
 DVD                       C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
-Network adapters          1
-Initial switch            Default Switch
-```
 
-Correct already:
-
-```text
-Generation 2
-4096 MB fixed memory
-VHDX path
-OPNsense ISO path
-powered-off state
-```
-
-Still to change before boot:
-
-```text
-12 vCPU                  -> 2 vCPU
-Automatic checkpoints   -> Disabled
-Secure Boot              -> Disabled
-1 NIC                    -> 4 NICs total
-```
-
-Planned adapter map:
-
-```text
 WAN      -> Default Switch
 USERS    -> vSW-USERS
 SERVERS  -> vSW-SERVERS
 MGMT     -> vSW-MGMT
 ```
+
+The network adapters still showed `000000000000` in the final pre-boot audit because their dynamic MAC addresses had not yet been assigned before first boot.
 
 ## Completed Network Design
 
@@ -118,7 +93,7 @@ The current Chapter 3 evidence is committed and verified under `screenshots/chap
 03-03-opnsense-iso-staged.png                     COMMITTED
 03-04-fw01-wizard-summary.png                     COMMITTED
 03-05-fw01-initial-preboot-audit.png               COMMITTED
-03-06-fw01-final-preboot-verification.png          PLANNED
+03-06-fw01-final-preboot-verification.png          COMMITTED
 ```
 
 ## Working Rule
@@ -148,18 +123,7 @@ Do not batch evidence or documentation until the end of the chapter.
 
 ## Immediate Next Work
 
-While `FW01` is still powered off:
-
-1. Change CPU count from 12 to 2.
-2. Disable automatic checkpoints.
-3. Disable Secure Boot.
-4. Keep Dynamic Memory disabled with 4096 MB startup RAM.
-5. Rename the existing Default Switch adapter to WAN.
-6. Add USERS, SERVERS, and MGMT adapters on the three intended custom switches.
-7. Run one clean final PowerShell verification.
-8. Capture/store `03-06-fw01-final-preboot-verification.png`.
-9. Update Chapter 3 documentation immediately.
-10. Only then boot the OPNsense installer.
+Start **3.3 — Install OPNsense**. Boot `FW01` from the attached OPNsense ISO, observe the installer/live environment, install OPNsense to `FW01.vhdx`, and verify a successful first boot from the virtual disk before moving to interface mapping.
 
 Do **not** add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until `FW01` is actually configured and `10.10.30.1` is reachable.
 
