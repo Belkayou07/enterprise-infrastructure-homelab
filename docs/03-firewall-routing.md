@@ -11,7 +11,7 @@ A firewall/router is the control point between network segments. It must have th
 ## Chapter 3 Plan
 
 - [x] 3.1 — Verify the pre-deployment Hyper-V baseline and OPNsense installer
-- [ ] 3.2 — Create and verify the `FW01` VM before first boot
+- [x] 3.2 — Create and verify the `FW01` VM before first boot
 - [ ] 3.3 — Install OPNsense
 - [ ] 3.4 — Identify and map the four interfaces
 - [ ] 3.5 — Configure USERS, SERVERS, and MGMT gateway interfaces
@@ -65,17 +65,15 @@ Disk type        dynamically expanding VHDX
 Installer        C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 ```
 
-The VM was created through the wizard and remains unbooted.
-
 ### Wizard evidence
 
 [`03-04-fw01-wizard-summary.png`](../screenshots/chapter-03/03-04-fw01-wizard-summary.png) records the wizard summary before creation.
 
 ### Initial PowerShell audit
 
-I then inspected the actual Hyper-V VM object instead of assuming the wizard defaults matched the intended firewall design.
+I inspected the actual Hyper-V VM object before first boot instead of assuming the wizard defaults matched the intended firewall design.
 
-Verified initial state:
+The initial audit showed:
 
 ```text
 State                    Off
@@ -91,9 +89,9 @@ Network adapters          1
 Initial switch            Default Switch
 ```
 
-The fixed 4096 MB memory policy, virtual disk path, installer path, VM generation, and powered-off state are already correct. The displayed minimum/maximum memory values are not active limits because Dynamic Memory is disabled.
+The fixed 4096 MB memory policy, virtual disk path, installer path, VM generation, and powered-off state were already correct. The displayed minimum/maximum memory values were not active limits because Dynamic Memory was disabled.
 
-The audit exposed four settings that must be corrected before first boot:
+The audit exposed four settings that required correction:
 
 ```text
 12 vCPU                  -> 2 vCPU
@@ -102,34 +100,47 @@ Secure Boot              -> Disabled
 1 network adapter        -> 4 total adapters
 ```
 
-The current Default Switch adapter will become the WAN adapter. I still need to add:
+[`03-05-fw01-initial-preboot-audit.png`](../screenshots/chapter-03/03-05-fw01-initial-preboot-audit.png) records that real pre-remediation state.
+
+### Pre-boot remediation
+
+While `FW01` remained powered off, I changed the processor count to 2, disabled automatic checkpoints, disabled Secure Boot, renamed the existing Default Switch adapter to `WAN`, and added the three internal adapters.
+
+The intended adapter mapping is now implemented at the Hyper-V layer:
 
 ```text
+WAN      -> Default Switch
 USERS    -> vSW-USERS
 SERVERS  -> vSW-SERVERS
 MGMT     -> vSW-MGMT
 ```
 
-### Initial audit evidence
+### Final pre-boot verification
 
-[`03-05-fw01-initial-preboot-audit.png`](../screenshots/chapter-03/03-05-fw01-initial-preboot-audit.png) records the actual pre-remediation state discovered in PowerShell.
-
-### Intended final pre-boot state
+A clean PowerShell verification confirmed:
 
 ```text
-vCPU                    2
-Memory                  4096 MB fixed
-Secure Boot             Disabled
-Automatic checkpoints   Disabled
-WAN NIC                  Default Switch
-USERS NIC                vSW-USERS
-SERVERS NIC              vSW-SERVERS
-MGMT NIC                 vSW-MGMT
+State                    Off
+Generation               2
+Automatic checkpoints    Disabled
+vCPU                     2
+Dynamic Memory           Disabled
+Startup memory           4096 MB
+Secure Boot              Off
+VHDX                     C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
+DVD                       C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
+
+MGMT      -> vSW-MGMT
+SERVERS   -> vSW-SERVERS
+USERS     -> vSW-USERS
+WAN       -> Default Switch
 ```
 
-The next evidence item will be `03-06-fw01-final-preboot-verification.png`, but only after those changes have been applied and verified.
+The adapters still display `000000000000` before the first boot because Hyper-V has not yet assigned their dynamic MAC addresses. That does not invalidate the switch mapping.
 
-I will not add the Windows host's routes to `10.10.10.0/24` or `10.10.20.0/24` yet because `10.10.30.1` is not a real, verified next hop until OPNsense is installed and the MGMT interface is configured.
+[`03-06-fw01-final-preboot-verification.png`](../screenshots/chapter-03/03-06-fw01-final-preboot-verification.png) records the verified final pre-boot state.
+
+`FW01` has still never booted. I also have not added the Windows host's routes to `10.10.10.0/24` or `10.10.20.0/24`, because `10.10.30.1` is not yet a configured, verified next hop.
 
 ## Evidence and Documentation Workflow
 
@@ -158,4 +169,4 @@ This prevents the repository from lagging behind the real infrastructure state.
 
 ## Current Position
 
-`FW01` exists, remains powered off, and has never booted. The current task is still **3.2**: remediate the initial VM defaults, add the three missing internal network adapters, run a clean final pre-boot verification, store that evidence, and only then proceed to the OPNsense installation.
+**Step 3.2 is complete.** `FW01` is correctly prepared at the Hyper-V layer and remains powered off. The next step is **3.3 — Install OPNsense**. Interface names and MAC addresses inside OPNsense will be identified and mapped only after the firewall boots.
