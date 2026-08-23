@@ -5,9 +5,9 @@
 ## Current Position
 
 - **Current chapter:** Chapter 3 — Firewall and Routing
-- **Last completed step:** 3.2 — Create and Verify the `FW01` VM Before First Boot
-- **Current step:** 3.3 — Install OPNsense
-- **Open issue:** First post-install boot fell through to Hyper-V PXE instead of starting OPNsense from `FW01.vhdx`; firmware boot order has now been corrected for a controlled retry.
+- **Last completed step:** 3.3 — Install OPNsense
+- **Current step:** 3.4 — Identify and map the four interfaces
+- **Open issues:** None currently blocking progress
 
 ## Verified Live State
 
@@ -17,6 +17,10 @@ Windows host                  TEST01
       |                              |
       +--------- vSW-MGMT -----------+
                   Internal
+                         |
+                       FW01
+                  OPNsense 26.7
+                     running
 ```
 
 Verified behavior:
@@ -24,7 +28,7 @@ Verified behavior:
 - Windows and TEST01 communicate directly inside `10.10.30.0/24`.
 - TEST01 has a directly connected route for `10.10.30.0/24`.
 - TEST01 resolves the Windows host at Layer 2 through neighbor/ARP discovery.
-- A route lookup toward `10.10.20.20` remains unreachable until `FW01` is configured.
+- A route lookup toward `10.10.20.20` remains unreachable until `FW01` receives the planned internal gateway addresses and routing/firewall policy is configured.
 
 ## Chapter 3 Deployment State
 
@@ -42,7 +46,7 @@ The extracted installer remains staged at:
 C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 ```
 
-### Final verified FW01 pre-boot state
+### Verified FW01 platform state
 
 ```text
 Generation               2
@@ -52,6 +56,7 @@ Dynamic Memory           Disabled
 Startup memory           4096 MB
 Secure Boot              Off
 VHDX                     C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
+Mounted DVD ISO paths    None
 
 WAN      -> Default Switch
 USERS    -> vSW-USERS
@@ -61,48 +66,33 @@ MGMT     -> vSW-MGMT
 
 ### OPNsense installation state
 
-`FW01` successfully booted from the OPNsense ISO, reached the live console, and completed installation to the dedicated virtual disk.
+`FW01` successfully booted from the verified OPNsense ISO, reached the live console, and completed installation to the dedicated virtual disk using ZFS on the single virtual disk.
 
-Verified progress:
+The first post-install start fell through to Hyper-V PXE. Investigation confirmed the VHDX was attached correctly and Secure Boot was off. I explicitly placed the hard disk first in the Generation 2 firmware boot order, then retried the boot.
 
-```text
-OPNsense boot menu       Reached successfully
-Live console login       Reached successfully
-Installer                Completed
-Filesystem               ZFS
-Disk layout              Single-disk stripe
-Install target           da0 / FW01.vhdx
-Root password            Set
-Post-install state       VM halted
-Mounted DVD ISO paths    None
-Installed VHDX           C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
-```
-
-### Current boot troubleshooting checkpoint
-
-The first post-install start did not boot OPNsense and instead reached Hyper-V `Start PXE over IPv4`.
-
-Investigation verified:
+Final verification now shows:
 
 ```text
-FW01.vhdx attachment     SCSI controller 0, location 0 [OK]
-Secure Boot              Off [OK]
-Initial firmware order   mixed Drive / Network entries
+Installer ISO             detached
+FW01.vhdx                 attached on SCSI 0:0
+FW01.vhdx boot priority   first
+Installed OPNsense boot   successful
+Root login                successful
+Normal console menu       reached
 ```
 
-The hard disk has now been explicitly set as the first boot device. Detailed verification shows:
+The PXE incident is closed in `troubleshooting/006-fw01-post-install-pxe-boot.md`.
+
+### Current OPNsense interface state
+
+The successful installed console currently shows OPNsense's automatic/default assignments:
 
 ```text
-1. HardDiskDrive — SCSI 0:0 (FW01.vhdx)
-2. DVD Drive — SCSI 0:1
-3. WAN network adapter
-4. USERS network adapter
-5. SERVERS network adapter
-6. MGMT network adapter
-7. DVD Drive — SCSI 0:2
+LAN  -> hn0 -> 192.168.1.1/24
+WAN  -> hn1
 ```
 
-The next action is to start `FW01` again and determine whether the corrected firmware order resolves the boot failure. If it still falls through to PXE, the next investigation will focus on the installed UEFI/bootloader state rather than reinstalling blindly.
+These assignments are **not yet accepted as the BelkaCorp interface design**. All four Hyper-V adapters must first be matched to the guest interfaces by MAC address. No BelkaCorp `.1` gateway addresses have been configured yet.
 
 ## Completed Network Design
 
@@ -135,7 +125,7 @@ The current Chapter 3 evidence is committed and verified under `screenshots/chap
 03-06-fw01-final-preboot-verification.png          COMMITTED
 03-07-opnsense-boot-menu.png                       COMMITTED
 03-08-fw01-pxe-after-install.png                   COMMITTED
-03-09-opnsense-installed-first-disk-boot.png       PLANNED
+03-09-opnsense-installed-first-disk-boot.png       COMMITTED
 ```
 
 ## Working Rule
@@ -165,9 +155,11 @@ Do not batch evidence or documentation until the end of the chapter.
 
 ## Immediate Next Work
 
-Continue **3.3 — Install OPNsense** by starting `FW01` with `FW01.vhdx` explicitly first in the Hyper-V firmware boot order. If the installed OPNsense console appears, capture the successful disk boot as `03-09-opnsense-installed-first-disk-boot.png` and close the incident. If PXE appears again, continue bootloader/UEFI diagnosis before considering reinstallation.
+Continue **3.4 — Identify and map the four interfaces**.
 
-Do not begin interface mapping or add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until the installed firewall has booted successfully and the later MGMT interface is configured and reachable at `10.10.30.1`.
+First, capture the authoritative Hyper-V adapter names, switch connections, and assigned MAC addresses with PowerShell. Then compare those MAC addresses to the OPNsense guest interfaces before changing any interface assignment.
+
+Do **not** configure the planned `.1` gateway addresses or add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until the interface mapping is verified.
 
 ## Resume Rules
 
