@@ -173,9 +173,25 @@ DVD drives                 no mounted ISO paths
 Virtual hard disk          C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
 ```
 
-This confirms that the next start cannot fall back to the installer media and must boot from the installed virtual disk if the installation is valid.
+### First Post-Install Boot Attempt
 
-The next verification checkpoint is the first successful boot from `FW01.vhdx`.
+The first start after removing the ISO did not reach OPNsense. Hyper-V displayed `Start PXE over IPv4`, which means the firmware moved on to network boot instead of successfully booting the installed virtual disk.
+
+I did not immediately reinstall OPNsense. I first verified the existing VM state:
+
+```text
+FW01.vhdx                 attached on SCSI 0:0
+Secure Boot               Off
+Firmware boot order       contained Drive / Network entries
+```
+
+I then explicitly set the `FW01.vhdx` hard disk as the first boot device and verified the detailed firmware order. The hard disk is now first, followed by the empty DVD drive and the network adapters.
+
+### Evidence
+
+![FW01 PXE boot after installation](../screenshots/chapter-03/03-08-fw01-pxe-after-install.png)
+
+This screenshot records the failed first disk-boot attempt and is the current troubleshooting checkpoint. The next controlled test is to start `FW01` again with the installed VHDX explicitly first in the UEFI boot order.
 
 ## Evidence and Documentation Workflow
 
@@ -204,4 +220,4 @@ This prevents the repository from lagging behind the real infrastructure state.
 
 ## Current Position
 
-**Step 3.2 is complete and Step 3.3 is in progress.** OPNsense has been installed to `FW01.vhdx`, the VM has been halted, and the installer ISO is detached and verified absent from both DVD-drive paths. The next action is to start `FW01` and verify that OPNsense boots successfully from the virtual disk. Only after that verification will I move to **3.4 — Identify and map the four interfaces**.
+**Step 3.2 is complete and Step 3.3 is still in progress.** OPNsense has been installed to `FW01.vhdx`, the installer ISO is detached, and the first post-install boot fell through to PXE. The virtual disk remains attached correctly and has now been explicitly placed first in the Hyper-V firmware boot order. The next action is a controlled retry. Only after a successful installed-system boot will I move to **3.4 — Identify and map the four interfaces**.
