@@ -36,7 +36,7 @@ Verified SHA-256:
 95CAFEDDA6D5B22CE832E249DC2309110FBEE19F813AD78CF28BB3D387186BFB
 ```
 
-The extracted installer is staged at:
+The extracted installer remains staged at:
 
 ```text
 C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
@@ -45,7 +45,6 @@ C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 ### Final verified FW01 pre-boot state
 
 ```text
-State                    Off
 Generation               2
 Automatic checkpoints    Disabled
 vCPU                     2
@@ -53,7 +52,6 @@ Dynamic Memory           Disabled
 Startup memory           4096 MB
 Secure Boot              Off
 VHDX                     C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
-DVD                       C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 
 WAN      -> Default Switch
 USERS    -> vSW-USERS
@@ -63,20 +61,27 @@ MGMT     -> vSW-MGMT
 
 ### Current installer state
 
-`FW01` has now been started for the first time from the attached OPNsense ISO.
+`FW01` successfully booted from the OPNsense ISO, reached the live console, and completed installation to the dedicated virtual disk.
 
 Verified progress:
 
 ```text
-FW01 state               Running
-Boot source              OPNsense installation media
 OPNsense boot menu       Reached successfully
-Default multi-user boot  Continued successfully
-Live console login       Reached
-Disk installation        Not started yet
+Live console login       Reached successfully
+Installer                Completed
+Filesystem               ZFS
+Disk layout              Single-disk stripe
+Install target           da0 / FW01.vhdx
+Root password            Set
+Post-install state       VM halted
+Mounted DVD ISO paths    None
+Installed VHDX           C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
+First installed boot     Pending
 ```
 
-The boot-menu screenshot is committed as `03-07-opnsense-boot-menu.png`. The next installation checkpoint is a successful first boot from `FW01.vhdx` after OPNsense has been installed.
+PowerShell verification after the halt showed two DVD-drive objects with blank `Path` values and the expected `FW01.vhdx` still attached. Therefore the next VM start will not boot from the OPNsense installation ISO.
+
+The next installation checkpoint is a successful first boot from `FW01.vhdx`.
 
 ## Completed Network Design
 
@@ -138,9 +143,9 @@ Do not batch evidence or documentation until the end of the chapter.
 
 ## Immediate Next Work
 
-Continue **3.3 — Install OPNsense** from the live console login prompt. Enter the installer workflow, install OPNsense to `FW01.vhdx`, make sure the installed system boots from the virtual disk rather than returning to the ISO installer, and capture the successful first disk boot as the next evidence checkpoint.
+Continue **3.3 — Install OPNsense** by starting `FW01` with the installer ISO detached. Verify that the VM reaches the installed OPNsense console from `FW01.vhdx` and capture that successful first disk boot as `03-08-opnsense-installed-first-disk-boot.png`.
 
-Do **not** add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until `FW01` is actually configured and `10.10.30.1` is reachable.
+Do not begin interface mapping or add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until the installed firewall has booted successfully and the later MGMT interface is configured and reachable at `10.10.30.1`.
 
 ## Resume Rules
 
