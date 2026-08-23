@@ -63,6 +63,7 @@ I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-du
 | [`chapter-03/03-04-fw01-wizard-summary.png`](chapter-03/03-04-fw01-wizard-summary.png) | COMMITTED | Shows the `FW01` wizard summary with Generation 2, 4096 MB startup memory, Default Switch, dedicated VHDX path, and the OPNsense 26.7 installer ISO. |
 | [`chapter-03/03-05-fw01-initial-preboot-audit.png`](chapter-03/03-05-fw01-initial-preboot-audit.png) | COMMITTED | Shows the actual pre-remediation VM state: powered off, Generation 2, automatic checkpoints enabled, 12 vCPU, fixed 4096 MB RAM, Secure Boot enabled, correct VHDX/ISO paths, and a single adapter on the Default Switch. |
 | [`chapter-03/03-06-fw01-final-preboot-verification.png`](chapter-03/03-06-fw01-final-preboot-verification.png) | COMMITTED | Shows the corrected pre-boot state: powered off, Generation 2, automatic checkpoints disabled, 2 vCPU, fixed 4096 MB RAM, Secure Boot off, correct VHDX/ISO paths, and WAN/USERS/SERVERS/MGMT adapters attached to their intended switches. |
+| [`chapter-03/03-07-opnsense-boot-menu.png`](chapter-03/03-07-opnsense-boot-menu.png) | COMMITTED | Shows `FW01` running and successfully booting the verified OPNsense installation media to the OPNsense boot menu. |
 
 ## Evidence Rule
 
