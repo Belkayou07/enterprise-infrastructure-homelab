@@ -57,9 +57,9 @@ CHAPTER 11 Cloud / DevOps extension
 
 ```text
 OPNsense 26.7 amd64 installer  SHA-256 verified [OK]
-Installer ISO                  C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
+Installer ISO                  detached from FW01
 
-Final pre-boot configuration:
+Final FW01 platform state:
 Generation                     2
 Memory                         4096 MB fixed
 vCPU                           2
@@ -71,15 +71,22 @@ USERS                          vSW-USERS
 SERVERS                        vSW-SERVERS
 MGMT                           vSW-MGMT
 
-First installer boot:
-FW01                           Running
-Boot source                    OPNsense ISO
-OPNsense boot menu             [OK]
-Live login prompt              [OK]
-Install to FW01.vhdx           NOT STARTED YET
+OPNsense installation:
+Boot from ISO                  [OK]
+Live login                     [OK]
+Install to da0 / FW01.vhdx     [OK]
+Filesystem                     ZFS single-disk stripe
+Root password                  Set
+ISO detached                   [OK]
+
+First post-install boot:
+Result                         PXE fallback [FAIL]
+VHDX attachment                SCSI 0:0 [OK]
+Secure Boot                    Off [OK]
+Hard disk first in boot order  NOW VERIFIED
 ```
 
-Next checkpoint: run the OPNsense installer, install to `FW01.vhdx`, then verify the first successful boot from the virtual disk before starting interface mapping.
+Next checkpoint: start `FW01` again with `FW01.vhdx` explicitly first in the Hyper-V firmware order. If OPNsense still does not boot, investigate the installed UEFI/bootloader state before considering reinstallation.
 
 ## Chapter 1 Flow
 
