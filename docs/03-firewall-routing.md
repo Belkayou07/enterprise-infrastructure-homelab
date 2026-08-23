@@ -12,7 +12,7 @@ A firewall/router is the control point between network segments. It must have th
 
 - [x] 3.1 — Verify the pre-deployment Hyper-V baseline and OPNsense installer
 - [x] 3.2 — Create and verify the `FW01` VM before first boot
-- [ ] 3.3 — Install OPNsense
+- [x] 3.3 — Install OPNsense
 - [ ] 3.4 — Identify and map the four interfaces
 - [ ] 3.5 — Configure USERS, SERVERS, and MGMT gateway interfaces
 - [ ] 3.6 — Verify management connectivity and routing foundation
@@ -88,7 +88,6 @@ Secure Boot              Enabled
 VHDX                     C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
 DVD                       C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 Network adapters          1
-Initial switch            Default Switch
 ```
 
 The fixed 4096 MB memory policy, virtual disk path, installer path, VM generation, and powered-off state were already correct. The displayed minimum/maximum memory values were not active limits because Dynamic Memory was disabled.
@@ -173,25 +172,31 @@ DVD drives                 no mounted ISO paths
 Virtual hard disk          C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
 ```
 
-### First Post-Install Boot Attempt
+### Post-Install Boot Troubleshooting
 
-The first start after removing the ISO did not reach OPNsense. Hyper-V displayed `Start PXE over IPv4`, which means the firmware moved on to network boot instead of successfully booting the installed virtual disk.
+The first start after removing the ISO did not reach OPNsense. Hyper-V displayed `Start PXE over IPv4`, showing that the firmware had moved on to network boot instead of successfully starting the installed virtual disk.
 
-I did not immediately reinstall OPNsense. I first verified the existing VM state:
+I did not reinstall OPNsense. I verified that `FW01.vhdx` was still attached on SCSI `0:0`, that Secure Boot remained off, and that the firmware boot order contained mixed drive and network entries.
 
-```text
-FW01.vhdx                 attached on SCSI 0:0
-Secure Boot               Off
-Firmware boot order       contained Drive / Network entries
-```
-
-I then explicitly set the `FW01.vhdx` hard disk as the first boot device and verified the detailed firmware order. The hard disk is now first, followed by the empty DVD drive and the network adapters.
+I then explicitly set `FW01.vhdx` as the first boot device and verified the detailed firmware order before retrying the boot.
 
 ### Evidence
 
 ![FW01 PXE boot after installation](../screenshots/chapter-03/03-08-fw01-pxe-after-install.png)
 
-This screenshot records the failed first disk-boot attempt and is the current troubleshooting checkpoint. The next controlled test is to start `FW01` again with the installed VHDX explicitly first in the UEFI boot order.
+### Successful Installed-Disk Boot
+
+After placing `FW01.vhdx` first in the firmware boot order, I started `FW01` again with the installer ISO still detached. OPNsense 26.7 booted successfully and I logged in as `root`, reaching the normal installed console menu.
+
+The console currently shows OPNsense's automatic/default interface state (`LAN` on `hn0` with `192.168.1.1/24` and `WAN` on `hn1`). I am not treating those default assignments as the BelkaCorp design. The next step is to map all four guest interfaces to the four Hyper-V adapters by MAC address before assigning the planned network roles and gateway IP addresses.
+
+### Evidence
+
+![OPNsense successful installed-disk boot](../screenshots/chapter-03/03-09-opnsense-installed-first-disk-boot.png)
+
+This screenshot proves that the installed OPNsense system is bootable from `FW01.vhdx` with the installer ISO detached and that the normal console is available.
+
+The PXE incident is documented separately in `../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
 ## Evidence and Documentation Workflow
 
@@ -220,4 +225,4 @@ This prevents the repository from lagging behind the real infrastructure state.
 
 ## Current Position
 
-**Step 3.2 is complete and Step 3.3 is still in progress.** OPNsense has been installed to `FW01.vhdx`, the installer ISO is detached, and the first post-install boot fell through to PXE. The virtual disk remains attached correctly and has now been explicitly placed first in the Hyper-V firmware boot order. The next action is a controlled retry. Only after a successful installed-system boot will I move to **3.4 — Identify and map the four interfaces**.
+**Step 3.3 is complete.** OPNsense 26.7 is installed on `FW01.vhdx`, the installer ISO is detached, the post-install PXE boot issue has been resolved by explicitly prioritizing the installed VHDX in Hyper-V firmware, and the normal installed OPNsense console has been verified. The next step is **3.4 — Identify and map the four interfaces**.
