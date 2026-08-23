@@ -51,28 +51,42 @@ I then inspected the detailed order and confirmed:
 
 ## Root Cause
 
-The root cause is not yet confirmed.
+The effective cause was the Hyper-V firmware boot-device priority. The installed VHDX was present and valid, but the first post-install start fell through to PXE. Explicitly setting `FW01.vhdx` as the first firmware boot device changed the result: the next start booted OPNsense successfully from disk.
 
-The first failed boot could have been caused by the firmware not prioritizing the installed VHDX correctly, but that hypothesis still requires a controlled retry with `FW01.vhdx` explicitly first in the boot order.
-
-If the VM still falls through to PXE after that retry, the investigation will move to the installed UEFI/bootloader state on the virtual disk rather than assuming the installation itself must be repeated.
+I did not need to modify or reinstall the OPNsense filesystem or bootloader.
 
 ## Resolution
 
-Resolution is currently in progress.
+I explicitly placed the installed virtual hard disk first in the Generation 2 firmware boot order:
 
-As the first controlled remediation step, I explicitly placed `FW01.vhdx` first in the Generation 2 firmware boot order. I have not changed the installed disk contents or reinstalled OPNsense.
+```powershell
+$disk = Get-VMHardDiskDrive -VMName "FW01"
+Set-VMFirmware -VMName "FW01" -FirstBootDevice $disk
+```
+
+I left the installer ISO detached and did not make any changes to the VHDX contents.
 
 ## Final Verification
 
-Final verification is pending.
+I started `FW01` again after confirming the detailed boot order. OPNsense 26.7 booted from the installed VHDX, accepted the configured `root` credentials, and displayed the normal OPNsense console menu.
 
-The next test is to start `FW01` again with the verified boot order. A successful OPNsense console boot from the VHDX will confirm the issue is resolved. If PXE appears again, I will continue investigating the EFI/bootloader state before considering reinstallation.
+This verified:
+
+```text
+Installer ISO             detached
+FW01.vhdx                 attached on SCSI 0:0
+FW01.vhdx boot priority   first
+Installed OPNsense boot   successful
+Normal console menu       reached
+```
+
+The screenshot also shows the current automatic/default OPNsense interface state. I will map the four guest interfaces by MAC address before treating any interface role as authoritative.
 
 ## Evidence
 
 - `screenshots/chapter-03/03-08-fw01-pxe-after-install.png`
+- `screenshots/chapter-03/03-09-opnsense-installed-first-disk-boot.png`
 
 ## Lesson Learned
 
-A failed first boot after installation should be treated as a boot-chain troubleshooting problem, not as an automatic reason to reinstall the operating system. I should verify the attached disk, firmware settings, and exact boot order first, then change one variable at a time and retest.
+A failed first boot after installation should be treated as a boot-chain troubleshooting problem, not as an automatic reason to reinstall the operating system. I should verify the attached disk, firmware settings, and exact boot order first, change one variable at a time, and then retest before touching the installed system.
