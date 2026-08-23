@@ -109,7 +109,9 @@ I verified the pre-deployment Hyper-V state, downloaded and SHA-256 verified the
 
 Before the first boot, I audited and corrected the VM configuration. The final verified pre-boot state is 2 vCPU, fixed 4096 MB RAM, Secure Boot disabled, automatic checkpoints disabled, the correct VHDX and installer ISO attached, and four named adapters mapped to the Default Switch, `vSW-USERS`, `vSW-SERVERS`, and `vSW-MGMT`.
 
-Step 3.2 is complete. The next task is to boot `FW01`, install OPNsense to the virtual disk, verify a successful first boot, and then map the interfaces inside OPNsense.
+Step 3.2 is complete. In Step 3.3, I started `FW01` for the first time from the OPNsense installation media, reached the OPNsense boot menu, continued the default multi-user boot, and reached the live console login prompt. The installation to `FW01.vhdx` has not started yet.
+
+The current task is to run the OPNsense installer, install the firewall to the virtual disk, verify the first successful boot from `FW01.vhdx`, and then begin mapping the four interfaces inside OPNsense.
 
 ## AI-Assisted Learning and Documentation
 
