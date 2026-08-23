@@ -92,6 +92,16 @@ I use two statuses:
 
 I only mark evidence `COMMITTED` after the file is really present in the repository.
 
+## Presentation Convention
+
+To keep the repository visually consistent:
+
+- chapter documentation such as `01-hyper-v-platform.md`, `02-network-architecture.md`, and `03-firewall-routing.md` embeds relevant screenshots directly with Markdown image syntax under an `Evidence` heading;
+- `screenshots/evidence-index.md` remains the compact evidence catalog and uses links rather than embedding every image;
+- screenshot-folder README files track evidence state and may use links because their purpose is inventory rather than narrative documentation.
+
+This keeps the main chapter documents readable as a complete technical walkthrough while preventing the global evidence index from becoming unnecessarily large.
+
 ## Screenshot Workflow
 
 I finish evidence and documentation at the same meaningful checkpoint as the technical work. I do not postpone a batch of screenshots or documentation until the end of a chapter.
@@ -113,6 +123,9 @@ STORE + NAME IT CONSISTENTLY
     |
     v
 VERIFY THE FILE IN GITHUB
+    |
+    v
+EMBED IT IN THE CHAPTER DOCUMENT WHEN RELEVANT
     |
     v
 DOCUMENT THE RESULT
