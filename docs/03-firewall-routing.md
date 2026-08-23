@@ -47,9 +47,11 @@ C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 
 ### Evidence
 
-- [`03-01-fw01-predeployment-baseline.png`](../screenshots/chapter-03/03-01-fw01-predeployment-baseline.png) — pre-deployment VM/switch/ISO baseline.
-- [`03-02-opnsense-download-hash-verification.png`](../screenshots/chapter-03/03-02-opnsense-download-hash-verification.png) — SHA-256 verification of the downloaded installer.
-- [`03-03-opnsense-iso-staged.png`](../screenshots/chapter-03/03-03-opnsense-iso-staged.png) — extracted OPNsense ISO present in the Hyper-V ISO directory.
+![FW01 pre-deployment baseline](../screenshots/chapter-03/03-01-fw01-predeployment-baseline.png)
+
+![OPNsense download hash verification](../screenshots/chapter-03/03-02-opnsense-download-hash-verification.png)
+
+![OPNsense ISO staged](../screenshots/chapter-03/03-03-opnsense-iso-staged.png)
 
 ## 3.2 — FW01 VM Creation and Pre-Boot Verification
 
@@ -65,11 +67,11 @@ Disk type        dynamically expanding VHDX
 Installer        C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
 ```
 
-### Wizard evidence
+### Wizard Evidence
 
-[`03-04-fw01-wizard-summary.png`](../screenshots/chapter-03/03-04-fw01-wizard-summary.png) records the wizard summary before creation.
+![FW01 wizard summary](../screenshots/chapter-03/03-04-fw01-wizard-summary.png)
 
-### Initial PowerShell audit
+### Initial PowerShell Audit
 
 I inspected the actual Hyper-V VM object before first boot instead of assuming the wizard defaults matched the intended firewall design.
 
@@ -100,9 +102,11 @@ Secure Boot              -> Disabled
 1 network adapter        -> 4 total adapters
 ```
 
-[`03-05-fw01-initial-preboot-audit.png`](../screenshots/chapter-03/03-05-fw01-initial-preboot-audit.png) records that real pre-remediation state.
+### Evidence
 
-### Pre-boot remediation
+![FW01 initial pre-boot audit](../screenshots/chapter-03/03-05-fw01-initial-preboot-audit.png)
+
+### Pre-Boot Remediation
 
 While `FW01` remained powered off, I changed the processor count to 2, disabled automatic checkpoints, disabled Secure Boot, renamed the existing Default Switch adapter to `WAN`, and added the three internal adapters.
 
@@ -115,7 +119,7 @@ SERVERS  -> vSW-SERVERS
 MGMT     -> vSW-MGMT
 ```
 
-### Final pre-boot verification
+### Final Pre-Boot Verification
 
 A clean PowerShell verification confirmed:
 
@@ -138,7 +142,9 @@ WAN       -> Default Switch
 
 The adapters still display `000000000000` before the first boot because Hyper-V has not yet assigned their dynamic MAC addresses. That does not invalidate the switch mapping.
 
-[`03-06-fw01-final-preboot-verification.png`](../screenshots/chapter-03/03-06-fw01-final-preboot-verification.png) records the verified final pre-boot state.
+### Evidence
+
+![FW01 final pre-boot verification](../screenshots/chapter-03/03-06-fw01-final-preboot-verification.png)
 
 `FW01` has still never booted. I also have not added the Windows host's routes to `10.10.10.0/24` or `10.10.20.0/24`, because `10.10.30.1` is not yet a configured, verified next hop.
 
