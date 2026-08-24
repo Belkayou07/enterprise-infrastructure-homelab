@@ -67,6 +67,7 @@ I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-du
 | [`chapter-03/03-08-fw01-pxe-after-install.png`](chapter-03/03-08-fw01-pxe-after-install.png) | COMMITTED | Shows the first post-install start reaching Hyper-V PXE boot instead of the installed system, providing evidence for the firmware boot-order investigation. |
 | [`chapter-03/03-09-opnsense-installed-first-disk-boot.png`](chapter-03/03-09-opnsense-installed-first-disk-boot.png) | COMMITTED | Shows the installed OPNsense 26.7 system successfully booted from `FW01.vhdx` and the normal console menu reached after correcting the firmware boot priority. |
 | [`chapter-03/03-10-fw01-hyperv-nic-mac-map.png`](chapter-03/03-10-fw01-hyperv-nic-mac-map.png) | COMMITTED | Shows the authoritative Hyper-V-side mapping of FW01 adapter names, switch connections, and MAC addresses for WAN, USERS, SERVERS, and MGMT. |
+| [`chapter-03/03-11-opnsense-guest-nic-mac-map.png`](chapter-03/03-11-opnsense-guest-nic-mac-map.png) | COMMITTED | Shows the OPNsense-side MAC addresses for `hn0` through `hn3`, allowing an exact MAC-to-MAC match with the Hyper-V adapter map. |
 
 I documented the FW01 post-install PXE incident in `../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
