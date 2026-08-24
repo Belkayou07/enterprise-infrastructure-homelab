@@ -22,6 +22,7 @@ This folder is the landing area for real screenshots from Chapter 3 — Firewall
 | [`03-08-fw01-pxe-after-install.png`](03-08-fw01-pxe-after-install.png) | COMMITTED | Shows the first post-install start falling through to PXE instead of booting the installed VHDX, creating the boot-order troubleshooting checkpoint. |
 | [`03-09-opnsense-installed-first-disk-boot.png`](03-09-opnsense-installed-first-disk-boot.png) | COMMITTED | Shows OPNsense 26.7 successfully booted from the installed `FW01.vhdx`, with the normal console menu available after the firmware boot-order correction. |
 | [`03-10-fw01-hyperv-nic-mac-map.png`](03-10-fw01-hyperv-nic-mac-map.png) | COMMITTED | PowerShell maps the four named Hyper-V adapters to their switches and assigned MAC addresses, establishing the authoritative host-side reference for OPNsense interface mapping. |
+| [`03-11-opnsense-guest-nic-mac-map.png`](03-11-opnsense-guest-nic-mac-map.png) | COMMITTED | OPNsense `ifconfig` output maps `hn0` through `hn3` to the same four MAC addresses, proving the guest-side interface identity before role assignment. |
 
 The PXE incident is documented in `../../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
