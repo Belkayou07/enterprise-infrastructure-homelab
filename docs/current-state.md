@@ -5,8 +5,8 @@
 ## Current Position
 
 - **Current chapter:** Chapter 3 — Firewall and Routing
-- **Last completed step:** 3.3 — Install OPNsense
-- **Current step:** 3.4 — Identify and map the four interfaces
+- **Last completed step:** 3.4 — Identify and map the four interfaces
+- **Current step:** 3.5 — Configure USERS, SERVERS, and MGMT gateway interfaces
 - **Open issues:** None currently blocking progress
 
 ## Verified Live State
@@ -83,7 +83,7 @@ Normal console menu       reached
 
 The PXE incident is closed in `troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
-### Verified interface identity
+### Verified interface identity and applied roles
 
 The host-side Hyper-V adapter map is:
 
@@ -103,7 +103,7 @@ hn2   00:15:5D:38:01:07
 hn3   00:15:5D:38:01:08
 ```
 
-Therefore the exact verified mapping is:
+The resulting exact mapping is:
 
 ```text
 WAN      -> hn0 -> Default Switch
@@ -112,7 +112,25 @@ SERVERS  -> hn2 -> vSW-SERVERS
 MGMT     -> hn3 -> vSW-MGMT
 ```
 
-The automatic OPNsense post-install assignments are not being accepted as the final design. No BelkaCorp `.1` gateway addresses have been configured yet.
+I then applied the OPNsense roles as:
+
+```text
+WAN   = hn0
+LAN   = hn3   [BelkaCorp MGMT]
+OPT1  = hn1   [BelkaCorp USERS]
+OPT2  = hn2   [BelkaCorp SERVERS]
+```
+
+The post-assignment console verified:
+
+```text
+LAN  (hn3)  192.168.1.1/24       temporary OPNsense default
+OPT1 (hn1)  no BelkaCorp IP yet
+OPT2 (hn2)  no BelkaCorp IP yet
+WAN  (hn0)  172.25.218.248/20     DHCP from Hyper-V Default Switch
+```
+
+The WAN DHCP address confirms upstream DHCP on the correct WAN adapter. Full WAN/Internet reachability has not yet been separately validated.
 
 ## Completed Network Design
 
@@ -148,6 +166,7 @@ The current Chapter 3 evidence is committed and verified under `screenshots/chap
 03-09-opnsense-installed-first-disk-boot.png       COMMITTED
 03-10-fw01-hyperv-nic-mac-map.png                  COMMITTED
 03-11-opnsense-guest-nic-mac-map.png               COMMITTED
+03-12-opnsense-interface-role-assignment.png       COMMITTED
 ```
 
 ## Working Rule
@@ -177,18 +196,24 @@ Do not batch evidence or documentation until the end of the chapter.
 
 ## Immediate Next Work
 
-Continue **3.4 — Identify and map the four interfaces** by applying the verified roles inside OPNsense with console option `1) Assign interfaces`:
+Continue **3.5 — Configure USERS, SERVERS, and MGMT gateway interfaces**.
+
+Configure the management interface first:
 
 ```text
-WAN      hn0
-USERS    hn1
-SERVERS  hn2
-MGMT     hn3
+LAN / hn3 / MGMT -> 10.10.30.1/24
 ```
 
-Do **not** configure the planned `.1` gateway addresses yet. Address configuration begins only after the interface-role assignment is confirmed.
+Verify that the console shows the new address and that the Windows host at `10.10.30.10/24` can reach it before configuring the other two internal gateway addresses.
 
-Do not add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until the later MGMT interface is configured and reachable at `10.10.30.1`.
+Then later configure:
+
+```text
+OPT1 / hn1 / USERS    -> 10.10.10.1/24
+OPT2 / hn2 / SERVERS  -> 10.10.20.1/24
+```
+
+Do not add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until `10.10.30.1` is configured and verified as a reachable next hop.
 
 ## Resume Rules
 
