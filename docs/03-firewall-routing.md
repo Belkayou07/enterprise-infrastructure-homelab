@@ -13,7 +13,7 @@ A firewall/router is the control point between network segments. It must have th
 - [x] 3.1 — Verify the pre-deployment Hyper-V baseline and OPNsense installer
 - [x] 3.2 — Create and verify the `FW01` VM before first boot
 - [x] 3.3 — Install OPNsense
-- [ ] 3.4 — Identify and map the four interfaces
+- [x] 3.4 — Identify and map the four interfaces
 - [ ] 3.5 — Configure USERS, SERVERS, and MGMT gateway interfaces
 - [ ] 3.6 — Verify management connectivity and routing foundation
 - [ ] 3.7 — Add the Windows host's specific BelkaCorp routes
@@ -242,7 +242,48 @@ This also proves that the automatic OPNsense defaults shown after installation w
 
 ![OPNsense guest NIC MAC map](../screenshots/chapter-03/03-11-opnsense-guest-nic-mac-map.png)
 
-The physical/virtual identity of all four interfaces is now verified. The next action within Step 3.4 is to apply the correct OPNsense interface-role assignment using this mapping. I will not assign the BelkaCorp `.1` gateway addresses until the roles themselves are correct.
+### Applied OPNsense Role Assignment
+
+I then used the OPNsense console interface-assignment workflow. I did not configure LAGGs because each virtual NIC has its own independent network role. I applied the verified mapping as:
+
+```text
+OPNsense role   Guest NIC   BelkaCorp role
+WAN             hn0         WAN
+LAN             hn3         MGMT
+OPT1            hn1         USERS
+OPT2            hn2         SERVERS
+```
+
+I intentionally use OPNsense's built-in `LAN` role for the BelkaCorp management network. The other internal interfaces remain `OPT1` and `OPT2` until their descriptions are renamed later.
+
+After applying the assignment, the console showed:
+
+```text
+LAN  (hn3)  -> 192.168.1.1/24
+OPT1 (hn1)
+OPT2 (hn2)
+WAN  (hn0)  -> DHCP 172.25.218.248/20
+```
+
+The LAN address is still OPNsense's default and is not the final BelkaCorp management address. The WAN DHCP lease confirms that the WAN role is now on the adapter connected to the Hyper-V Default Switch; it does not by itself prove full Internet connectivity.
+
+### Evidence
+
+![OPNsense interface role assignment](../screenshots/chapter-03/03-12-opnsense-interface-role-assignment.png)
+
+This completes Step 3.4. The interface identities were verified by MAC address first and only then applied inside OPNsense.
+
+## 3.5 — Configure Internal Gateway Interfaces
+
+The next configuration checkpoint is to replace the temporary/default internal addressing with the planned BelkaCorp gateway addresses:
+
+```text
+MGMT     LAN / hn3   10.10.30.1/24
+USERS    OPT1 / hn1  10.10.10.1/24
+SERVERS  OPT2 / hn2  10.10.20.1/24
+```
+
+The WAN interface remains DHCP through the Hyper-V Default Switch for now. I will configure and verify the internal addresses one interface at a time, beginning with MGMT so the Windows host can later reach `FW01` at `10.10.30.1`.
 
 ## Evidence and Documentation Workflow
 
@@ -271,4 +312,4 @@ This prevents the repository from lagging behind the real infrastructure state.
 
 ## Current Position
 
-**Step 3.3 is complete and Step 3.4 is in progress.** MAC-address comparison has now verified the exact mapping `hn0 = WAN`, `hn1 = USERS`, `hn2 = SERVERS`, and `hn3 = MGMT`. The next action is to use OPNsense `1) Assign interfaces` to apply those roles. Gateway IP configuration remains deferred to Step 3.5.
+**Step 3.4 is complete and Step 3.5 is now in progress.** OPNsense has the verified role assignment `WAN=hn0`, `LAN/MGMT=hn3`, `OPT1/USERS=hn1`, and `OPT2/SERVERS=hn2`. The WAN interface has obtained a DHCP address from the Hyper-V Default Switch. The internal BelkaCorp `.1` gateway addresses have not yet been configured; the next action is to configure the MGMT interface as `10.10.30.1/24` and verify it before continuing.
