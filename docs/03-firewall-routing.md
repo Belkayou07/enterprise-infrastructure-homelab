@@ -198,6 +198,30 @@ This screenshot proves that the installed OPNsense system is bootable from `FW01
 
 The PXE incident is documented separately in `../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
+## 3.4 — Identify and Map the Four Interfaces
+
+### Hyper-V Side — Authoritative Adapter and MAC Map
+
+Before changing any OPNsense interface assignment, I captured the authoritative Hyper-V view of all four `FW01` virtual network adapters:
+
+```text
+Name      SwitchName       MAC
+WAN       Default Switch   00:15:5D:38:01:05
+USERS     vSW-USERS        00:15:5D:38:01:06
+SERVERS   vSW-SERVERS      00:15:5D:38:01:07
+MGMT      vSW-MGMT         00:15:5D:38:01:08
+```
+
+This gives each intended network role a unique hardware address. I will use these MAC addresses to identify the corresponding OPNsense guest interfaces (`hn0`, `hn1`, `hn2`, `hn3`) rather than assuming that guest interface numbering matches the Hyper-V adapter order.
+
+### Evidence
+
+![FW01 Hyper-V NIC MAC map](../screenshots/chapter-03/03-10-fw01-hyperv-nic-mac-map.png)
+
+This screenshot proves the host-side adapter names, switch connections, and MAC addresses that will be used for the guest-side comparison.
+
+The guest-side MAC mapping is still pending. No interface roles or BelkaCorp `.1` gateway addresses will be changed until all four `hnX` interfaces are matched by MAC address.
+
 ## Evidence and Documentation Workflow
 
 I complete repository work at the same meaningful checkpoint as the technical work:
@@ -225,4 +249,4 @@ This prevents the repository from lagging behind the real infrastructure state.
 
 ## Current Position
 
-**Step 3.3 is complete.** OPNsense 26.7 is installed on `FW01.vhdx`, the installer ISO is detached, the post-install PXE boot issue has been resolved by explicitly prioritizing the installed VHDX in Hyper-V firmware, and the normal installed OPNsense console has been verified. The next step is **3.4 — Identify and map the four interfaces**.
+**Step 3.3 is complete and Step 3.4 is in progress.** The authoritative Hyper-V-side mapping is now verified and documented. The next action is to inspect the MAC addresses of the OPNsense guest interfaces and match `hn0` through `hn3` to WAN, USERS, SERVERS, and MGMT. Only after that mapping is verified will I assign the planned BelkaCorp interface roles and gateway addresses.
