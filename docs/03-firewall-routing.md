@@ -188,7 +188,7 @@ I then explicitly set `FW01.vhdx` as the first boot device and verified the deta
 
 After placing `FW01.vhdx` first in the firmware boot order, I started `FW01` again with the installer ISO still detached. OPNsense 26.7 booted successfully and I logged in as `root`, reaching the normal installed console menu.
 
-The console currently shows OPNsense's automatic/default interface state (`LAN` on `hn0` with `192.168.1.1/24` and `WAN` on `hn1`). I am not treating those default assignments as the BelkaCorp design. The next step is to map all four guest interfaces to the four Hyper-V adapters by MAC address before assigning the planned network roles and gateway IP addresses.
+The console initially showed OPNsense's automatic/default interface state (`LAN` on `hn0` with `192.168.1.1/24` and `WAN` on `hn1`). I did not treat those defaults as the BelkaCorp design because the guest interfaces first had to be matched to the Hyper-V adapters by MAC address.
 
 ### Evidence
 
@@ -212,15 +212,37 @@ SERVERS   vSW-SERVERS      00:15:5D:38:01:07
 MGMT      vSW-MGMT         00:15:5D:38:01:08
 ```
 
-This gives each intended network role a unique hardware address. I will use these MAC addresses to identify the corresponding OPNsense guest interfaces (`hn0`, `hn1`, `hn2`, `hn3`) rather than assuming that guest interface numbering matches the Hyper-V adapter order.
-
 ### Evidence
 
 ![FW01 Hyper-V NIC MAC map](../screenshots/chapter-03/03-10-fw01-hyperv-nic-mac-map.png)
 
-This screenshot proves the host-side adapter names, switch connections, and MAC addresses that will be used for the guest-side comparison.
+### OPNsense Side — Guest Interface MAC Map
 
-The guest-side MAC mapping is still pending. No interface roles or BelkaCorp `.1` gateway addresses will be changed until all four `hnX` interfaces are matched by MAC address.
+From the OPNsense shell I queried the Ethernet address of each Hyper-V synthetic interface with `ifconfig`:
+
+```text
+hn0   00:15:5D:38:01:05
+hn1   00:15:5D:38:01:06
+hn2   00:15:5D:38:01:07
+hn3   00:15:5D:38:01:08
+```
+
+Matching the identical MAC addresses gives the verified interface map:
+
+```text
+WAN      -> hn0 -> 00:15:5D:38:01:05 -> Default Switch
+USERS    -> hn1 -> 00:15:5D:38:01:06 -> vSW-USERS
+SERVERS  -> hn2 -> 00:15:5D:38:01:07 -> vSW-SERVERS
+MGMT     -> hn3 -> 00:15:5D:38:01:08 -> vSW-MGMT
+```
+
+This also proves that the automatic OPNsense defaults shown after installation were not correct for the BelkaCorp design: `hn0` is the intended WAN adapter, while `hn1` is the intended USERS adapter.
+
+### Evidence
+
+![OPNsense guest NIC MAC map](../screenshots/chapter-03/03-11-opnsense-guest-nic-mac-map.png)
+
+The physical/virtual identity of all four interfaces is now verified. The next action within Step 3.4 is to apply the correct OPNsense interface-role assignment using this mapping. I will not assign the BelkaCorp `.1` gateway addresses until the roles themselves are correct.
 
 ## Evidence and Documentation Workflow
 
@@ -249,4 +271,4 @@ This prevents the repository from lagging behind the real infrastructure state.
 
 ## Current Position
 
-**Step 3.3 is complete and Step 3.4 is in progress.** The authoritative Hyper-V-side mapping is now verified and documented. The next action is to inspect the MAC addresses of the OPNsense guest interfaces and match `hn0` through `hn3` to WAN, USERS, SERVERS, and MGMT. Only after that mapping is verified will I assign the planned BelkaCorp interface roles and gateway addresses.
+**Step 3.3 is complete and Step 3.4 is in progress.** MAC-address comparison has now verified the exact mapping `hn0 = WAN`, `hn1 = USERS`, `hn2 = SERVERS`, and `hn3 = MGMT`. The next action is to use OPNsense `1) Assign interfaces` to apply those roles. Gateway IP configuration remains deferred to Step 3.5.
