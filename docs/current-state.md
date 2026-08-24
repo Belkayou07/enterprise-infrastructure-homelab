@@ -94,6 +94,19 @@ WAN  -> hn1
 
 These assignments are **not yet accepted as the BelkaCorp interface design**. All four Hyper-V adapters must first be matched to the guest interfaces by MAC address. No BelkaCorp `.1` gateway addresses have been configured yet.
 
+### Authoritative Hyper-V NIC/MAC map
+
+PowerShell now verifies the host-side identity of all four FW01 adapters:
+
+```text
+WAN      Default Switch   00:15:5D:38:01:05
+USERS    vSW-USERS        00:15:5D:38:01:06
+SERVERS  vSW-SERVERS      00:15:5D:38:01:07
+MGMT     vSW-MGMT         00:15:5D:38:01:08
+```
+
+This mapping is the reference for identifying `hn0`, `hn1`, `hn2`, and `hn3` inside OPNsense. The guest-side MAC addresses have not yet been collected, so no interface-role changes have been made.
+
 ## Completed Network Design
 
 BelkaCorp allocation block:
@@ -126,6 +139,7 @@ The current Chapter 3 evidence is committed and verified under `screenshots/chap
 03-07-opnsense-boot-menu.png                       COMMITTED
 03-08-fw01-pxe-after-install.png                   COMMITTED
 03-09-opnsense-installed-first-disk-boot.png       COMMITTED
+03-10-fw01-hyperv-nic-mac-map.png                  COMMITTED
 ```
 
 ## Working Rule
@@ -157,7 +171,7 @@ Do not batch evidence or documentation until the end of the chapter.
 
 Continue **3.4 — Identify and map the four interfaces**.
 
-First, capture the authoritative Hyper-V adapter names, switch connections, and assigned MAC addresses with PowerShell. Then compare those MAC addresses to the OPNsense guest interfaces before changing any interface assignment.
+The Hyper-V side is now complete. Next, inspect the OPNsense guest interfaces and obtain the MAC addresses for `hn0`, `hn1`, `hn2`, and `hn3`. Match them against the verified Hyper-V MAC table before changing any OPNsense interface assignment.
 
 Do **not** configure the planned `.1` gateway addresses or add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until the interface mapping is verified.
 
