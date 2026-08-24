@@ -107,11 +107,13 @@ The final implementation plan provides a dependency-aware handoff into Chapter 3
 
 I verified the pre-deployment Hyper-V state, downloaded and SHA-256 verified the OPNsense 26.7 `amd64` DVD installer, extracted the ISO into the Hyper-V ISO directory, and created the initial `FW01` Generation 2 VM.
 
-Before the first boot, I audited and corrected the VM configuration. The final verified pre-boot state is 2 vCPU, fixed 4096 MB RAM, Secure Boot disabled, automatic checkpoints disabled, the correct VHDX and installer ISO attached, and four named adapters mapped to the Default Switch, `vSW-USERS`, `vSW-SERVERS`, and `vSW-MGMT`.
+Before the first boot, I audited and corrected the VM configuration. The final verified platform state is 2 vCPU, fixed 4096 MB RAM, Secure Boot disabled, automatic checkpoints disabled, the correct VHDX attached, and four named adapters mapped to the Default Switch, `vSW-USERS`, `vSW-SERVERS`, and `vSW-MGMT`.
 
 I installed OPNsense to `FW01.vhdx`, detached the installer ISO, and verified the installed system. The first post-install start fell through to Hyper-V PXE, so I investigated the boot chain instead of reinstalling. After explicitly prioritizing `FW01.vhdx` in the Generation 2 firmware boot order, OPNsense booted successfully from disk and reached the normal console menu.
 
-Step 3.3 is now complete. The current task is **3.4 — identify and map all four OPNsense guest interfaces to the authoritative Hyper-V WAN/USERS/SERVERS/MGMT adapters by MAC address** before assigning the planned BelkaCorp gateway addresses.
+I then mapped every OPNsense guest interface to the authoritative Hyper-V adapter by matching MAC addresses. This verified `hn0=WAN`, `hn1=USERS`, `hn2=SERVERS`, and `hn3=MGMT`. I applied the OPNsense roles as `WAN=hn0`, `LAN=hn3` for management, `OPT1=hn1` for USERS, and `OPT2=hn2` for SERVERS. The WAN interface then obtained a DHCP address from the Hyper-V Default Switch.
+
+Steps 3.3 and 3.4 are complete. The current task is **3.5 — configure the BelkaCorp internal gateway addresses**, beginning with MGMT at `10.10.30.1/24`, then USERS at `10.10.10.1/24`, and SERVERS at `10.10.20.1/24`.
 
 ## AI-Assisted Learning and Documentation
 
