@@ -70,7 +70,7 @@ MGMT     -> vSW-MGMT
 
 The first post-install start fell through to Hyper-V PXE. Investigation confirmed the VHDX was attached correctly and Secure Boot was off. I explicitly placed the hard disk first in the Generation 2 firmware boot order, then retried the boot.
 
-Final verification now shows:
+Final verification shows:
 
 ```text
 Installer ISO             detached
@@ -83,20 +83,9 @@ Normal console menu       reached
 
 The PXE incident is closed in `troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
-### Current OPNsense interface state
+### Verified interface identity
 
-The successful installed console currently shows OPNsense's automatic/default assignments:
-
-```text
-LAN  -> hn0 -> 192.168.1.1/24
-WAN  -> hn1
-```
-
-These assignments are **not yet accepted as the BelkaCorp interface design**. All four Hyper-V adapters must first be matched to the guest interfaces by MAC address. No BelkaCorp `.1` gateway addresses have been configured yet.
-
-### Authoritative Hyper-V NIC/MAC map
-
-PowerShell now verifies the host-side identity of all four FW01 adapters:
+The host-side Hyper-V adapter map is:
 
 ```text
 WAN      Default Switch   00:15:5D:38:01:05
@@ -105,7 +94,25 @@ SERVERS  vSW-SERVERS      00:15:5D:38:01:07
 MGMT     vSW-MGMT         00:15:5D:38:01:08
 ```
 
-This mapping is the reference for identifying `hn0`, `hn1`, `hn2`, and `hn3` inside OPNsense. The guest-side MAC addresses have not yet been collected, so no interface-role changes have been made.
+The OPNsense guest-side MAC map is:
+
+```text
+hn0   00:15:5D:38:01:05
+hn1   00:15:5D:38:01:06
+hn2   00:15:5D:38:01:07
+hn3   00:15:5D:38:01:08
+```
+
+Therefore the exact verified mapping is:
+
+```text
+WAN      -> hn0 -> Default Switch
+USERS    -> hn1 -> vSW-USERS
+SERVERS  -> hn2 -> vSW-SERVERS
+MGMT     -> hn3 -> vSW-MGMT
+```
+
+The automatic OPNsense post-install assignments are not being accepted as the final design. No BelkaCorp `.1` gateway addresses have been configured yet.
 
 ## Completed Network Design
 
@@ -140,6 +147,7 @@ The current Chapter 3 evidence is committed and verified under `screenshots/chap
 03-08-fw01-pxe-after-install.png                   COMMITTED
 03-09-opnsense-installed-first-disk-boot.png       COMMITTED
 03-10-fw01-hyperv-nic-mac-map.png                  COMMITTED
+03-11-opnsense-guest-nic-mac-map.png               COMMITTED
 ```
 
 ## Working Rule
@@ -169,11 +177,18 @@ Do not batch evidence or documentation until the end of the chapter.
 
 ## Immediate Next Work
 
-Continue **3.4 — Identify and map the four interfaces**.
+Continue **3.4 — Identify and map the four interfaces** by applying the verified roles inside OPNsense with console option `1) Assign interfaces`:
 
-The Hyper-V side is now complete. Next, inspect the OPNsense guest interfaces and obtain the MAC addresses for `hn0`, `hn1`, `hn2`, and `hn3`. Match them against the verified Hyper-V MAC table before changing any OPNsense interface assignment.
+```text
+WAN      hn0
+USERS    hn1
+SERVERS  hn2
+MGMT     hn3
+```
 
-Do **not** configure the planned `.1` gateway addresses or add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until the interface mapping is verified.
+Do **not** configure the planned `.1` gateway addresses yet. Address configuration begins only after the interface-role assignment is confirmed.
+
+Do not add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until the later MGMT interface is configured and reachable at `10.10.30.1`.
 
 ## Resume Rules
 
