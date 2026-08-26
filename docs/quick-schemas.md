@@ -14,8 +14,8 @@ CHAPTER 3  Firewall / routing           [NOW]
    3.2     FW01 pre-boot configuration  [DONE]
    3.3     Install OPNsense             [DONE]
    3.4     Map four FW01 interfaces     [DONE]
-   3.5     Configure internal gateways  [NOW]
-   3.6     Verify MGMT + routing
+   3.5     Configure internal gateways  [DONE]
+   3.6     Verify MGMT + routing        [NOW]
    3.7     Add Windows lab routes
    3.8     Validate routing / policy
    3.9     Final Chapter 3 audit
@@ -57,24 +57,15 @@ SERVERS        vSW-SERVERS      00:15:5D:38:01:07    hn2
 MGMT           vSW-MGMT         00:15:5D:38:01:08    hn3
 ```
 
-## Applied OPNsense Roles
+## Applied OPNsense Roles and Addresses
 
 ```text
-OPNsense role   NIC   BelkaCorp role
--------------------------------------
-WAN             hn0   WAN
-LAN             hn3   MGMT
-OPT1            hn1   USERS
-OPT2            hn2   SERVERS
-```
-
-## Current Interface Addressing
-
-```text
-WAN  / hn0              DHCP via Hyper-V Default Switch
-LAN  / hn3 / MGMT       10.10.30.1/24   [CONFIGURED + VERIFIED]
-OPT1 / hn1 / USERS      10.10.10.1/24   [NEXT]
-OPT2 / hn2 / SERVERS    10.10.20.1/24   [NEXT]
+OPNsense role   NIC   BelkaCorp role   IPv4
+-------------------------------------------------
+WAN             hn0   WAN              DHCP
+LAN             hn3   MGMT             10.10.30.1/24
+OPT1            hn1   USERS            10.10.10.1/24
+OPT2            hn2   SERVERS          10.10.20.1/24
 ```
 
 MGMT verification:
@@ -89,7 +80,19 @@ FW01 LAN / hn3
 10.10.30.1/24
 ```
 
-The WAN DHCP lease confirms the WAN adapter is connected to the Hyper-V Default Switch. Full Internet connectivity still requires separate verification.
+## Routing Foundation to Verify
+
+```text
+Expected connected routes on FW01
+10.10.10.0/24 -> hn1 / USERS
+10.10.20.0/24 -> hn2 / SERVERS
+10.10.30.0/24 -> hn3 / MGMT
+
+Expected default route
+0.0.0.0/0 -> WAN / hn0 upstream
+```
+
+These connected routes should be created automatically because FW01 owns an IP address inside each subnet. Step 3.6 verifies that OPNsense actually installed them before Windows-specific routes are added.
 
 ## Current MGMT Path
 
@@ -105,8 +108,6 @@ Windows host                  TEST01
                   10.10.30.1/24
                      [OK]
 ```
-
-Windows and TEST01 remain on the same Layer-2 MGMT subnet, and the Windows host can now directly manage FW01 at `10.10.30.1`.
 
 ## Final Enterprise Model
 
@@ -132,57 +133,23 @@ Windows and TEST01 remain on the same Layer-2 MGMT subnet, and the Windows host 
                    .10     .20      .30
 ```
 
-## Hyper-V Switch Types
-
-```text
-EXTERNAL
-VMs + host <-> physical network / external network
-
-INTERNAL
-VMs <-> Windows host
-No direct physical-network connection
-
-PRIVATE
-VMs <-> VMs only
-Windows host cannot directly join that switch
-```
-
 ## BelkaCorp Addressing
 
 ```text
 10.10.0.0/16
 |
-+-- USERS    10.10.10.0/24   gateway 10.10.10.1
++-- USERS    10.10.10.0/24   gateway 10.10.10.1 [CONFIGURED]
 |      DHCP later: 10.10.10.100 - 10.10.10.199
 |
-+-- SERVERS  10.10.20.0/24   gateway 10.10.20.1
++-- SERVERS  10.10.20.0/24   gateway 10.10.20.1 [CONFIGURED]
 |      DC01  10.10.20.10
 |      LNX01 10.10.20.20
 |      MON01 10.10.20.30
 |
-+-- MGMT     10.10.30.0/24   gateway 10.10.30.1 [CONFIGURED]
++-- MGMT     10.10.30.0/24   gateway 10.10.30.1 [CONFIGURED + VERIFIED]
        Windows host 10.10.30.10
        TEST01       10.10.30.20
 ```
-
-## Cross-Subnet Routing Model
-
-```text
-CLIENT01 10.10.10.x
-       |
-       | destination 10.10.20.10 is outside local /24
-       v
-10.10.10.1 / FW01 USERS
-       |
-       | routing decision + firewall policy
-       v
-10.10.20.1 / FW01 SERVERS
-       |
-       v
-DC01 10.10.20.10
-```
-
-Routing decides where traffic can be forwarded. Firewall policy separately decides whether that traffic is allowed.
 
 ## Windows Host Routing Model
 
@@ -195,7 +162,7 @@ BelkaCorp routes later
 10.10.20.0/24 -> 10.10.30.1
 ```
 
-`10.10.30.1` is now a real, reachable next hop, but the specific Windows routes remain deferred until the remaining FW01 internal gateways are configured and the routing foundation is verified.
+The specific Windows routes remain deferred until Step 3.6 verifies FW01's own routing table.
 
 ## DHCP and DNS Ownership
 
@@ -213,24 +180,6 @@ DC01 10.10.20.10
   Windows DHCP
   DNS
   AD DS later
-```
-
-```text
-USERS DHCP scope later
-10.10.10.100 - 10.10.10.199
-Gateway -> 10.10.10.1
-DNS     -> 10.10.20.10
-```
-
-## Server Roles
-
-```text
-FW01      Firewall / routing / policy
-DC01      Active Directory + DNS + DHCP later
-CLIENT01  Domain user workstation
-LNX01     Linux administration / services
-MON01     Monitoring / observability
-TEST01    Temporary Hyper-V validation VM
 ```
 
 ## Troubleshooting Method
