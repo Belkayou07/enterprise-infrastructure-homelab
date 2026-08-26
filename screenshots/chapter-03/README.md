@@ -24,6 +24,8 @@ This folder is the landing area for real screenshots from Chapter 3 — Firewall
 | [`03-10-fw01-hyperv-nic-mac-map.png`](03-10-fw01-hyperv-nic-mac-map.png) | COMMITTED | PowerShell maps the four named Hyper-V adapters to their switches and assigned MAC addresses, establishing the authoritative host-side reference for OPNsense interface mapping. |
 | [`03-11-opnsense-guest-nic-mac-map.png`](03-11-opnsense-guest-nic-mac-map.png) | COMMITTED | OPNsense `ifconfig` output maps `hn0` through `hn3` to the same four MAC addresses, proving the guest-side interface identity before role assignment. |
 | [`03-12-opnsense-interface-role-assignment.png`](03-12-opnsense-interface-role-assignment.png) | COMMITTED | Shows the applied OPNsense interface roles: `WAN=hn0`, `LAN=hn3`, `OPT1=hn1`, `OPT2=hn2`; WAN also received an upstream DHCP address from the Hyper-V Default Switch. |
+| [`03-13a-opnsense-mgmt-ip-configured.png`](03-13a-opnsense-mgmt-ip-configured.png) | COMMITTED | Shows `LAN / hn3`, used as BelkaCorp MGMT, configured as `10.10.30.1/24` and the OPNsense console advertising the HTTPS management URL. |
+| [`03-13b-mgmt-connectivity-and-webgui.png`](03-13b-mgmt-connectivity-and-webgui.png) | COMMITTED | Shows the Windows host successfully pinging `10.10.30.1` with 0% loss while the OPNsense HTTPS Web GUI is reachable at the same management address. |
 
 The PXE incident is documented in `../../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
