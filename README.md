@@ -111,9 +111,11 @@ Before the first boot, I audited and corrected the VM configuration. The final v
 
 I installed OPNsense to `FW01.vhdx`, detached the installer ISO, and verified the installed system. The first post-install start fell through to Hyper-V PXE, so I investigated the boot chain instead of reinstalling. After explicitly prioritizing `FW01.vhdx` in the Generation 2 firmware boot order, OPNsense booted successfully from disk and reached the normal console menu.
 
-I then mapped every OPNsense guest interface to the authoritative Hyper-V adapter by matching MAC addresses. This verified `hn0=WAN`, `hn1=USERS`, `hn2=SERVERS`, and `hn3=MGMT`. I applied the OPNsense roles as `WAN=hn0`, `LAN=hn3` for management, `OPT1=hn1` for USERS, and `OPT2=hn2` for SERVERS. The WAN interface then obtained a DHCP address from the Hyper-V Default Switch.
+I then mapped every OPNsense guest interface to the authoritative Hyper-V adapter by matching MAC addresses. This verified `hn0=WAN`, `hn1=USERS`, `hn2=SERVERS`, and `hn3=MGMT`. I applied the OPNsense roles as `WAN=hn0`, `LAN=hn3` for management, `OPT1=hn1` for USERS, and `OPT2=hn2` for SERVERS.
 
-Steps 3.3 and 3.4 are complete. The current task is **3.5 — configure the BelkaCorp internal gateway addresses**, beginning with MGMT at `10.10.30.1/24`, then USERS at `10.10.10.1/24`, and SERVERS at `10.10.20.1/24`.
+I configured the MGMT gateway on `LAN / hn3` as `10.10.30.1/24`. From the Windows host at `10.10.30.10/24`, I verified 4/4 ICMP replies with 0% loss and successfully opened the OPNsense HTTPS Web GUI at `https://10.10.30.1`.
+
+Steps 3.3 and 3.4 are complete. Step 3.5 is in progress: MGMT is configured and verified; the next tasks are to configure USERS at `10.10.10.1/24` and SERVERS at `10.10.20.1/24`, then verify the complete internal gateway state before moving into routing validation.
 
 ## AI-Assisted Learning and Documentation
 
