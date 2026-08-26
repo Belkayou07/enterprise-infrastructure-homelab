@@ -68,27 +68,28 @@ OPT1            hn1   USERS
 OPT2            hn2   SERVERS
 ```
 
-Current console state immediately after role assignment:
+## Current Interface Addressing
 
 ```text
-LAN  / hn3   192.168.1.1/24      temporary OPNsense default
-OPT1 / hn1   no BelkaCorp IP yet
-OPT2 / hn2   no BelkaCorp IP yet
-WAN  / hn0   DHCP 172.25.218.248/20
+WAN  / hn0              DHCP via Hyper-V Default Switch
+LAN  / hn3 / MGMT       10.10.30.1/24   [CONFIGURED + VERIFIED]
+OPT1 / hn1 / USERS      10.10.10.1/24   [NEXT]
+OPT2 / hn2 / SERVERS    10.10.20.1/24   [NEXT]
+```
+
+MGMT verification:
+
+```text
+Windows host 10.10.30.10/24
+        |
+        | ping 10.10.30.1 -> 4/4 replies
+        | HTTPS Web GUI   -> reachable
+        v
+FW01 LAN / hn3
+10.10.30.1/24
 ```
 
 The WAN DHCP lease confirms the WAN adapter is connected to the Hyper-V Default Switch. Full Internet connectivity still requires separate verification.
-
-## Next Gateway Configuration
-
-```text
-LAN  / hn3 / MGMT      -> 10.10.30.1/24   [NEXT]
-OPT1 / hn1 / USERS     -> 10.10.10.1/24
-OPT2 / hn2 / SERVERS   -> 10.10.20.1/24
-WAN  / hn0             -> DHCP via Default Switch
-```
-
-MGMT is configured first because the Windows host is already connected to `vSW-MGMT` at `10.10.30.10/24`.
 
 ## Current MGMT Path
 
@@ -101,10 +102,11 @@ Windows host                  TEST01
                          |
                      hn3 / LAN
                        FW01
-                  10.10.30.1/24 NEXT
+                  10.10.30.1/24
+                     [OK]
 ```
 
-Before `10.10.30.1` exists, Windows and TEST01 still communicate directly with each other on the same Layer-2 subnet.
+Windows and TEST01 remain on the same Layer-2 MGMT subnet, and the Windows host can now directly manage FW01 at `10.10.30.1`.
 
 ## Final Enterprise Model
 
@@ -158,7 +160,7 @@ Windows host cannot directly join that switch
 |      LNX01 10.10.20.20
 |      MON01 10.10.20.30
 |
-+-- MGMT     10.10.30.0/24   gateway 10.10.30.1
++-- MGMT     10.10.30.0/24   gateway 10.10.30.1 [CONFIGURED]
        Windows host 10.10.30.10
        TEST01       10.10.30.20
 ```
@@ -193,7 +195,7 @@ BelkaCorp routes later
 10.10.20.0/24 -> 10.10.30.1
 ```
 
-The specific BelkaCorp routes are not added until `10.10.30.1` is configured and reachable. More-specific `/24` routes will then take precedence over the normal default route for lab traffic.
+`10.10.30.1` is now a real, reachable next hop, but the specific Windows routes remain deferred until the remaining FW01 internal gateways are configured and the routing foundation is verified.
 
 ## DHCP and DNS Ownership
 
