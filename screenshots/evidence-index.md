@@ -69,6 +69,8 @@ I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-du
 | [`chapter-03/03-10-fw01-hyperv-nic-mac-map.png`](chapter-03/03-10-fw01-hyperv-nic-mac-map.png) | COMMITTED | Shows the authoritative Hyper-V-side mapping of FW01 adapter names, switch connections, and MAC addresses for WAN, USERS, SERVERS, and MGMT. |
 | [`chapter-03/03-11-opnsense-guest-nic-mac-map.png`](chapter-03/03-11-opnsense-guest-nic-mac-map.png) | COMMITTED | Shows the OPNsense-side MAC addresses for `hn0` through `hn3`, allowing an exact MAC-to-MAC match with the Hyper-V adapter map. |
 | [`chapter-03/03-12-opnsense-interface-role-assignment.png`](chapter-03/03-12-opnsense-interface-role-assignment.png) | COMMITTED | Shows the applied OPNsense role assignment: `WAN=hn0`, `LAN=hn3`, `OPT1=hn1`, `OPT2=hn2`, with WAN receiving an upstream DHCP address from the Hyper-V Default Switch. |
+| [`chapter-03/03-13a-opnsense-mgmt-ip-configured.png`](chapter-03/03-13a-opnsense-mgmt-ip-configured.png) | COMMITTED | Shows the BelkaCorp MGMT interface (`LAN / hn3`) configured as `10.10.30.1/24` and OPNsense advertising the HTTPS management URL. |
+| [`chapter-03/03-13b-mgmt-connectivity-and-webgui.png`](chapter-03/03-13b-mgmt-connectivity-and-webgui.png) | COMMITTED | Shows successful Windows-to-FW01 ICMP connectivity to `10.10.30.1` with 0% loss and successful access to the OPNsense HTTPS Web GUI on the same address. |
 
 I documented the FW01 post-install PXE incident in `../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
