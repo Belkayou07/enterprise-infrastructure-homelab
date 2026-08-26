@@ -18,7 +18,9 @@ Windows host                  TEST01
       +--------- vSW-MGMT -----------+
                   Internal
                          |
+                    LAN / hn3
                        FW01
+                  10.10.30.1/24
                   OPNsense 26.7
                      running
 ```
@@ -26,9 +28,10 @@ Windows host                  TEST01
 Verified behavior:
 
 - Windows and TEST01 communicate directly inside `10.10.30.0/24`.
-- TEST01 has a directly connected route for `10.10.30.0/24`.
-- TEST01 resolves the Windows host at Layer 2 through neighbor/ARP discovery.
-- A route lookup toward `10.10.20.20` remains unreachable until `FW01` receives the planned internal gateway addresses and routing/firewall policy is configured.
+- FW01 MGMT is now configured as `10.10.30.1/24` on `LAN / hn3`.
+- The Windows host at `10.10.30.10/24` successfully pings `10.10.30.1` with 0% packet loss.
+- The OPNsense HTTPS Web GUI is reachable from the Windows host at `https://10.10.30.1`.
+- USERS and SERVERS gateway addresses are still pending.
 
 ## Chapter 3 Deployment State
 
@@ -112,7 +115,7 @@ SERVERS  -> hn2 -> vSW-SERVERS
 MGMT     -> hn3 -> vSW-MGMT
 ```
 
-I then applied the OPNsense roles as:
+I applied the OPNsense roles as:
 
 ```text
 WAN   = hn0
@@ -121,16 +124,18 @@ OPT1  = hn1   [BelkaCorp USERS]
 OPT2  = hn2   [BelkaCorp SERVERS]
 ```
 
-The post-assignment console verified:
+### Current interface addressing
 
 ```text
-LAN  (hn3)  192.168.1.1/24       temporary OPNsense default
-OPT1 (hn1)  no BelkaCorp IP yet
-OPT2 (hn2)  no BelkaCorp IP yet
-WAN  (hn0)  172.25.218.248/20     DHCP from Hyper-V Default Switch
+WAN  / hn0   DHCP from Hyper-V Default Switch
+LAN  / hn3   10.10.30.1/24   [MGMT, VERIFIED]
+OPT1 / hn1   no BelkaCorp IP yet
+OPT2 / hn2   no BelkaCorp IP yet
 ```
 
-The WAN DHCP address confirms upstream DHCP on the correct WAN adapter. Full WAN/Internet reachability has not yet been separately validated.
+The WAN DHCP lease confirms upstream DHCP on the correct WAN adapter. Full WAN/Internet reachability will be validated separately.
+
+The MGMT interface was configured without an internal upstream gateway, without OPNsense DHCP, and with HTTPS management retained. The Windows host can now reach the firewall directly on the same `10.10.30.0/24` subnet.
 
 ## Completed Network Design
 
@@ -145,10 +150,10 @@ Current subnets:
 ```text
 USERS    10.10.10.0/24   planned gateway 10.10.10.1
 SERVERS  10.10.20.0/24   planned gateway 10.10.20.1
-MGMT     10.10.30.0/24   planned gateway 10.10.30.1
+MGMT     10.10.30.0/24   gateway 10.10.30.1 [CONFIGURED]
 ```
 
-The Windows host keeps its normal Wi-Fi default route. Specific routes to `10.10.10.0/24` and `10.10.20.0/24` are only added after `FW01` is configured and `10.10.30.1` is reachable.
+The Windows host keeps its normal Wi-Fi default route. Specific routes to `10.10.10.0/24` and `10.10.20.0/24` are added only after the remaining FW01 internal gateway interfaces are configured and routing behavior is verified.
 
 ## Evidence Status
 
@@ -167,6 +172,8 @@ The current Chapter 3 evidence is committed and verified under `screenshots/chap
 03-10-fw01-hyperv-nic-mac-map.png                  COMMITTED
 03-11-opnsense-guest-nic-mac-map.png               COMMITTED
 03-12-opnsense-interface-role-assignment.png       COMMITTED
+03-13a-opnsense-mgmt-ip-configured.png             COMMITTED
+03-13b-mgmt-connectivity-and-webgui.png             COMMITTED
 ```
 
 ## Working Rule
@@ -198,22 +205,16 @@ Do not batch evidence or documentation until the end of the chapter.
 
 Continue **3.5 — Configure USERS, SERVERS, and MGMT gateway interfaces**.
 
-Configure the management interface first:
-
-```text
-LAN / hn3 / MGMT -> 10.10.30.1/24
-```
-
-Verify that the console shows the new address and that the Windows host at `10.10.30.10/24` can reach it before configuring the other two internal gateway addresses.
-
-Then later configure:
+MGMT is complete and verified. Configure the remaining two internal gateway addresses:
 
 ```text
 OPT1 / hn1 / USERS    -> 10.10.10.1/24
 OPT2 / hn2 / SERVERS  -> 10.10.20.1/24
 ```
 
-Do not add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until `10.10.30.1` is configured and verified as a reachable next hop.
+Keep DHCP disabled on these OPNsense internal interfaces because Windows Server/DC01 is planned to own DHCP later. Do not configure an upstream gateway on either internal interface.
+
+After both are configured, verify the console state before moving to Step 3.6. The Windows host routes to `10.10.10.0/24` and `10.10.20.0/24` remain deferred until the firewall has all intended internal gateways and the routing foundation is verified.
 
 ## Resume Rules
 
