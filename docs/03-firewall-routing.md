@@ -262,10 +262,10 @@ After applying the assignment, the console showed:
 LAN  (hn3)  -> 192.168.1.1/24
 OPT1 (hn1)
 OPT2 (hn2)
-WAN  (hn0)  -> DHCP 172.25.218.248/20
+WAN  (hn0)  -> DHCP from Hyper-V Default Switch
 ```
 
-The LAN address is still OPNsense's default and is not the final BelkaCorp management address. The WAN DHCP lease confirms that the WAN role is now on the adapter connected to the Hyper-V Default Switch; it does not by itself prove full Internet connectivity.
+The LAN address was still OPNsense's default and not the final BelkaCorp management address. The WAN DHCP lease confirmed that the WAN role was now on the adapter connected to the Hyper-V Default Switch; it did not by itself prove full Internet connectivity.
 
 ### Evidence
 
@@ -275,7 +275,7 @@ This completes Step 3.4. The interface identities were verified by MAC address f
 
 ## 3.5 — Configure Internal Gateway Interfaces
 
-The next configuration checkpoint is to replace the temporary/default internal addressing with the planned BelkaCorp gateway addresses:
+The planned internal gateway addresses are:
 
 ```text
 MGMT     LAN / hn3   10.10.30.1/24
@@ -283,7 +283,55 @@ USERS    OPT1 / hn1  10.10.10.1/24
 SERVERS  OPT2 / hn2  10.10.20.1/24
 ```
 
-The WAN interface remains DHCP through the Hyper-V Default Switch for now. I will configure and verify the internal addresses one interface at a time, beginning with MGMT so the Windows host can later reach `FW01` at `10.10.30.1`.
+The WAN interface remains DHCP through the Hyper-V Default Switch for now. I am configuring and verifying the internal addresses one interface at a time.
+
+### MGMT Gateway Configuration
+
+I configured `LAN / hn3`, which represents the BelkaCorp MGMT network, with the static IPv4 address:
+
+```text
+10.10.30.1/24
+```
+
+I did not configure an upstream gateway on this internal interface because `FW01` itself is the gateway for hosts in `10.10.30.0/24`. I also left OPNsense DHCP disabled because the long-term design assigns DHCP ownership to `DC01`, and I retained HTTPS for the OPNsense Web GUI.
+
+The OPNsense console then verified:
+
+```text
+LAN (hn3) -> 10.10.30.1/24
+```
+
+and advertised the management URL:
+
+```text
+https://10.10.30.1
+```
+
+### MGMT Connectivity Verification
+
+From the Windows host at `10.10.30.10/24`, I verified direct same-subnet connectivity to the firewall:
+
+```text
+ping 10.10.30.1
+4 sent, 4 received, 0% loss
+```
+
+I also opened the OPNsense HTTPS Web GUI successfully at `https://10.10.30.1`. This proves that the Windows host can reach the firewall's management interface at both the IP-connectivity level and the HTTPS management-service level.
+
+### Evidence
+
+![OPNsense MGMT IP configured](../screenshots/chapter-03/03-13a-opnsense-mgmt-ip-configured.png)
+
+![MGMT connectivity and OPNsense Web GUI](../screenshots/chapter-03/03-13b-mgmt-connectivity-and-webgui.png)
+
+The MGMT gateway is now configured and verified. Step 3.5 remains in progress because the USERS and SERVERS gateway interfaces still need their planned addresses:
+
+```text
+OPT1 / hn1 / USERS    -> 10.10.10.1/24
+OPT2 / hn2 / SERVERS  -> 10.10.20.1/24
+```
+
+I will keep DHCP disabled and will not configure an upstream gateway on either internal interface.
 
 ## Evidence and Documentation Workflow
 
@@ -312,4 +360,4 @@ This prevents the repository from lagging behind the real infrastructure state.
 
 ## Current Position
 
-**Step 3.4 is complete and Step 3.5 is now in progress.** OPNsense has the verified role assignment `WAN=hn0`, `LAN/MGMT=hn3`, `OPT1/USERS=hn1`, and `OPT2/SERVERS=hn2`. The WAN interface has obtained a DHCP address from the Hyper-V Default Switch. The internal BelkaCorp `.1` gateway addresses have not yet been configured; the next action is to configure the MGMT interface as `10.10.30.1/24` and verify it before continuing.
+**Step 3.4 is complete and Step 3.5 is in progress.** `LAN / hn3 / MGMT` is configured as `10.10.30.1/24`; the Windows host at `10.10.30.10/24` successfully reaches it by ICMP and can open the OPNsense HTTPS Web GUI. The next action is to configure `OPT1 / hn1 / USERS` as `10.10.10.1/24` and `OPT2 / hn2 / SERVERS` as `10.10.20.1/24`, then verify the resulting interface state before moving to Step 3.6.
