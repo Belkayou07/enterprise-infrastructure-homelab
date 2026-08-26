@@ -26,6 +26,7 @@ This folder is the landing area for real screenshots from Chapter 3 — Firewall
 | [`03-12-opnsense-interface-role-assignment.png`](03-12-opnsense-interface-role-assignment.png) | COMMITTED | Shows the applied OPNsense interface roles: `WAN=hn0`, `LAN=hn3`, `OPT1=hn1`, `OPT2=hn2`; WAN also received an upstream DHCP address from the Hyper-V Default Switch. |
 | [`03-13a-opnsense-mgmt-ip-configured.png`](03-13a-opnsense-mgmt-ip-configured.png) | COMMITTED | Shows `LAN / hn3`, used as BelkaCorp MGMT, configured as `10.10.30.1/24` and the OPNsense console advertising the HTTPS management URL. |
 | [`03-13b-mgmt-connectivity-and-webgui.png`](03-13b-mgmt-connectivity-and-webgui.png) | COMMITTED | Shows the Windows host successfully pinging `10.10.30.1` with 0% loss while the OPNsense HTTPS Web GUI is reachable at the same management address. |
+| [`03-14-opnsense-internal-gateways-configured.png`](03-14-opnsense-internal-gateways-configured.png) | COMMITTED | Shows all three static BelkaCorp internal gateways applied on FW01: MGMT `10.10.30.1/24`, USERS `10.10.10.1/24`, and SERVERS `10.10.20.1/24`, with WAN remaining DHCP. |
 
 The PXE incident is documented in `../../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
