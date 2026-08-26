@@ -14,7 +14,7 @@ A firewall/router is the control point between network segments. It must have th
 - [x] 3.2 — Create and verify the `FW01` VM before first boot
 - [x] 3.3 — Install OPNsense
 - [x] 3.4 — Identify and map the four interfaces
-- [ ] 3.5 — Configure USERS, SERVERS, and MGMT gateway interfaces
+- [x] 3.5 — Configure USERS, SERVERS, and MGMT gateway interfaces
 - [ ] 3.6 — Verify management connectivity and routing foundation
 - [ ] 3.7 — Add the Windows host's specific BelkaCorp routes
 - [ ] 3.8 — Validate routed traffic and initial firewall behavior
@@ -275,7 +275,7 @@ This completes Step 3.4. The interface identities were verified by MAC address f
 
 ## 3.5 — Configure Internal Gateway Interfaces
 
-The planned internal gateway addresses are:
+I configured the three planned internal gateway addresses:
 
 ```text
 MGMT     LAN / hn3   10.10.30.1/24
@@ -283,40 +283,18 @@ USERS    OPT1 / hn1  10.10.10.1/24
 SERVERS  OPT2 / hn2  10.10.20.1/24
 ```
 
-The WAN interface remains DHCP through the Hyper-V Default Switch for now. I am configuring and verifying the internal addresses one interface at a time.
+The WAN interface remains DHCP through the Hyper-V Default Switch. I did not configure upstream gateways on the internal interfaces because `FW01` itself is the gateway for hosts inside those connected subnets. I also kept OPNsense DHCP disabled because the long-term design assigns DHCP ownership to `DC01`.
 
-### MGMT Gateway Configuration
+### MGMT Gateway Verification
 
-I configured `LAN / hn3`, which represents the BelkaCorp MGMT network, with the static IPv4 address:
-
-```text
-10.10.30.1/24
-```
-
-I did not configure an upstream gateway on this internal interface because `FW01` itself is the gateway for hosts in `10.10.30.0/24`. I also left OPNsense DHCP disabled because the long-term design assigns DHCP ownership to `DC01`, and I retained HTTPS for the OPNsense Web GUI.
-
-The OPNsense console then verified:
-
-```text
-LAN (hn3) -> 10.10.30.1/24
-```
-
-and advertised the management URL:
-
-```text
-https://10.10.30.1
-```
-
-### MGMT Connectivity Verification
-
-From the Windows host at `10.10.30.10/24`, I verified direct same-subnet connectivity to the firewall:
+After configuring `LAN / hn3` as `10.10.30.1/24`, the Windows host at `10.10.30.10/24` successfully reached it:
 
 ```text
 ping 10.10.30.1
 4 sent, 4 received, 0% loss
 ```
 
-I also opened the OPNsense HTTPS Web GUI successfully at `https://10.10.30.1`. This proves that the Windows host can reach the firewall's management interface at both the IP-connectivity level and the HTTPS management-service level.
+I also opened the OPNsense HTTPS Web GUI successfully at `https://10.10.30.1`.
 
 ### Evidence
 
@@ -324,14 +302,28 @@ I also opened the OPNsense HTTPS Web GUI successfully at `https://10.10.30.1`. T
 
 ![MGMT connectivity and OPNsense Web GUI](../screenshots/chapter-03/03-13b-mgmt-connectivity-and-webgui.png)
 
-The MGMT gateway is now configured and verified. Step 3.5 remains in progress because the USERS and SERVERS gateway interfaces still need their planned addresses:
+### Complete Internal Gateway State
+
+I then configured the remaining two internal interfaces. The OPNsense console verified the complete addressing state:
 
 ```text
-OPT1 / hn1 / USERS    -> 10.10.10.1/24
-OPT2 / hn2 / SERVERS  -> 10.10.20.1/24
+LAN  (hn3) -> 10.10.30.1/24   MGMT
+OPT1 (hn1) -> 10.10.10.1/24   USERS
+OPT2 (hn2) -> 10.10.20.1/24   SERVERS
+WAN  (hn0) -> DHCP             upstream
 ```
 
-I will keep DHCP disabled and will not configure an upstream gateway on either internal interface.
+The WAN DHCP lease may change because it is supplied dynamically by the Hyper-V Default Switch; the three BelkaCorp internal gateway addresses are static by design.
+
+### Evidence
+
+![OPNsense internal gateways configured](../screenshots/chapter-03/03-14-opnsense-internal-gateways-configured.png)
+
+This completes Step 3.5. `FW01` now owns one Layer-3 interface inside each BelkaCorp subnet.
+
+## 3.6 — Verify Management Connectivity and Routing Foundation
+
+The next step is to verify that OPNsense installed the expected connected IPv4 routes for USERS, SERVERS, and MGMT and that the WAN/default route remains present. I will verify route selection before adding any Windows host routes or testing cross-subnet traffic.
 
 ## Evidence and Documentation Workflow
 
@@ -360,4 +352,4 @@ This prevents the repository from lagging behind the real infrastructure state.
 
 ## Current Position
 
-**Step 3.4 is complete and Step 3.5 is in progress.** `LAN / hn3 / MGMT` is configured as `10.10.30.1/24`; the Windows host at `10.10.30.10/24` successfully reaches it by ICMP and can open the OPNsense HTTPS Web GUI. The next action is to configure `OPT1 / hn1 / USERS` as `10.10.10.1/24` and `OPT2 / hn2 / SERVERS` as `10.10.20.1/24`, then verify the resulting interface state before moving to Step 3.6.
+**Step 3.5 is complete and Step 3.6 is now in progress.** `FW01` has static gateway addresses on all three BelkaCorp internal networks: USERS `10.10.10.1/24`, SERVERS `10.10.20.1/24`, and MGMT `10.10.30.1/24`. MGMT connectivity and HTTPS management access are already verified. The next action is to inspect OPNsense's IPv4 routing table and verify that these three `/24` networks are directly connected before adding the Windows host's specific BelkaCorp routes.
