@@ -113,9 +113,9 @@ I installed OPNsense to `FW01.vhdx`, detached the installer ISO, and verified th
 
 I then mapped every OPNsense guest interface to the authoritative Hyper-V adapter by matching MAC addresses. This verified `hn0=WAN`, `hn1=USERS`, `hn2=SERVERS`, and `hn3=MGMT`. I applied the OPNsense roles as `WAN=hn0`, `LAN=hn3` for management, `OPT1=hn1` for USERS, and `OPT2=hn2` for SERVERS.
 
-I configured the MGMT gateway on `LAN / hn3` as `10.10.30.1/24`. From the Windows host at `10.10.30.10/24`, I verified 4/4 ICMP replies with 0% loss and successfully opened the OPNsense HTTPS Web GUI at `https://10.10.30.1`.
+I configured all three static BelkaCorp internal gateway addresses on FW01: USERS `10.10.10.1/24`, SERVERS `10.10.20.1/24`, and MGMT `10.10.30.1/24`. From the Windows host at `10.10.30.10/24`, I verified 4/4 ICMP replies with 0% loss to the MGMT gateway and successfully opened the OPNsense HTTPS Web GUI at `https://10.10.30.1`.
 
-Steps 3.3 and 3.4 are complete. Step 3.5 is in progress: MGMT is configured and verified; the next tasks are to configure USERS at `10.10.10.1/24` and SERVERS at `10.10.20.1/24`, then verify the complete internal gateway state before moving into routing validation.
+Steps 3.3, 3.4, and 3.5 are complete. The current task is **3.6 — verify the OPNsense routing foundation**, including the directly connected routes for all three BelkaCorp `/24` networks and the WAN/default route, before adding the Windows host's specific lab routes.
 
 ## AI-Assisted Learning and Documentation
 
