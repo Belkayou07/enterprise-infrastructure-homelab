@@ -63,7 +63,7 @@ Windows 11 Pro Desktop
     └── vSW-MGMT    ──── Windows host management path
 ```
 
-`FW01` will route and enforce firewall policy between the isolated lab networks.
+`FW01` routes and will enforce firewall policy between the isolated lab networks.
 
 ## Repository Structure
 
@@ -97,25 +97,23 @@ The final Chapter 1 audit confirmed the Hyper-V feature and service state, Belka
 
 **Chapter 2 — Complete**
 
-I verified the pre-router network baseline from both Windows and TEST01, then defined the BelkaCorp address plan across USERS (`10.10.10.0/24`), SERVERS (`10.10.20.0/24`), and MGMT (`10.10.30.0/24`). I documented the Layer-2 boundaries created by the Hyper-V virtual switches and the Layer-3 routing responsibilities that will belong to `FW01`.
+I verified the pre-router network baseline from both Windows and TEST01, then defined the BelkaCorp address plan across USERS (`10.10.10.0/24`), SERVERS (`10.10.20.0/24`), and MGMT (`10.10.30.0/24`). I documented the Layer-2 boundaries created by the Hyper-V virtual switches and the Layer-3 routing responsibilities that belong to `FW01`.
 
-I also defined the planned `.1` gateway convention, routing and return-path behavior, Windows-specific routes that will preserve the host's normal Wi-Fi default route, DHCP ownership on `DC01`, DHCP relay through `FW01`, and internal DNS ownership on `DC01` for the future Active Directory environment.
-
-The final implementation plan provides a dependency-aware handoff into Chapter 3: deploy `FW01`, identify and configure its WAN/USERS/SERVERS/MGMT interfaces, verify the MGMT interface first, and only then introduce cross-subnet routes and later services.
+I also defined the `.1` gateway convention, routing and return-path behavior, Windows-specific routes that preserve the host's normal Wi-Fi default route, DHCP ownership on `DC01`, DHCP relay through `FW01`, and internal DNS ownership on `DC01` for the future Active Directory environment.
 
 **Chapter 3 — In progress**
 
-I verified the pre-deployment Hyper-V state, downloaded and SHA-256 verified the OPNsense 26.7 `amd64` DVD installer, extracted the ISO into the Hyper-V ISO directory, and created the initial `FW01` Generation 2 VM.
+I deployed `FW01` as a Generation 2 Hyper-V VM and installed OPNsense 26.7. Before first boot I corrected the VM to 2 vCPU, fixed 4096 MB RAM, Secure Boot disabled, automatic checkpoints disabled, the dedicated VHDX, and four network adapters attached to the intended virtual switches.
 
-Before the first boot, I audited and corrected the VM configuration. The final verified platform state is 2 vCPU, fixed 4096 MB RAM, Secure Boot disabled, automatic checkpoints disabled, the correct VHDX attached, and four named adapters mapped to the Default Switch, `vSW-USERS`, `vSW-SERVERS`, and `vSW-MGMT`.
+The first post-install start fell through to Hyper-V PXE, so I investigated the boot chain instead of reinstalling. After explicitly prioritizing `FW01.vhdx` in the Generation 2 firmware boot order, OPNsense booted successfully from disk and reached the normal console menu.
 
-I installed OPNsense to `FW01.vhdx`, detached the installer ISO, and verified the installed system. The first post-install start fell through to Hyper-V PXE, so I investigated the boot chain instead of reinstalling. After explicitly prioritizing `FW01.vhdx` in the Generation 2 firmware boot order, OPNsense booted successfully from disk and reached the normal console menu.
+I mapped every OPNsense guest interface to the authoritative Hyper-V adapter by matching MAC addresses. This verified `hn0=WAN`, `hn1=USERS`, `hn2=SERVERS`, and `hn3=MGMT`. I applied the OPNsense roles as `WAN=hn0`, `LAN=hn3` for management, `OPT1=hn1` for USERS, and `OPT2=hn2` for SERVERS.
 
-I then mapped every OPNsense guest interface to the authoritative Hyper-V adapter by matching MAC addresses. This verified `hn0=WAN`, `hn1=USERS`, `hn2=SERVERS`, and `hn3=MGMT`. I applied the OPNsense roles as `WAN=hn0`, `LAN=hn3` for management, `OPT1=hn1` for USERS, and `OPT2=hn2` for SERVERS.
+I configured all three static BelkaCorp internal gateway addresses on FW01: USERS `10.10.10.1/24`, SERVERS `10.10.20.1/24`, and MGMT `10.10.30.1/24`. From the Windows host at `10.10.30.10/24`, I verified management connectivity and successfully opened the OPNsense HTTPS Web GUI at `https://10.10.30.1`.
 
-I configured all three static BelkaCorp internal gateway addresses on FW01: USERS `10.10.10.1/24`, SERVERS `10.10.20.1/24`, and MGMT `10.10.30.1/24`. From the Windows host at `10.10.30.10/24`, I verified 4/4 ICMP replies with 0% loss to the MGMT gateway and successfully opened the OPNsense HTTPS Web GUI at `https://10.10.30.1`.
+I then verified OPNsense's routing foundation. The routing table contains directly connected routes for `10.10.10.0/24` on `hn1`, `10.10.20.0/24` on `hn2`, and `10.10.30.0/24` on `hn3`, plus a default route through WAN on `hn0`. Explicit route lookups selected the expected internal interfaces, FW01 successfully reached the Windows MGMT host, and a ping to public IP `1.1.1.1` completed with 0% packet loss.
 
-Steps 3.3, 3.4, and 3.5 are complete. The current task is **3.6 — verify the OPNsense routing foundation**, including the directly connected routes for all three BelkaCorp `/24` networks and the WAN/default route, before adding the Windows host's specific lab routes.
+Steps 3.3 through 3.6 are complete. The current task is **3.7 — add the Windows host's specific routes for USERS and SERVERS through `10.10.30.1` while preserving the normal Wi-Fi default route**.
 
 ## AI-Assisted Learning and Documentation
 
