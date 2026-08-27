@@ -5,50 +5,43 @@
 ## Current Position
 
 - **Current chapter:** Chapter 3 — Firewall and Routing
-- **Last completed step:** 3.5 — Configure USERS, SERVERS, and MGMT gateway interfaces
-- **Current step:** 3.6 — Verify management connectivity and routing foundation
+- **Last completed step:** 3.6 — Verify management connectivity and routing foundation
+- **Current step:** 3.7 — Add the Windows host's specific BelkaCorp routes
 - **Open issues:** None currently blocking progress
 
 ## Verified Live State
 
 ```text
-Windows host                  TEST01
-10.10.30.10/24                10.10.30.20/24
-      |                              |
-      +--------- vSW-MGMT -----------+
-                  Internal
-                         |
-                    LAN / hn3
-                       FW01
-                  10.10.30.1/24
-                  OPNsense 26.7
-                     running
+                         Hyper-V Default Switch
+                                  |
+                              WAN / hn0
+                                 FW01
+                            OPNsense 26.7
+               +----------------+----------------+
+               |                |                |
+          USERS / hn1      SERVERS / hn2     MGMT / hn3
+          10.10.10.1       10.10.20.1        10.10.30.1
+               |                |                |
+          vSW-USERS        vSW-SERVERS        vSW-MGMT
+                                                |
+                              +-----------------+-----------------+
+                              |                                   |
+                       Windows host                            TEST01
+                       10.10.30.10/24                         10.10.30.20/24
 ```
 
 Verified behavior:
 
-- Windows and TEST01 communicate directly inside `10.10.30.0/24`.
 - FW01 MGMT is configured as `10.10.30.1/24` on `LAN / hn3`.
-- The Windows host at `10.10.30.10/24` successfully pings `10.10.30.1` with 0% packet loss.
-- The OPNsense HTTPS Web GUI is reachable from the Windows host at `https://10.10.30.1`.
+- The Windows host at `10.10.30.10/24` successfully reaches `10.10.30.1`, and the OPNsense HTTPS Web GUI is reachable at `https://10.10.30.1`.
 - USERS is configured as `10.10.10.1/24` on `OPT1 / hn1`.
 - SERVERS is configured as `10.10.20.1/24` on `OPT2 / hn2`.
+- OPNsense has directly connected routes for all three BelkaCorp `/24` networks on the expected interfaces.
+- OPNsense has a default route through WAN / `hn0`.
+- FW01 successfully pings the Windows MGMT host `10.10.30.10` with 0% loss.
+- FW01 successfully pings public IP `1.1.1.1` with 0% loss, proving WAN IP connectivity at this checkpoint.
 
 ## Chapter 3 Deployment State
-
-The OPNsense 26.7 `amd64` DVD installer was downloaded and the compressed image passed SHA-256 verification.
-
-Verified SHA-256:
-
-```text
-95CAFEDDA6D5B22CE832E249DC2309110FBEE19F813AD78CF28BB3D387186BFB
-```
-
-The extracted installer remains staged at:
-
-```text
-C:\Hyper-V\ISOs\OPNsense-26.7-dvd-amd64.iso
-```
 
 ### Verified FW01 platform state
 
@@ -68,75 +61,52 @@ SERVERS  -> vSW-SERVERS
 MGMT     -> vSW-MGMT
 ```
 
-### OPNsense installation state
+The OPNsense 26.7 installation is complete. The first post-install start fell through to PXE, but the VHDX and firmware boot chain were investigated and corrected by explicitly prioritizing `FW01.vhdx`. The incident is closed in `troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
-`FW01` successfully booted from the verified OPNsense ISO, reached the live console, and completed installation to the dedicated virtual disk using ZFS on the single virtual disk.
-
-The first post-install start fell through to Hyper-V PXE. Investigation confirmed the VHDX was attached correctly and Secure Boot was off. I explicitly placed the hard disk first in the Generation 2 firmware boot order, then retried the boot.
-
-Final verification shows:
+### Verified interface identity and roles
 
 ```text
-Installer ISO             detached
-FW01.vhdx                 attached on SCSI 0:0
-FW01.vhdx boot priority   first
-Installed OPNsense boot   successful
-Root login                successful
-Normal console menu       reached
+Hyper-V role   OPNsense NIC   OPNsense role   IPv4
+-----------------------------------------------------------
+WAN            hn0            WAN             DHCP
+USERS          hn1            OPT1            10.10.10.1/24
+SERVERS        hn2            OPT2            10.10.20.1/24
+MGMT           hn3            LAN             10.10.30.1/24
 ```
 
-The PXE incident is closed in `troubleshooting/006-fw01-post-install-pxe-boot.md`.
+MAC-address verification established the interface identity before these roles were assigned.
 
-### Verified interface identity and applied roles
+### Verified FW01 routing foundation
 
-The host-side Hyper-V adapter map is:
+The OPNsense IPv4 routing table contains:
 
 ```text
-WAN      Default Switch   00:15:5D:38:01:05
-USERS    vSW-USERS        00:15:5D:38:01:06
-SERVERS  vSW-SERVERS      00:15:5D:38:01:07
-MGMT     vSW-MGMT         00:15:5D:38:01:08
+10.10.10.0/24   directly connected   hn1   USERS
+10.10.20.0/24   directly connected   hn2   SERVERS
+10.10.30.0/24   directly connected   hn3   MGMT
+default         upstream gateway     hn0   WAN
 ```
 
-The OPNsense guest-side MAC map is:
+At the validation checkpoint, the WAN side was on a Hyper-V Default Switch DHCP network and the routing table showed the default gateway through `hn0`. Because this WAN addressing is supplied dynamically, the exact WAN lease may change.
+
+Explicit route lookups verified:
 
 ```text
-hn0   00:15:5D:38:01:05
-hn1   00:15:5D:38:01:06
-hn2   00:15:5D:38:01:07
-hn3   00:15:5D:38:01:08
+10.10.10.50 -> hn1
+10.10.20.50 -> hn2
+10.10.30.10 -> hn3
 ```
 
-The resulting exact mapping is:
+The `.50` destinations do not need to exist; these lookups test route selection only.
+
+Connectivity validation verified:
 
 ```text
-WAN      -> hn0 -> Default Switch
-USERS    -> hn1 -> vSW-USERS
-SERVERS  -> hn2 -> vSW-SERVERS
-MGMT     -> hn3 -> vSW-MGMT
+FW01 -> 10.10.30.10   4/4 replies, 0% loss
+FW01 -> 1.1.1.1       4/4 replies, 0% loss
 ```
 
-I applied the OPNsense roles as:
-
-```text
-WAN   = hn0
-LAN   = hn3   [BelkaCorp MGMT]
-OPT1  = hn1   [BelkaCorp USERS]
-OPT2  = hn2   [BelkaCorp SERVERS]
-```
-
-### Current interface addressing
-
-```text
-WAN  / hn0              DHCP from Hyper-V Default Switch
-LAN  / hn3 / MGMT       10.10.30.1/24   [CONFIGURED + VERIFIED]
-OPT1 / hn1 / USERS      10.10.10.1/24   [CONFIGURED]
-OPT2 / hn2 / SERVERS    10.10.20.1/24   [CONFIGURED]
-```
-
-The WAN DHCP lease is dynamic and may change. The three BelkaCorp internal gateway addresses are static.
-
-No upstream gateway is configured on the internal interfaces. OPNsense DHCP remains disabled there because the long-term design assigns DHCP ownership to `DC01`.
+This completes Step 3.6. Routing is present at Layer 3; firewall policy remains a separate control that will be validated later.
 
 ## Completed Network Design
 
@@ -149,33 +119,36 @@ BelkaCorp allocation block:
 Current subnets:
 
 ```text
-USERS    10.10.10.0/24   gateway 10.10.10.1 [CONFIGURED]
-SERVERS  10.10.20.0/24   gateway 10.10.20.1 [CONFIGURED]
+USERS    10.10.10.0/24   gateway 10.10.10.1 [CONFIGURED + ROUTE VERIFIED]
+SERVERS  10.10.20.0/24   gateway 10.10.20.1 [CONFIGURED + ROUTE VERIFIED]
 MGMT     10.10.30.0/24   gateway 10.10.30.1 [CONFIGURED + VERIFIED]
 ```
 
-The Windows host keeps its normal Wi-Fi default route. Specific routes to `10.10.10.0/24` and `10.10.20.0/24` are still deferred until Step 3.6 confirms FW01's routing foundation.
+The Windows host keeps its normal Wi-Fi default route. It still needs specific routes for USERS and SERVERS through the reachable MGMT next hop `10.10.30.1`.
 
 ## Evidence Status
 
 The current Chapter 3 evidence is committed and verified under `screenshots/chapter-03/`:
 
 ```text
-03-01-fw01-predeployment-baseline.png             COMMITTED
-03-02-opnsense-download-hash-verification.png     COMMITTED
-03-03-opnsense-iso-staged.png                     COMMITTED
-03-04-fw01-wizard-summary.png                     COMMITTED
-03-05-fw01-initial-preboot-audit.png               COMMITTED
-03-06-fw01-final-preboot-verification.png          COMMITTED
-03-07-opnsense-boot-menu.png                       COMMITTED
-03-08-fw01-pxe-after-install.png                   COMMITTED
-03-09-opnsense-installed-first-disk-boot.png       COMMITTED
-03-10-fw01-hyperv-nic-mac-map.png                  COMMITTED
-03-11-opnsense-guest-nic-mac-map.png               COMMITTED
-03-12-opnsense-interface-role-assignment.png       COMMITTED
-03-13a-opnsense-mgmt-ip-configured.png             COMMITTED
-03-13b-mgmt-connectivity-and-webgui.png             COMMITTED
-03-14-opnsense-internal-gateways-configured.png    COMMITTED
+03-01-fw01-predeployment-baseline.png              COMMITTED
+03-02-opnsense-download-hash-verification.png      COMMITTED
+03-03-opnsense-iso-staged.png                      COMMITTED
+03-04-fw01-wizard-summary.png                      COMMITTED
+03-05-fw01-initial-preboot-audit.png                COMMITTED
+03-06-fw01-final-preboot-verification.png           COMMITTED
+03-07-opnsense-boot-menu.png                        COMMITTED
+03-08-fw01-pxe-after-install.png                    COMMITTED
+03-09-opnsense-installed-first-disk-boot.png        COMMITTED
+03-10-fw01-hyperv-nic-mac-map.png                   COMMITTED
+03-11-opnsense-guest-nic-mac-map.png                COMMITTED
+03-12-opnsense-interface-role-assignment.png        COMMITTED
+03-13a-opnsense-mgmt-ip-configured.png              COMMITTED
+03-13b-mgmt-connectivity-and-webgui.png              COMMITTED
+03-14-opnsense-internal-gateways-configured.png     COMMITTED
+03-15a-opnsense-routing-table.png                   COMMITTED
+03-15b-opnsense-route-lookups.png                   COMMITTED
+03-15c-opnsense-connectivity-validation.png         COMMITTED
 ```
 
 ## Working Rule
@@ -205,11 +178,16 @@ Do not batch evidence or documentation until the end of the chapter.
 
 ## Immediate Next Work
 
-Continue **3.6 — Verify management connectivity and routing foundation**.
+Continue **3.7 — Add the Windows host's specific BelkaCorp routes**.
 
-Inspect the OPNsense IPv4 routing table and verify that the three BelkaCorp `/24` networks are directly connected through the correct interfaces, while a WAN/default route remains available.
+The Windows host must preserve its normal Internet default route on Wi-Fi while adding only these lab-specific destinations through FW01:
 
-Do not add the Windows routes to `10.10.10.0/24` and `10.10.20.0/24` until this routing-table verification is complete.
+```text
+10.10.10.0/24 -> next hop 10.10.30.1 via vEthernet (vSW-MGMT)
+10.10.20.0/24 -> next hop 10.10.30.1 via vEthernet (vSW-MGMT)
+```
+
+After adding them, verify route selection and persistence before moving into cross-subnet traffic and firewall-policy validation.
 
 ## Resume Rules
 
