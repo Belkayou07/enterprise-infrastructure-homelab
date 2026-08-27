@@ -15,8 +15,8 @@ CHAPTER 3  Firewall / routing           [NOW]
    3.3     Install OPNsense             [DONE]
    3.4     Map four FW01 interfaces     [DONE]
    3.5     Configure internal gateways  [DONE]
-   3.6     Verify MGMT + routing        [NOW]
-   3.7     Add Windows lab routes
+   3.6     Verify MGMT + routing        [DONE]
+   3.7     Add Windows lab routes       [NOW]
    3.8     Validate routing / policy
    3.9     Final Chapter 3 audit
 
@@ -80,19 +80,31 @@ FW01 LAN / hn3
 10.10.30.1/24
 ```
 
-## Routing Foundation to Verify
+## Verified FW01 Routing Foundation
 
 ```text
-Expected connected routes on FW01
-10.10.10.0/24 -> hn1 / USERS
-10.10.20.0/24 -> hn2 / SERVERS
-10.10.30.0/24 -> hn3 / MGMT
-
-Expected default route
-0.0.0.0/0 -> WAN / hn0 upstream
+10.10.10.0/24 -> hn1 / USERS    [OK]
+10.10.20.0/24 -> hn2 / SERVERS  [OK]
+10.10.30.0/24 -> hn3 / MGMT     [OK]
+default       -> hn0 / WAN      [OK]
 ```
 
-These connected routes should be created automatically because FW01 owns an IP address inside each subnet. Step 3.6 verifies that OPNsense actually installed them before Windows-specific routes are added.
+Explicit route lookups:
+
+```text
+10.10.10.50 -> hn1
+10.10.20.50 -> hn2
+10.10.30.10 -> hn3
+```
+
+Connectivity from FW01:
+
+```text
+10.10.30.10 -> 4/4 replies, 0% loss
+1.1.1.1     -> 4/4 replies, 0% loss
+```
+
+This proves FW01 knows where all three internal subnets live and has working WAN IP connectivity. Routing and firewall permission remain separate concepts.
 
 ## Current MGMT Path
 
@@ -138,10 +150,10 @@ Windows host                  TEST01
 ```text
 10.10.0.0/16
 |
-+-- USERS    10.10.10.0/24   gateway 10.10.10.1 [CONFIGURED]
++-- USERS    10.10.10.0/24   gateway 10.10.10.1 [CONFIGURED + ROUTE VERIFIED]
 |      DHCP later: 10.10.10.100 - 10.10.10.199
 |
-+-- SERVERS  10.10.20.0/24   gateway 10.10.20.1 [CONFIGURED]
++-- SERVERS  10.10.20.0/24   gateway 10.10.20.1 [CONFIGURED + ROUTE VERIFIED]
 |      DC01  10.10.20.10
 |      LNX01 10.10.20.20
 |      MON01 10.10.20.30
@@ -151,18 +163,18 @@ Windows host                  TEST01
        TEST01       10.10.30.20
 ```
 
-## Windows Host Routing Model
+## Windows Host Routing Model — Next
 
 ```text
 Windows normal default route
 0.0.0.0/0 -> home Wi-Fi gateway
 
-BelkaCorp routes later
-10.10.10.0/24 -> 10.10.30.1
-10.10.20.0/24 -> 10.10.30.1
+BelkaCorp-specific routes
+10.10.10.0/24 -> 10.10.30.1 via vEthernet (vSW-MGMT)
+10.10.20.0/24 -> 10.10.30.1 via vEthernet (vSW-MGMT)
 ```
 
-The specific Windows routes remain deferred until Step 3.6 verifies FW01's own routing table.
+The two `/24` routes are more specific than the normal `0.0.0.0/0` default route. Windows should therefore use FW01 only for BelkaCorp USERS/SERVERS traffic while ordinary Internet traffic continues through Wi-Fi.
 
 ## DHCP and DNS Ownership
 
