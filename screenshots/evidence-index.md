@@ -72,6 +72,9 @@ I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-du
 | [`chapter-03/03-13a-opnsense-mgmt-ip-configured.png`](chapter-03/03-13a-opnsense-mgmt-ip-configured.png) | COMMITTED | Shows the BelkaCorp MGMT interface (`LAN / hn3`) configured as `10.10.30.1/24` and OPNsense advertising the HTTPS management URL. |
 | [`chapter-03/03-13b-mgmt-connectivity-and-webgui.png`](chapter-03/03-13b-mgmt-connectivity-and-webgui.png) | COMMITTED | Shows successful Windows-to-FW01 ICMP connectivity to `10.10.30.1` with 0% loss and successful access to the OPNsense HTTPS Web GUI on the same address. |
 | [`chapter-03/03-14-opnsense-internal-gateways-configured.png`](chapter-03/03-14-opnsense-internal-gateways-configured.png) | COMMITTED | Shows the complete static internal gateway state on FW01: USERS `10.10.10.1/24`, SERVERS `10.10.20.1/24`, and MGMT `10.10.30.1/24`, while WAN remains DHCP. |
+| [`chapter-03/03-15a-opnsense-routing-table.png`](chapter-03/03-15a-opnsense-routing-table.png) | COMMITTED | Shows directly connected USERS, SERVERS, and MGMT routes on `hn1`, `hn2`, and `hn3`, plus the default route through WAN on `hn0`. |
+| [`chapter-03/03-15b-opnsense-route-lookups.png`](chapter-03/03-15b-opnsense-route-lookups.png) | COMMITTED | Shows OPNsense choosing `hn1` for USERS, `hn2` for SERVERS, and `hn3` for the Windows MGMT host. |
+| [`chapter-03/03-15c-opnsense-connectivity-validation.png`](chapter-03/03-15c-opnsense-connectivity-validation.png) | COMMITTED | Shows successful FW01 ICMP connectivity to the Windows MGMT host and public IP `1.1.1.1`, both with 0% loss. |
 
 I documented the FW01 post-install PXE incident in `../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
