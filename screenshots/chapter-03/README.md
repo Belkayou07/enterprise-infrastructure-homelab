@@ -27,6 +27,9 @@ This folder is the landing area for real screenshots from Chapter 3 — Firewall
 | [`03-13a-opnsense-mgmt-ip-configured.png`](03-13a-opnsense-mgmt-ip-configured.png) | COMMITTED | Shows `LAN / hn3`, used as BelkaCorp MGMT, configured as `10.10.30.1/24` and the OPNsense console advertising the HTTPS management URL. |
 | [`03-13b-mgmt-connectivity-and-webgui.png`](03-13b-mgmt-connectivity-and-webgui.png) | COMMITTED | Shows the Windows host successfully pinging `10.10.30.1` with 0% loss while the OPNsense HTTPS Web GUI is reachable at the same management address. |
 | [`03-14-opnsense-internal-gateways-configured.png`](03-14-opnsense-internal-gateways-configured.png) | COMMITTED | Shows all three static BelkaCorp internal gateways applied on FW01: MGMT `10.10.30.1/24`, USERS `10.10.10.1/24`, and SERVERS `10.10.20.1/24`, with WAN remaining DHCP. |
+| [`03-15a-opnsense-routing-table.png`](03-15a-opnsense-routing-table.png) | COMMITTED | Shows OPNsense's IPv4 routing table with directly connected routes for USERS on `hn1`, SERVERS on `hn2`, MGMT on `hn3`, and a default route through WAN on `hn0`. |
+| [`03-15b-opnsense-route-lookups.png`](03-15b-opnsense-route-lookups.png) | COMMITTED | Shows route lookups selecting `hn1` for `10.10.10.50`, `hn2` for `10.10.20.50`, and `hn3` for the Windows MGMT host `10.10.30.10`. |
+| [`03-15c-opnsense-connectivity-validation.png`](03-15c-opnsense-connectivity-validation.png) | COMMITTED | Shows FW01 successfully pinging the Windows MGMT host `10.10.30.10` and public IP `1.1.1.1`, both with 0% packet loss. |
 
 The PXE incident is documented in `../../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
