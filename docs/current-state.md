@@ -5,8 +5,8 @@
 ## Current Position
 
 - **Current chapter:** Chapter 3 — Firewall and Routing
-- **Last completed step:** 3.6 — Verify management connectivity and routing foundation
-- **Current step:** 3.7 — Add the Windows host's specific BelkaCorp routes
+- **Last completed step:** 3.7 — Add the Windows host's specific BelkaCorp routes
+- **Current step:** 3.8 — Validate routed traffic and initial firewall behavior
 - **Open issues:** None currently blocking progress
 
 ## Verified Live State
@@ -32,18 +32,14 @@
 
 Verified behavior:
 
-- FW01 MGMT is configured as `10.10.30.1/24` on `LAN / hn3`.
-- The Windows host at `10.10.30.10/24` successfully reaches `10.10.30.1`, and the OPNsense HTTPS Web GUI is reachable at `https://10.10.30.1`.
-- USERS is configured as `10.10.10.1/24` on `OPT1 / hn1`.
-- SERVERS is configured as `10.10.20.1/24` on `OPT2 / hn2`.
-- OPNsense has directly connected routes for all three BelkaCorp `/24` networks on the expected interfaces.
-- OPNsense has a default route through WAN / `hn0`.
-- FW01 successfully pings the Windows MGMT host `10.10.30.10` with 0% loss.
-- FW01 successfully pings public IP `1.1.1.1` with 0% loss, proving WAN IP connectivity at this checkpoint.
+- FW01 MGMT is `10.10.30.1/24` on `LAN / hn3` and is reachable from the Windows host.
+- USERS is `10.10.10.1/24` on `OPT1 / hn1`.
+- SERVERS is `10.10.20.1/24` on `OPT2 / hn2`.
+- OPNsense has directly connected routes for all three BelkaCorp `/24` networks and a default route through WAN / `hn0`.
+- FW01 successfully reaches the Windows MGMT host and public IP `1.1.1.1`.
+- Windows now has persistent routes for USERS and SERVERS through FW01 while preserving its normal Wi-Fi default route.
 
-## Chapter 3 Deployment State
-
-### Verified FW01 platform state
+## Verified FW01 Platform State
 
 ```text
 Generation               2
@@ -61,9 +57,9 @@ SERVERS  -> vSW-SERVERS
 MGMT     -> vSW-MGMT
 ```
 
-The OPNsense 26.7 installation is complete. The first post-install start fell through to PXE, but the VHDX and firmware boot chain were investigated and corrected by explicitly prioritizing `FW01.vhdx`. The incident is closed in `troubleshooting/006-fw01-post-install-pxe-boot.md`.
+The OPNsense 26.7 installation is complete. The post-install PXE incident was resolved by explicitly prioritizing `FW01.vhdx` in Generation 2 firmware and is documented in `troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
-### Verified interface identity and roles
+## Verified Interface Identity and Roles
 
 ```text
 Hyper-V role   OPNsense NIC   OPNsense role   IPv4
@@ -76,9 +72,7 @@ MGMT           hn3            LAN             10.10.30.1/24
 
 MAC-address verification established the interface identity before these roles were assigned.
 
-### Verified FW01 routing foundation
-
-The OPNsense IPv4 routing table contains:
+## Verified FW01 Routing Foundation
 
 ```text
 10.10.10.0/24   directly connected   hn1   USERS
@@ -86,8 +80,6 @@ The OPNsense IPv4 routing table contains:
 10.10.30.0/24   directly connected   hn3   MGMT
 default         upstream gateway     hn0   WAN
 ```
-
-At the validation checkpoint, the WAN side was on a Hyper-V Default Switch DHCP network and the routing table showed the default gateway through `hn0`. Because this WAN addressing is supplied dynamically, the exact WAN lease may change.
 
 Explicit route lookups verified:
 
@@ -97,8 +89,6 @@ Explicit route lookups verified:
 10.10.30.10 -> hn3
 ```
 
-The `.50` destinations do not need to exist; these lookups test route selection only.
-
 Connectivity validation verified:
 
 ```text
@@ -106,25 +96,38 @@ FW01 -> 10.10.30.10   4/4 replies, 0% loss
 FW01 -> 1.1.1.1       4/4 replies, 0% loss
 ```
 
-This completes Step 3.6. Routing is present at Layer 3; firewall policy remains a separate control that will be validated later.
+## Verified Windows Routing State
 
-## Completed Network Design
-
-BelkaCorp allocation block:
+The Windows MGMT adapter is connected as `vEthernet (vSW-MGMT)` with DHCP disabled. The host's normal Internet default route remains:
 
 ```text
-10.10.0.0/16
+0.0.0.0/0 -> 192.168.0.1 -> Wi-Fi
 ```
 
-Current subnets:
+The following persistent BelkaCorp routes are now configured:
+
+```text
+10.10.10.0/24 -> 10.10.30.1 -> vEthernet (vSW-MGMT)
+10.10.20.0/24 -> 10.10.30.1 -> vEthernet (vSW-MGMT)
+```
+
+The active routing table and `PersistentStore` both contain the two `/24` routes. `Find-NetRoute` verified actual route selection:
+
+```text
+10.10.10.50 -> vEthernet (vSW-MGMT), next hop 10.10.30.1
+10.10.20.50 -> vEthernet (vSW-MGMT), next hop 10.10.30.1
+1.1.1.1     -> Wi-Fi, next hop 192.168.0.1
+```
+
+This means Windows sends only USERS/SERVERS traffic through FW01 while ordinary Internet traffic continues through Wi-Fi.
+
+## Completed Network Design
 
 ```text
 USERS    10.10.10.0/24   gateway 10.10.10.1 [CONFIGURED + ROUTE VERIFIED]
 SERVERS  10.10.20.0/24   gateway 10.10.20.1 [CONFIGURED + ROUTE VERIFIED]
 MGMT     10.10.30.0/24   gateway 10.10.30.1 [CONFIGURED + VERIFIED]
 ```
-
-The Windows host keeps its normal Wi-Fi default route. It still needs specific routes for USERS and SERVERS through the reachable MGMT next hop `10.10.30.1`.
 
 ## Evidence Status
 
@@ -149,6 +152,8 @@ The current Chapter 3 evidence is committed and verified under `screenshots/chap
 03-15a-opnsense-routing-table.png                   COMMITTED
 03-15b-opnsense-route-lookups.png                   COMMITTED
 03-15c-opnsense-connectivity-validation.png         COMMITTED
+03-16a-windows-belka-routes-configured.png          COMMITTED
+03-16b-windows-route-selection.png                  COMMITTED
 ```
 
 ## Working Rule
@@ -178,16 +183,9 @@ Do not batch evidence or documentation until the end of the chapter.
 
 ## Immediate Next Work
 
-Continue **3.7 — Add the Windows host's specific BelkaCorp routes**.
+Continue **3.8 — Validate routed traffic and initial firewall behavior**.
 
-The Windows host must preserve its normal Internet default route on Wi-Fi while adding only these lab-specific destinations through FW01:
-
-```text
-10.10.10.0/24 -> next hop 10.10.30.1 via vEthernet (vSW-MGMT)
-10.10.20.0/24 -> next hop 10.10.30.1 via vEthernet (vSW-MGMT)
-```
-
-After adding them, verify route selection and persistence before moving into cross-subnet traffic and firewall-policy validation.
+First verify the routed Windows path to FW01's USERS and SERVERS interface addresses. Then use a real endpoint on another BelkaCorp subnet to test actual forwarded traffic and observe OPNsense firewall behavior. Do not treat route availability as proof that the firewall permits forwarding.
 
 ## Resume Rules
 
