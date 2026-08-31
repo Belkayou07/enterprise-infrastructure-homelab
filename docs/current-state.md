@@ -7,9 +7,11 @@
 - **Current chapter:** Chapter 3 — Firewall and Routing
 - **Last completed step:** 3.7 — Add the Windows host's specific BelkaCorp routes
 - **Current step:** 3.8 — Validate routed traffic and initial firewall behavior
-- **Open issues:** None currently blocking progress
+- **Open issues:** SERVERS-to-MGMT ping currently fails; exact firewall decision still needs direct OPNsense live-log confirmation
 
 ## Verified Live State
+
+`TEST01` is temporarily being used as a SERVERS-network validation endpoint. Its persistent Netplan configuration was not changed; only the live address and route were replaced for this test.
 
 ```text
                          Hyper-V Default Switch
@@ -23,21 +25,24 @@
           10.10.10.1       10.10.20.1        10.10.30.1
                |                |                |
           vSW-USERS        vSW-SERVERS        vSW-MGMT
-                                                |
-                              +-----------------+-----------------+
-                              |                                   |
-                       Windows host                            TEST01
-                       10.10.30.10/24                         10.10.30.20/24
+                                |                |
+                             TEST01          Windows host
+                         10.10.20.50/24      10.10.30.10/24
+                         gw 10.10.20.1
+                         [TEMPORARY]
 ```
 
 Verified behavior:
 
-- FW01 MGMT is `10.10.30.1/24` on `LAN / hn3` and is reachable from the Windows host.
+- FW01 MGMT is `10.10.30.1/24` on `LAN / hn3` and is reachable from Windows.
 - USERS is `10.10.10.1/24` on `OPT1 / hn1`.
 - SERVERS is `10.10.20.1/24` on `OPT2 / hn2`.
 - OPNsense has directly connected routes for all three BelkaCorp `/24` networks and a default route through WAN / `hn0`.
-- FW01 successfully reaches the Windows MGMT host and public IP `1.1.1.1`.
-- Windows now has persistent routes for USERS and SERVERS through FW01 while preserving its normal Wi-Fi default route.
+- Windows has persistent routes for USERS and SERVERS through FW01 while preserving its normal Wi-Fi default route.
+- TEST01 is temporarily attached to `vSW-SERVERS` and has live address `10.10.20.50/24` with default gateway `10.10.20.1`.
+- Windows `10.10.30.10` successfully pings TEST01 `10.10.20.50` with 0% loss.
+- Windows traceroute to TEST01 shows hop 1 `10.10.30.1` and hop 2 `10.10.20.50`, proving real forwarding through FW01.
+- A new ping initiated from TEST01 `10.10.20.50` to Windows `10.10.30.10` returns 100% loss. The exact blocking component is not yet formally attributed; the next check is the OPNsense live firewall log.
 
 ## Verified FW01 Platform State
 
@@ -89,7 +94,7 @@ Explicit route lookups verified:
 10.10.30.10 -> hn3
 ```
 
-Connectivity validation verified:
+Connectivity validation from FW01 verified:
 
 ```text
 FW01 -> 10.10.30.10   4/4 replies, 0% loss
@@ -98,20 +103,13 @@ FW01 -> 1.1.1.1       4/4 replies, 0% loss
 
 ## Verified Windows Routing State
 
-The Windows MGMT adapter is connected as `vEthernet (vSW-MGMT)` with DHCP disabled. The host's normal Internet default route remains:
-
 ```text
-0.0.0.0/0 -> 192.168.0.1 -> Wi-Fi
+0.0.0.0/0       -> 192.168.0.1 -> Wi-Fi
+10.10.10.0/24   -> 10.10.30.1  -> vEthernet (vSW-MGMT)
+10.10.20.0/24   -> 10.10.30.1  -> vEthernet (vSW-MGMT)
 ```
 
-The following persistent BelkaCorp routes are now configured:
-
-```text
-10.10.10.0/24 -> 10.10.30.1 -> vEthernet (vSW-MGMT)
-10.10.20.0/24 -> 10.10.30.1 -> vEthernet (vSW-MGMT)
-```
-
-The active routing table and `PersistentStore` both contain the two `/24` routes. `Find-NetRoute` verified actual route selection:
+The active routing table and `PersistentStore` both contain the two BelkaCorp `/24` routes. `Find-NetRoute` verified:
 
 ```text
 10.10.10.50 -> vEthernet (vSW-MGMT), next hop 10.10.30.1
@@ -119,7 +117,34 @@ The active routing table and `PersistentStore` both contain the two `/24` routes
 1.1.1.1     -> Wi-Fi, next hop 192.168.0.1
 ```
 
-This means Windows sends only USERS/SERVERS traffic through FW01 while ordinary Internet traffic continues through Wi-Fi.
+## Step 3.8 Temporary Validation State
+
+I moved TEST01 to `vSW-SERVERS` only for cross-subnet validation and used temporary live Linux commands rather than editing Netplan:
+
+```text
+TEST01 switch      vSW-SERVERS
+TEST01 IPv4        10.10.20.50/24
+TEST01 gateway     10.10.20.1
+Persistent Netplan unchanged
+```
+
+Successful MGMT-to-SERVERS test:
+
+```text
+Windows 10.10.30.10 -> TEST01 10.10.20.50
+ping                 4/4 replies, 0% loss
+tracert hop 1        10.10.30.1
+tracert hop 2        10.10.20.50
+```
+
+Observed reverse-direction failure:
+
+```text
+TEST01 10.10.20.50 -> Windows 10.10.30.10
+4 transmitted, 0 received, 100% loss
+```
+
+This reverse failure is not yet documented as a confirmed firewall block. OPNsense live-log evidence is required before assigning the cause.
 
 ## Completed Network Design
 
@@ -154,6 +179,8 @@ The current Chapter 3 evidence is committed and verified under `screenshots/chap
 03-15c-opnsense-connectivity-validation.png         COMMITTED
 03-16a-windows-belka-routes-configured.png          COMMITTED
 03-16b-windows-route-selection.png                  COMMITTED
+03-17a-mgmt-to-servers-routed-traffic.png           COMMITTED
+03-17b-servers-to-mgmt-connectivity-blocked.png     COMMITTED
 ```
 
 ## Working Rule
@@ -185,7 +212,7 @@ Do not batch evidence or documentation until the end of the chapter.
 
 Continue **3.8 — Validate routed traffic and initial firewall behavior**.
 
-First verify the routed Windows path to FW01's USERS and SERVERS interface addresses. Then use a real endpoint on another BelkaCorp subnet to test actual forwarded traffic and observe OPNsense firewall behavior. Do not treat route availability as proof that the firewall permits forwarding.
+Open OPNsense's live firewall log, filter around the SERVERS/OPT2 traffic if useful, and repeat the TEST01 `10.10.20.50 -> 10.10.30.10` ping. Capture the firewall decision directly. Do not add or modify firewall rules before that observation is recorded.
 
 ## Resume Rules
 
