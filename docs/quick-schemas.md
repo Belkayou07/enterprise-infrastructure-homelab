@@ -16,8 +16,8 @@ CHAPTER 3  Firewall / routing           [NOW]
    3.4     Map four FW01 interfaces     [DONE]
    3.5     Configure internal gateways  [DONE]
    3.6     Verify MGMT + routing        [DONE]
-   3.7     Add Windows lab routes       [NOW]
-   3.8     Validate routing / policy
+   3.7     Add Windows lab routes       [DONE]
+   3.8     Validate routing / policy    [NOW]
    3.9     Final Chapter 3 audit
 
 CHAPTER 4  Windows Server / AD
@@ -29,22 +29,6 @@ CHAPTER 9  Backup / disaster recovery
 CHAPTER 10 Automation
 CHAPTER 11 Cloud / DevOps extension
 ```
-
-## Chapter 3 Current State
-
-```text
-FW01 / OPNsense 26.7
-Generation                     2
-Memory                         4096 MB fixed
-vCPU                           2
-Automatic checkpoints          Disabled
-Secure Boot                    Off
-Installed VHDX                 C:\Hyper-V\BelkaCorp\Virtual Hard Disks\FW01.vhdx
-Installer ISO                  Detached
-Installed disk boot            [OK]
-```
-
-The first post-install boot fell through to PXE. I verified the disk and firmware state, placed `FW01.vhdx` first in the Generation 2 boot order, and then verified a successful installed-system boot. The incident is documented in `../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
 ## Verified FW01 Interface Identity
 
@@ -66,18 +50,6 @@ WAN             hn0   WAN              DHCP
 LAN             hn3   MGMT             10.10.30.1/24
 OPT1            hn1   USERS            10.10.10.1/24
 OPT2            hn2   SERVERS          10.10.20.1/24
-```
-
-MGMT verification:
-
-```text
-Windows host 10.10.30.10/24
-        |
-        | ping 10.10.30.1 -> 4/4 replies
-        | HTTPS Web GUI   -> reachable
-        v
-FW01 LAN / hn3
-10.10.30.1/24
 ```
 
 ## Verified FW01 Routing Foundation
@@ -104,24 +76,28 @@ Connectivity from FW01:
 1.1.1.1     -> 4/4 replies, 0% loss
 ```
 
-This proves FW01 knows where all three internal subnets live and has working WAN IP connectivity. Routing and firewall permission remain separate concepts.
-
-## Current MGMT Path
+## Verified Windows Host Routing
 
 ```text
-Windows host                  TEST01
-10.10.30.10/24                10.10.30.20/24
-      |                              |
-      +--------- vSW-MGMT -----------+
-                  Internal
-                         |
-                     hn3 / LAN
-                       FW01
-                  10.10.30.1/24
-                     [OK]
+Windows normal Internet route
+0.0.0.0/0       -> 192.168.0.1 -> Wi-Fi
+
+Persistent BelkaCorp routes
+10.10.10.0/24   -> 10.10.30.1 -> vEthernet (vSW-MGMT)
+10.10.20.0/24   -> 10.10.30.1 -> vEthernet (vSW-MGMT)
 ```
 
-## Final Enterprise Model
+Actual route-selection checks:
+
+```text
+10.10.10.50 -> vSW-MGMT -> 10.10.30.1
+10.10.20.50 -> vSW-MGMT -> 10.10.30.1
+1.1.1.1     -> Wi-Fi    -> 192.168.0.1
+```
+
+So Windows sends BelkaCorp USERS/SERVERS traffic to FW01 while normal Internet traffic remains on Wi-Fi.
+
+## Current Network Model
 
 ```text
                          INTERNET
@@ -150,31 +126,36 @@ Windows host                  TEST01
 ```text
 10.10.0.0/16
 |
-+-- USERS    10.10.10.0/24   gateway 10.10.10.1 [CONFIGURED + ROUTE VERIFIED]
++-- USERS    10.10.10.0/24   gateway 10.10.10.1
 |      DHCP later: 10.10.10.100 - 10.10.10.199
 |
-+-- SERVERS  10.10.20.0/24   gateway 10.10.20.1 [CONFIGURED + ROUTE VERIFIED]
++-- SERVERS  10.10.20.0/24   gateway 10.10.20.1
 |      DC01  10.10.20.10
 |      LNX01 10.10.20.20
 |      MON01 10.10.20.30
 |
-+-- MGMT     10.10.30.0/24   gateway 10.10.30.1 [CONFIGURED + VERIFIED]
++-- MGMT     10.10.30.0/24   gateway 10.10.30.1
        Windows host 10.10.30.10
        TEST01       10.10.30.20
 ```
 
-## Windows Host Routing Model — Next
+## Step 3.8 Principle
 
 ```text
-Windows normal default route
-0.0.0.0/0 -> home Wi-Fi gateway
-
-BelkaCorp-specific routes
-10.10.10.0/24 -> 10.10.30.1 via vEthernet (vSW-MGMT)
-10.10.20.0/24 -> 10.10.30.1 via vEthernet (vSW-MGMT)
+ROUTE EXISTS
+     |
+     v
+PACKET REACHES FW01
+     |
+     v
+FIREWALL POLICY CHECK
+     |
+     +--> ALLOW -> forward
+     |
+     +--> BLOCK -> stop/log
 ```
 
-The two `/24` routes are more specific than the normal `0.0.0.0/0` default route. Windows should therefore use FW01 only for BelkaCorp USERS/SERVERS traffic while ordinary Internet traffic continues through Wi-Fi.
+A correct route does not automatically mean cross-subnet traffic is permitted. Step 3.8 validates forwarding and firewall policy separately.
 
 ## DHCP and DNS Ownership
 
