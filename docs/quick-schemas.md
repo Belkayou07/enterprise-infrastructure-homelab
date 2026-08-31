@@ -95,7 +95,46 @@ Actual route-selection checks:
 1.1.1.1     -> Wi-Fi    -> 192.168.0.1
 ```
 
-So Windows sends BelkaCorp USERS/SERVERS traffic to FW01 while normal Internet traffic remains on Wi-Fi.
+## Step 3.8 — Real Routed Traffic Check
+
+TEST01 is temporarily moved to SERVERS without changing its persistent Netplan configuration:
+
+```text
+TEST01
+10.10.20.50/24
+GW 10.10.20.1
+   |
+vSW-SERVERS
+   |
+FW01 hn2 / 10.10.20.1
+```
+
+Verified forward path:
+
+```text
+Windows 10.10.30.10
+        |
+        | ping 10.10.20.50 -> 4/4 replies
+        |
+        | tracert:
+        | 1  10.10.30.1
+        | 2  10.10.20.50
+        v
+TEST01 / SERVERS
+```
+
+Observed reverse-direction result:
+
+```text
+TEST01 10.10.20.50
+        |
+        | ping 10.10.30.10
+        | 100% loss
+        v
+Windows / MGMT
+```
+
+The reverse failure is only an observation until the OPNsense live firewall log confirms the actual policy decision.
 
 ## Current Network Model
 
@@ -115,10 +154,8 @@ So Windows sends BelkaCorp USERS/SERVERS traffic to FW01 while normal Internet t
    vSW-USERS          vSW-SERVERS           vSW-MGMT
     Private              Private              Internal
         |                   |                   |
-   [CLIENT01]       +-------+-------+       Windows host
-   DHCP later       |       |       |       10.10.30.10
-                  [DC01]  [LNX01] [MON01]
-                   .10     .20      .30
+   [CLIENT01]           TEST01             Windows host
+   later              .20.50 TEMP             .30.10
 ```
 
 ## BelkaCorp Addressing
@@ -133,10 +170,10 @@ So Windows sends BelkaCorp USERS/SERVERS traffic to FW01 while normal Internet t
 |      DC01  10.10.20.10
 |      LNX01 10.10.20.20
 |      MON01 10.10.20.30
+|      TEST01 10.10.20.50 [temporary validation]
 |
 +-- MGMT     10.10.30.0/24   gateway 10.10.30.1
        Windows host 10.10.30.10
-       TEST01       10.10.30.20
 ```
 
 ## Step 3.8 Principle
@@ -155,7 +192,7 @@ FIREWALL POLICY CHECK
      +--> BLOCK -> stop/log
 ```
 
-A correct route does not automatically mean cross-subnet traffic is permitted. Step 3.8 validates forwarding and firewall policy separately.
+MGMT-to-SERVERS forwarding is now proven with a real endpoint. The next checkpoint is direct firewall-log evidence for the failed new SERVERS-to-MGMT connection.
 
 ## DHCP and DNS Ownership
 
