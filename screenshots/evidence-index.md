@@ -77,6 +77,8 @@ I documented the duplicate-switch incident in `../troubleshooting/002-hyper-v-du
 | [`chapter-03/03-15c-opnsense-connectivity-validation.png`](chapter-03/03-15c-opnsense-connectivity-validation.png) | COMMITTED | Shows successful FW01 ICMP connectivity to the Windows MGMT host and public IP `1.1.1.1`, both with 0% loss. |
 | [`chapter-03/03-16a-windows-belka-routes-configured.png`](chapter-03/03-16a-windows-belka-routes-configured.png) | COMMITTED | Shows the active Windows routing table and persistent store containing USERS and SERVERS routes through `10.10.30.1`, while the default route remains on Wi-Fi. |
 | [`chapter-03/03-16b-windows-route-selection.png`](chapter-03/03-16b-windows-route-selection.png) | COMMITTED | Shows `Find-NetRoute` selecting `vEthernet (vSW-MGMT)` and next hop `10.10.30.1` for USERS/SERVERS while `1.1.1.1` continues to use Wi-Fi through `192.168.0.1`. |
+| [`chapter-03/03-17a-mgmt-to-servers-routed-traffic.png`](chapter-03/03-17a-mgmt-to-servers-routed-traffic.png) | COMMITTED | Shows a real MGMT-to-SERVERS flow: Windows reaches TEST01 at `10.10.20.50` with 0% loss and traceroute shows FW01 `10.10.30.1` as the intermediate hop. |
+| [`chapter-03/03-17b-servers-to-mgmt-connectivity-blocked.png`](chapter-03/03-17b-servers-to-mgmt-connectivity-blocked.png) | COMMITTED | Shows TEST01 temporarily on SERVERS at `10.10.20.50/24` with gateway `10.10.20.1` and a new ping to Windows `10.10.30.10` failing with 100% loss. The exact blocking component still requires live firewall-log confirmation. |
 
 I documented the FW01 post-install PXE incident in `../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
