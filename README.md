@@ -109,9 +109,13 @@ I configured all three static BelkaCorp internal gateway addresses on FW01: USER
 
 I then verified OPNsense's routing foundation. The routing table contains directly connected routes for all three internal `/24` networks plus a default route through WAN. Explicit route lookups selected the expected interfaces, FW01 successfully reached the Windows MGMT host, and public-IP connectivity to `1.1.1.1` worked.
 
-I added persistent Windows routes for USERS and SERVERS through `10.10.30.1` on `vEthernet (vSW-MGMT)`. I verified both the active routing table and persistent store, then used `Find-NetRoute` to confirm that `10.10.10.0/24` and `10.10.20.0/24` select FW01 while normal Internet traffic such as `1.1.1.1` continues to use the existing Wi-Fi default route through `192.168.0.1`.
+I added persistent Windows routes for USERS and SERVERS through `10.10.30.1` on `vEthernet (vSW-MGMT)`. I verified both the active routing table and persistent store, then used `Find-NetRoute` to confirm that `10.10.10.0/24` and `10.10.20.0/24` select FW01 while normal Internet traffic continues to use the existing Wi-Fi default route through `192.168.0.1`.
 
-Steps 3.3 through 3.7 are complete. The current task is **3.8 — validate real routed traffic and initial OPNsense firewall behavior**, keeping route availability and firewall permission as separate checks.
+For real forwarding validation, I temporarily attached TEST01 to `vSW-SERVERS` and gave its live interface `10.10.20.50/24` with gateway `10.10.20.1`, without changing the guest's persistent Netplan configuration. Windows at `10.10.30.10` successfully reached TEST01 with 0% loss, and traceroute showed `10.10.30.1` as hop 1 and TEST01 as hop 2. This proves actual MGMT-to-SERVERS forwarding through FW01.
+
+A new connection initiated in the reverse direction from TEST01 on SERVERS to the Windows MGMT host currently fails with 100% ICMP loss. I have recorded the failure but have not yet attributed it to a specific firewall rule; the next checkpoint is direct OPNsense live-log confirmation.
+
+Steps 3.3 through 3.7 are complete. **Step 3.8 is in progress: real routed forwarding is proven, and the current task is to observe and document the firewall decision for the failed SERVERS-to-MGMT connection.**
 
 ## AI-Assisted Learning and Documentation
 
