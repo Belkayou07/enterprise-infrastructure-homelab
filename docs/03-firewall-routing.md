@@ -16,7 +16,7 @@ A router/firewall is a control point between network segments. Interface identit
 - [x] 3.4 — Identify and map the four interfaces
 - [x] 3.5 — Configure USERS, SERVERS, and MGMT gateway interfaces
 - [x] 3.6 — Verify management connectivity and routing foundation
-- [ ] 3.7 — Add the Windows host's specific BelkaCorp routes
+- [x] 3.7 — Add the Windows host's specific BelkaCorp routes
 - [ ] 3.8 — Validate routed traffic and initial firewall behavior
 - [ ] 3.9 — Complete the Chapter 3 audit
 
@@ -223,9 +223,7 @@ FW01 -> Windows host 10.10.30.10   4/4 replies, 0% loss
 FW01 -> public IP 1.1.1.1          4/4 replies, 0% loss
 ```
 
-This verifies both the management-side path and WAN IP connectivity at this checkpoint. The routing table itself also shows the default route on `hn0`.
-
-Routing does **not** mean all cross-subnet traffic is permitted. Route selection determines where packets can be forwarded; firewall policy is a separate decision that will be validated later.
+This verifies both the management-side path and WAN IP connectivity at this checkpoint. Routing does **not** mean all cross-subnet traffic is permitted; firewall policy is a separate decision.
 
 ### Evidence
 
@@ -235,18 +233,48 @@ Routing does **not** mean all cross-subnet traffic is permitted. Route selection
 
 ![OPNsense connectivity validation](../screenshots/chapter-03/03-15c-opnsense-connectivity-validation.png)
 
-This completes Step 3.6.
-
 ## 3.7 — Add Windows Host BelkaCorp Routes
 
-FW01 is now a real, reachable next hop at `10.10.30.1`, and its connected routes have been verified. The Windows host can therefore receive the two lab-specific routes that were intentionally deferred earlier:
+Before adding routes, I verified that the Windows MGMT adapter was connected with DHCP disabled, that the normal Windows default route still used Wi-Fi through `192.168.0.1`, and that no routes for USERS or SERVERS already existed.
+
+I then added these two routes through the reachable FW01 MGMT interface:
 
 ```text
 10.10.10.0/24 -> 10.10.30.1 via vEthernet (vSW-MGMT)
 10.10.20.0/24 -> 10.10.30.1 via vEthernet (vSW-MGMT)
 ```
 
-The Windows host will keep its ordinary default route on Wi-Fi. Because `/24` routes are more specific than `0.0.0.0/0`, traffic to USERS and SERVERS will use FW01 while normal Internet traffic continues through the existing Wi-Fi path.
+I used route metric `10` for both. Windows created the routes in the active routing table and persisted them for future boots. I verified the persistent store separately rather than assuming persistence from the creation command.
+
+The resulting routing model is:
+
+```text
+0.0.0.0/0       -> 192.168.0.1 -> Wi-Fi
+10.10.10.0/24   -> 10.10.30.1  -> vEthernet (vSW-MGMT)
+10.10.20.0/24   -> 10.10.30.1  -> vEthernet (vSW-MGMT)
+```
+
+I then used `Find-NetRoute` to verify Windows' actual route selection:
+
+```text
+10.10.10.50 -> vEthernet (vSW-MGMT), next hop 10.10.30.1
+10.10.20.50 -> vEthernet (vSW-MGMT), next hop 10.10.30.1
+1.1.1.1     -> Wi-Fi, next hop 192.168.0.1
+```
+
+This confirms that only the two BelkaCorp destination networks are diverted through FW01 while ordinary Internet traffic keeps using the Windows host's existing Wi-Fi default route.
+
+### Evidence
+
+![Windows BelkaCorp routes configured](../screenshots/chapter-03/03-16a-windows-belka-routes-configured.png)
+
+![Windows route selection](../screenshots/chapter-03/03-16b-windows-route-selection.png)
+
+This completes Step 3.7.
+
+## 3.8 — Validate Routed Traffic and Initial Firewall Behavior
+
+The next step is to distinguish route availability from firewall permission. I will first validate the Windows-to-FW01 routed paths, then use a real endpoint on another BelkaCorp subnet to test actual forwarded traffic and observe the OPNsense policy decision rather than assuming that a valid route means traffic is allowed.
 
 ## Evidence and Documentation Workflow
 
@@ -273,4 +301,4 @@ CONTINUE
 
 ## Current Position
 
-**Step 3.6 is complete and Step 3.7 is now in progress.** FW01 has verified connected routes for USERS, SERVERS, and MGMT, a verified default route through WAN, successful route selection for all three internal subnets, successful connectivity to the Windows MGMT host, and working public-IP connectivity. The next action is to add and verify the Windows host's specific USERS and SERVERS routes through `10.10.30.1` without changing the Windows default route.
+**Step 3.7 is complete and Step 3.8 is now in progress.** Windows has persistent USERS and SERVERS routes through `10.10.30.1`, route selection for those `/24` networks uses `vEthernet (vSW-MGMT)`, and the Windows default Internet route remains on Wi-Fi through `192.168.0.1`. The next work is routed-traffic and firewall-policy validation.
