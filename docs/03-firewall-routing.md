@@ -274,7 +274,41 @@ This completes Step 3.7.
 
 ## 3.8 — Validate Routed Traffic and Initial Firewall Behavior
 
-The next step is to distinguish route availability from firewall permission. I will first validate the Windows-to-FW01 routed paths, then use a real endpoint on another BelkaCorp subnet to test actual forwarded traffic and observe the OPNsense policy decision rather than assuming that a valid route means traffic is allowed.
+To test real forwarding instead of only inspecting routing tables, I temporarily moved `TEST01` from `vSW-MGMT` to `vSW-SERVERS`. I did not change its persistent Netplan configuration. I replaced only the live Linux network state with:
+
+```text
+TEST01 eth0       10.10.20.50/24
+Default gateway   10.10.20.1
+Hyper-V switch    vSW-SERVERS
+```
+
+This created a real endpoint on the SERVERS network while preserving the original TEST01 configuration for later restoration.
+
+From the Windows MGMT host at `10.10.30.10`, I then tested `10.10.20.50`. The ping returned 4/4 replies with 0% loss. `tracert -d` showed:
+
+```text
+hop 1   10.10.30.1   FW01 MGMT
+hop 2   10.10.20.50  TEST01 SERVERS
+```
+
+This is direct evidence that FW01 is forwarding traffic between different BelkaCorp subnets. It proves more than the earlier route-table checks because an actual packet crossed the router from MGMT to SERVERS and received a valid return path.
+
+I then initiated a new connection in the opposite direction from TEST01 on SERVERS to the Windows MGMT host:
+
+```text
+TEST01 10.10.20.50 -> 10.10.30.10
+4 packets transmitted, 0 received, 100% loss
+```
+
+The failed reverse-direction ping is recorded as an observation, not yet as proof of the exact blocking component. The routing path exists, but the next checkpoint is to inspect the OPNsense live firewall log during the failed attempt and confirm whether the packet is being denied by the SERVERS/OPT2 policy.
+
+### Evidence
+
+![MGMT to SERVERS routed traffic](../screenshots/chapter-03/03-17a-mgmt-to-servers-routed-traffic.png)
+
+![SERVERS to MGMT connectivity blocked](../screenshots/chapter-03/03-17b-servers-to-mgmt-connectivity-blocked.png)
+
+Step 3.8 remains in progress until the firewall decision for the failed SERVERS-to-MGMT connection is directly observed and documented.
 
 ## Evidence and Documentation Workflow
 
@@ -301,4 +335,4 @@ CONTINUE
 
 ## Current Position
 
-**Step 3.7 is complete and Step 3.8 is now in progress.** Windows has persistent USERS and SERVERS routes through `10.10.30.1`, route selection for those `/24` networks uses `vEthernet (vSW-MGMT)`, and the Windows default Internet route remains on Wi-Fi through `192.168.0.1`. The next work is routed-traffic and firewall-policy validation.
+**Step 3.7 is complete and Step 3.8 is in progress.** Real MGMT-to-SERVERS forwarding is verified using TEST01 temporarily at `10.10.20.50/24`: Windows received 4/4 replies and traceroute showed FW01 `10.10.30.1` as the intermediate hop. A new SERVERS-to-MGMT ping from TEST01 failed with 100% loss. The next action is to reproduce that failed attempt while viewing OPNsense's live firewall log so the policy decision can be attributed from direct evidence rather than assumption.
