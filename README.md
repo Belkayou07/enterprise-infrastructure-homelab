@@ -91,10 +91,6 @@ I created `TEST01` as a Generation 2 Ubuntu Server validation VM, installed Ubun
 
 The chapter produced four real troubleshooting records: accidental duplicate Hyper-V switch objects, one-way ICMP connectivity caused by the Windows host firewall, an overly low TEST01 Dynamic Memory minimum, and an automatic-checkpoint chain detected during the final audit.
 
-For the Dynamic Memory incident, I traced the low guest-memory reading to a 512 MB minimum and changed the policy to 2048 MB startup / 1536 MB minimum / 4096 MB maximum. For the checkpoint incident, I disabled automatic checkpoints, removed the existing checkpoints through Hyper-V, verified that TEST01 returned to direct `TEST01.vhdx` attachment with no remaining `.avhdx` files, and then successfully booted and reached the guest again.
-
-The final Chapter 1 audit confirmed the Hyper-V feature and service state, BelkaCorp storage paths, virtual-switch inventory, `10.10.30.10/24` host management addressing, TEST01 configuration, clean checkpoint policy, base-VHDX attachment, and successful connectivity to `10.10.30.20`.
-
 **Chapter 2 — Complete**
 
 I verified the pre-router network baseline from both Windows and TEST01, then defined the BelkaCorp address plan across USERS (`10.10.10.0/24`), SERVERS (`10.10.20.0/24`), and MGMT (`10.10.30.0/24`). I documented the Layer-2 boundaries created by the Hyper-V virtual switches and the Layer-3 routing responsibilities that belong to `FW01`.
@@ -111,9 +107,11 @@ I mapped every OPNsense guest interface to the authoritative Hyper-V adapter by 
 
 I configured all three static BelkaCorp internal gateway addresses on FW01: USERS `10.10.10.1/24`, SERVERS `10.10.20.1/24`, and MGMT `10.10.30.1/24`. From the Windows host at `10.10.30.10/24`, I verified management connectivity and successfully opened the OPNsense HTTPS Web GUI at `https://10.10.30.1`.
 
-I then verified OPNsense's routing foundation. The routing table contains directly connected routes for `10.10.10.0/24` on `hn1`, `10.10.20.0/24` on `hn2`, and `10.10.30.0/24` on `hn3`, plus a default route through WAN on `hn0`. Explicit route lookups selected the expected internal interfaces, FW01 successfully reached the Windows MGMT host, and a ping to public IP `1.1.1.1` completed with 0% packet loss.
+I then verified OPNsense's routing foundation. The routing table contains directly connected routes for all three internal `/24` networks plus a default route through WAN. Explicit route lookups selected the expected interfaces, FW01 successfully reached the Windows MGMT host, and public-IP connectivity to `1.1.1.1` worked.
 
-Steps 3.3 through 3.6 are complete. The current task is **3.7 — add the Windows host's specific routes for USERS and SERVERS through `10.10.30.1` while preserving the normal Wi-Fi default route**.
+I added persistent Windows routes for USERS and SERVERS through `10.10.30.1` on `vEthernet (vSW-MGMT)`. I verified both the active routing table and persistent store, then used `Find-NetRoute` to confirm that `10.10.10.0/24` and `10.10.20.0/24` select FW01 while normal Internet traffic such as `1.1.1.1` continues to use the existing Wi-Fi default route through `192.168.0.1`.
+
+Steps 3.3 through 3.7 are complete. The current task is **3.8 — validate real routed traffic and initial OPNsense firewall behavior**, keeping route availability and firewall permission as separate checks.
 
 ## AI-Assisted Learning and Documentation
 
