@@ -32,6 +32,8 @@ This folder is the landing area for real screenshots from Chapter 3 — Firewall
 | [`03-15c-opnsense-connectivity-validation.png`](03-15c-opnsense-connectivity-validation.png) | COMMITTED | Shows FW01 successfully pinging the Windows MGMT host `10.10.30.10` and public IP `1.1.1.1`, both with 0% packet loss. |
 | [`03-16a-windows-belka-routes-configured.png`](03-16a-windows-belka-routes-configured.png) | COMMITTED | Shows the Windows routing table and persistent store containing USERS and SERVERS `/24` routes through `10.10.30.1`, while the default route remains on Wi-Fi. |
 | [`03-16b-windows-route-selection.png`](03-16b-windows-route-selection.png) | COMMITTED | Shows `Find-NetRoute` selecting the MGMT adapter and `10.10.30.1` for USERS/SERVERS destinations while public traffic such as `1.1.1.1` still selects Wi-Fi. |
+| [`03-17a-mgmt-to-servers-routed-traffic.png`](03-17a-mgmt-to-servers-routed-traffic.png) | COMMITTED | Shows TEST01 attached to `vSW-SERVERS` and Windows successfully reaching `10.10.20.50`; traceroute proves the packet crosses FW01 at `10.10.30.1` before reaching the SERVERS endpoint. |
+| [`03-17b-servers-to-mgmt-connectivity-blocked.png`](03-17b-servers-to-mgmt-connectivity-blocked.png) | COMMITTED | Shows TEST01 temporarily configured as `10.10.20.50/24` with gateway `10.10.20.1` and a new SERVERS-to-MGMT ping to `10.10.30.10` failing with 100% loss. The exact blocking component still requires firewall-log confirmation. |
 
 The PXE incident is documented in `../../troubleshooting/006-fw01-post-install-pxe-boot.md`.
 
